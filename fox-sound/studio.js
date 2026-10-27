@@ -4,6 +4,7 @@
 const $=id=>document.getElementById(id);
 const SR=32000;
 const moods={
+ menu:{name:"Главное меню — бесшовный луп 48 сек",key:60,scale:"major",prog:[0,5,3,4],bpm:80,inst:"flute",environment:"forest",desc:"Оригинальная сказочная мелодия Саши: флейта, арфа, калимба, мягкие струнные. Точный бесшовный цикл длительностью 48 секунд."},
  dawn:{name:"Рассветный лес",key:60,scale:"majorPent",prog:[0,3,4,1],bpm:78,inst:"flute",environment:"forest",desc:"Тёплая прогулка Саши по солнечной поляне"},
  sister:{name:"Поиски Кати",key:62,scale:"minor",prog:[0,5,3,4],bpm:68,inst:"strings",environment:"wind",desc:"Трогательная тема пропавшей сестрёнки"},
  camp:{name:"Тёплый лагерь",key:60,scale:"majorPent",prog:[0,4,3,1],bpm:86,inst:"kalimba",environment:"fire",desc:"Друзья, привал и добрые встречи"},
@@ -263,8 +264,8 @@ function resetSeed(){$("seed").value=randSeed();$("soundSeed").value=randSeed()}
 let running=false;
 function setBusy(b){running=b;$("makeMusic").disabled=b;$("makeSound").disabled=b;$("pack").disabled=b}
 const fill=(select,data,value)=>{for(const [key,item] of Object.entries(data)){const opt=document.createElement("option");opt.value=key;opt.textContent=typeof item==="string"?item:item.name||item.title;select.append(opt)}if(value)select.value=value};
-fill($("preset"),moods,"dawn");fill($("instrument"),instruments,"flute");fill($("sfx"),effects,"jump");
-$("preset").onchange=()=>{const p=moods[$("preset").value];$("bpm").value=p.bpm;$("instrument").value=p.inst;$("presetDesc").textContent=p.desc;updateUi()};
+fill($("preset"),moods,"menu");fill($("instrument"),instruments,"flute");fill($("sfx"),effects,"jump");
+$("preset").onchange=()=>{const p=moods[$("preset").value],isMenu=$("preset").value==="menu";$("bpm").value=p.bpm;$("instrument").value=p.inst;$("presetDesc").textContent=p.desc;$("bpm").disabled=isMenu;$("instrument").disabled=isMenu;$("duration").disabled=isMenu;$("energy").disabled=isMenu;$("nature").disabled=isMenu;$("natureLevel").disabled=isMenu;if(isMenu){$("seed").value=20261028;status("🦊 Выбрана бесшовная тема меню: 48 секунд, 80 BPM. Длина и инструменты фиксированы для чистого повторения.")}updateUi()};
 function updateUi(){$("bpmLabel").textContent=$("bpm").value+" BPM";$("energyLabel").textContent=$("energy").value+"%";$("natureLabel").textContent=$("natureLevel").value+"%";$("strengthLabel").textContent=$("strength").value+"%";$("fxPitchLabel").textContent=(+$("fxPitch").value>=0?"+":"")+$("fxPitch").value}
 for(const id of ["bpm","energy","natureLevel","strength","fxPitch"])$(id).oninput=updateUi;
 $("nature").onchange=()=>{$("natureLevel").disabled=!$("nature").checked};
@@ -276,9 +277,11 @@ $("makeMusic").onclick=async()=>{if(running)return;setBusy(true);try{
  const id=$("preset").value,seed=Number($("seed").value)||1,seconds=Number($("duration").value);
  status("🎼 Сочиняю инструментальную мелодию и создаю WAV прямо на твоём телефоне...");
  await new Promise(resolve=>setTimeout(resolve,40));
- const buffer=await composition(id,{seed,seconds,bpm:+$("bpm").value,inst:$("instrument").value,energy:+$("energy").value/100,nature:$("nature").checked,natureLevel:+$("natureLevel").value/100});
- makeDownload(buffer,"FOX_BGM_"+safeKey(id)+"_"+$("bpm").value+"BPM_"+seconds+"s_seed"+seed+".wav");
- status("✅ Инструментальная тема готова! Прослушай и скачай WAV.");
+ const isMenu=id==="menu";
+ if(isMenu&&typeof FoxMenuLoop==="undefined")throw Error("Не загружен модуль бесшовной музыки меню");
+ const buffer=isMenu?FoxMenuLoop.run(seed):await composition(id,{seed,seconds,bpm:+$("bpm").value,inst:$("instrument").value,energy:+$("energy").value/100,nature:$("nature").checked,natureLevel:+$("natureLevel").value/100});
+ makeDownload(buffer,isMenu?"FOX_BGM_MainMenu_SeamlessLoop_48s_seed"+seed+".wav":"FOX_BGM_"+safeKey(id)+"_"+$("bpm").value+"BPM_"+seconds+"s_seed"+seed+".wav");
+ status(isMenu?"✅ Бесшовная музыка меню готова: 48 секунд. Начало и конец согласованы для повторения по кругу.":"✅ Инструментальная тема готова! Прослушай и скачай WAV.");
 }catch(e){status("❌ Не удалось создать музыку: "+e.message+". Попробуй сократить длительность до 15 секунд и открыть сайт в Chrome.")}finally{setBusy(false)}};
 $("makeSound").onclick=async()=>{if(running)return;setBusy(true);try{
  const id=$("sfx").value,seed=Number($("soundSeed").value)||1;
