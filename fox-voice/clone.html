@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#11202c">
+<title>Fox Voice Clone — клонирование голоса лисёнка</title>
+<meta name="description" content="Русский клон голоса для озвучки игры. Загрузите лицензированный образец, напишите новые реплики и настройте тембр.">
+<style>
+:root{color-scheme:dark;--bg:#0e1822;--panel:#172634;--edge:#344958;--text:#f7f7f6;--muted:#b8c7d0;--accent:#ffc06c}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--text);background:linear-gradient(150deg,#0c1722,#122b2c 65%,#18201e);min-height:100vh}
+main{max-width:750px;padding:16px 14px 50px;margin:auto}
+a{color:#ffd393}.head{display:flex;gap:12px;align-items:center;margin:9px 0 16px}.face{font-size:42px}
+h1{font-size:clamp(23px,5vw,33px);margin:0;line-height:1.1}h2{font-size:18px;margin:0 0 12px}
+small,.sub{color:var(--muted);font-size:13px;line-height:1.5}.sub{margin:5px 0}
+.panel{padding:17px;border:1px solid var(--edge);border-radius:18px;background:#162532;margin-bottom:14px}
+label{display:block;margin:14px 0 7px;font-size:14px;font-weight:700}
+textarea,select,input[type=file]{width:100%;font:inherit;border-radius:11px;background:#0a1722;border:1px solid #4c6475;color:#fff;padding:12px}
+textarea{min-height:80px;resize:vertical;line-height:1.48;font-size:16px}
+input[type=file]{font-size:13px}select{min-height:46px}
+input[type=range]{width:100%;accent-color:var(--accent);margin-top:4px}
+button{border:0;cursor:pointer;font:inherit;border-radius:12px;padding:13px 14px;font-weight:700;min-height:46px}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid #ffc36c;outline-offset:2px}
+.primary{color:#231a11;background:linear-gradient(125deg,#ffd088,#eb9850);width:100%;font-size:17px}
+.secondary{background:#263c4c;color:white;border:1px solid #536b7b}
+.flex{display:flex;gap:10px;flex-wrap:wrap}.flex>*{flex:1}
+.status{background:#0b222b;border-left:3px solid var(--accent);padding:12px;border-radius:8px;color:#d9eef0;line-height:1.48;font-size:14px}
+audio{width:100%;margin:11px 0}
+.mini{font-size:13px;padding:10px;border:1px solid #3e5865;background:#132532;border-radius:10px}
+.hidden{display:none!important}.pill{display:inline-block;border:1px solid #4e715f;border-radius:50px;padding:4px 9px;font-size:12px;color:#c4e9cb;margin-bottom:10px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dial{color:#fff;background:#0b1d27;padding:10px;border-radius:9px;line-height:1.5;font-size:14px}
+input[type=checkbox]{width:20px;height:20px;accent-color:#ffa94c;flex-shrink:0}
+.download{display:block;text-decoration:none;text-align:center;font-weight:750}
+</style></head>
+<body><main>
+<header class="head"><div class="face">🦊</div><div><h1>Fox Voice Clone <span style="font-size:13px;color:#ffd088">v0.4</span></h1><p class="sub">Клонируем образец → озвучиваем → настраиваем</p></div></header>
+<div class="panel">
+ <span class="pill">Настоящее нейросетевое клонирование · Русский</span>
+ <div class="status" role="status" aria-live="polite" id="status">Загрузи голос, который уже похож на нашего лисёнка. После этого можно сделать новую реплику и изменить звучание.</div>
+ <p class="sub" style="margin-top:11px">Работает через сторонний сервер Qwen3-TTS на Hugging Face, а не на самом телефоне. Бесплатная квота и очереди сервера сохраняются. Образец отправится на сервер только после нажатия «Клонировать голос».</p>
+</div>
+<div class="panel" id="refPanel">
+ <h2>1. Образец голоса</h2>
+ <p class="sub">Выбирай запись, в которой уже слышен нужный молодой мультяшный тембр. Лучше 5–15 секунд чистой речи одного персонажа, без музыки и других голосов.</p>
+ <label for="source">Аудиофайл WAV / MP3 / M4A</label>
+ <input id="source" type="file" accept="audio/*,.wav,.mp3,.m4a,.ogg,.webm">
+ <p id="filehint" class="sub">Файл ещё не выбран.</p>
+ <audio id="referencePreview" controls class="hidden"></audio>
+ <label for="refText">Точные слова из образца</label>
+ <textarea id="refText" placeholder="Напиши дословно, что произносится в загруженном аудио" maxlength="900"></textarea>
+ <small>Очень важно: текст должен совпадать с произнесённым в записи. Без правильной расшифровки качество клонирования ухудшается.</small>
+ <div class="flex" style="margin-top:13px">
+  <button type="button" id="remember" class="secondary">💾 Запомнить образец на телефоне</button>
+  <button type="button" id="forget" class="secondary">Очистить образец</button>
+ </div>
+ <p class="sub" id="savedStatus">Можно сохранить файл только в браузере этого телефона.</p>
+</div>
+<div class="panel">
+ <h2>2. Новая реплика</h2>
+ <label for="newText">Что должен сказать лисёнок?</label>
+ <textarea id="newText" maxlength="450">Ой! Ты это слышал? Мне кажется, за тем деревом кто-то прячется! Пойдём проверим!</textarea>
+ <label for="quality">Модель клонирования</label>
+ <select id="quality"><option value="0.6B">0.6B — быстрый тест</option><option value="1.7B">1.7B — более качественная модель</option></select>
+ <label class="row" style="justify-content:flex-start;align-items:flex-start;font-weight:500;line-height:1.4">
+  <input type="checkbox" id="rights"> <span>У меня есть разрешение использовать и клонировать этот голос. Не загружаю чужую запись без согласия.</span>
+ </label>
+ <button id="cloneBtn" class="primary" type="button">🎤 Клонировать голос и произнести текст</button>
+ <p class="sub">Если площадка покажет «ZeroGPU quota exceeded», это её лимит вычислений. Он не устраняется настройкой высоты и не обходится этой страницей.</p>
+</div>
+<div class="panel hidden" id="result">
+ <h2>3. Прослушать и подстроить</h2>
+ <label>Оригинальное клонирование без обработки</label>
+ <audio id="originalAudio" controls></audio>
+ <div class="flex" style="margin:8px 0 12px">
+  <button class="secondary" id="soft" type="button">🌿 Мягче</button>
+  <button class="secondary" id="lively" type="button">✨ Озорнее</button>
+  <button class="secondary" id="plain" type="button">↩ Без эффекта</button>
+ </div>
+ <label class="row" for="pitch"><span>Высота тембра</span><b id="pitchVal">+0.0</b></label>
+ <input id="pitch" type="range" min="-1.5" max="2.5" step=".25" value="0">
+ <label class="row" for="speed"><span>Скорость</span><b id="speedVal">1.00×</b></label>
+ <input id="speed" type="range" min=".88" max="1.15" step=".01" value="1">
+ <button type="button" id="apply" class="secondary" style="width:100%;margin-top:12px">🎧 Прослушать настроенный голос</button>
+ <audio id="processedAudio" controls class="hidden"></audio>
+ <div class="flex" style="margin-top:10px">
+  <a id="downloadRaw" href="#" download="fox_cloned_original.wav" class="secondary download">⬇ Исходный WAV</a>
+  <a id="downloadEdit" href="#" download="fox_cloned_adjusted.wav" class="secondary download hidden">⬇ Обработанный WAV</a>
+ </div>
+ <p class="sub">Не повышай сильно высоту: это добавляет писк. Здесь меняется только звучание уже клонированной записи; характер и эмоции зависят от исходного образца.</p>
+</div>
+<div class="panel">
+ <h2>Если нет образца</h2>
+ <div class="dial">Сначала нужно найти 5–15 секунд голоса, который тебе действительно нравится. Можно использовать собственную запись или голос, на который есть разрешение. Клон сохранит его основные особенности, поэтому взрослый женский образец всё равно даст взрослый женский тембр.</div>
+ <div class="flex" style="margin-top:12px">
+  <a class="secondary download" style="padding:13px" href="./" >← Старая студия</a>
+  <a class="secondary download" style="padding:13px" href="https://hoolatech-qwen3-tts.hf.space/" target="_blank" rel="noopener noreferrer">Прямой сайт Qwen3-TTS ↗</a>
+ </div>
+ <p class="sub" style="margin-top:12px">Сервис не гарантирует постоянную доступность или коммерческие права на конкретный образец. Перед публикацией убедись, что условия модели, площадки и голосового образца разрешают использование в RuStore.</p>
+</div>
+</main>
+<script src="./fox-dsp-v03.js"></script>
+<script type="module">
+import { Client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+const $=id=>document.getElementById(id);
+let reference=null,previewUrl=null,rawUrl=null,editedUrl=null,buffer=null,sampleRate=24000,busy=false;
+const status=text=>$("status").textContent=text;
+function uiBusy(value){busy=value;$("cloneBtn").disabled=value;$("cloneBtn").textContent=value?"⏳ Создаю голос на сервере...":"🎤 Клонировать голос и произнести текст"}
+function setFile(file){reference=file;if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=file?URL.createObjectURL(file):null;$("referencePreview").classList.toggle("hidden",!file);if(file)$("referencePreview").src=previewUrl;else $("referencePreview").removeAttribute("src");$("filehint").textContent=file?(file.name+" · "+(file.size/(1024*1024)).toFixed(1)+" МБ"):"Файл ещё не выбран."}
+$("source").onchange=e=>{const file=e.target.files?.[0];if(file)setFile(file)};
+const dbReady=new Promise(resolve=>{if(!("indexedDB" in window)){resolve(null);return}const req=indexedDB.open("fox-voice-clone-v1",1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains("sample"))req.result.createObjectStore("sample")};req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null)});
+async function storeSave(){const db=await dbReady;if(!db||!reference)throw Error("Нет сохранения или образец не выбран");const tx=db.transaction("sample","readwrite");tx.objectStore("sample").put({file:reference,transcript:$("refText").value},"fox");return new Promise((yes,no)=>{tx.oncomplete=()=>yes();tx.onerror=()=>no(tx.error)})}
+async function storeRead(){const db=await dbReady;if(!db)return null;return new Promise(ok=>{const tx=db.transaction("sample","readonly"),req=tx.objectStore("sample").get("fox");req.onsuccess=()=>ok(req.result||null);req.onerror=()=>ok(null)})}
+async function storeClear(){const db=await dbReady;if(!db)return;const tx=db.transaction("sample","readwrite");tx.objectStore("sample").delete("fox")}
+$("remember").onclick=async()=>{try{if(!reference)throw Error("Сначала выбери аудиофайл");if(reference.size>10*1024*1024)throw Error("Слишком большой файл для сохранения (до 10 МБ)");await storeSave();$("savedStatus").textContent="✅ Образец сохранён на этом телефоне."; }catch(e){$("savedStatus").textContent="❌ "+e.message}};
+$("forget").onclick=async()=>{await storeClear();$("source").value="";setFile(null);$("refText").value="";$("savedStatus").textContent="Образец очищен из памяти сайта."};
+storeRead().then(x=>{if(x?.file){setFile(x.file);$("refText").value=x.transcript||"";$("savedStatus").textContent="✅ Загружен ранее сохранённый образец этого телефона."}});
+function wavData(samples,rate){const out=new ArrayBuffer(44+samples.length*2),v=new DataView(out);const str=(at,s)=>{for(let i=0;i<s.length;i++)v.setUint8(at+i,s.charCodeAt(i))};str(0,"RIFF");v.setUint32(4,36+samples.length*2,true);str(8,"WAVE");str(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);str(36,"data");v.setUint32(40,samples.length*2,true);for(let i=0;i<samples.length;i++)v.setInt16(44+i*2,Math.max(-32768,Math.min(32767,Math.round(samples[i]*32767))),true);return new Blob([out],{type:"audio/wav"})}
+function setRaw(blob){if(rawUrl)URL.revokeObjectURL(rawUrl);rawUrl=URL.createObjectURL(blob);$("originalAudio").src=rawUrl;$("downloadRaw").href=rawUrl;if(editedUrl)URL.revokeObjectURL(editedUrl);editedUrl=null;$("processedAudio").classList.add("hidden");$("downloadEdit").classList.add("hidden");$("result").classList.remove("hidden")}
+function tuneReadout(){$("pitchVal").textContent=(+$("pitch").value>=0?"+":"")+(+$("pitch").value).toFixed(2);$("speedVal").textContent=(+$("speed").value).toFixed(2)+"×"}
+function applyPreset(pitch,speed){$("pitch").value=pitch;$("speed").value=speed;tuneReadout();tune()}
+$("pitch").oninput=tuneReadout;$("speed").oninput=tuneReadout;
+$("soft").onclick=()=>applyPreset(-.3,.94);
+$("lively").onclick=()=>applyPreset(1.25,1.06);
+$("plain").onclick=()=>applyPreset(0,1);
+async function tune(){
+ try{if(!buffer)throw Error("Сначала сделай клонирование");if(typeof FoxDSP==="undefined")throw Error("Не загрузился аудиообработчик");$("apply").disabled=true;$("apply").textContent="⏳ Обрабатываю...";
+ await new Promise(r=>setTimeout(r,35));
+ const a=FoxDSP.render(buffer,sampleRate,{pitch:+$("pitch").value,tempo:+$("speed").value,brightness:.07});
+ const out=wavData(a,sampleRate);
+ if(editedUrl)URL.revokeObjectURL(editedUrl);editedUrl=URL.createObjectURL(out);
+ $("processedAudio").src=editedUrl;$("processedAudio").classList.remove("hidden");$("downloadEdit").href=editedUrl;$("downloadEdit").classList.remove("hidden");status("✅ Настроенный голос готов. Можно послушать и скачать WAV.");
+ }catch(e){status("❌ "+e.message)}finally{$("apply").disabled=false;$("apply").textContent="🎧 Прослушать настроенный голос"}
+}
+$("apply").onclick=tune;
+$("cloneBtn").onclick=async()=>{
+ if(busy)return;
+ try{
+  if(!reference)throw Error("Сначала загрузи образец голоса.");
+  if(reference.size>10*1024*1024)throw Error("Образец должен быть меньше 10 МБ.");
+  const refText=$("refText").value.trim(),target=$("newText").value.trim();
+  if(refText.length<3)throw Error("Введи точные слова из образца.");
+  if(!target)throw Error("Введи новую реплику.");
+  if(!$("rights").checked)throw Error("Подтверди права на использование этого голоса.");
+  uiBusy(true);status("🔌 Подключаюсь к бесплатному серверу Qwen3-TTS...");
+  const app=await Client.connect("hoolatech/Qwen3-TTS");
+  status("🎤 Отправляю образец и создаю русскую реплику. На сервере может быть очередь...");
+  const result=await app.predict("/generate_voice_clone",{ref_audio:handle_file(reference),ref_text:refText,target_text:target,language:"Russian",use_xvector_only:false,model_size:$("quality").value});
+  const data=result?.data||[];
+  const file=data[0],message=data[1]||"";
+  if(!file||typeof file!=="object")throw Error(String(message||"Сервер не вернул аудиофайл"));
+  const url=file.url||("https://hoolatech-qwen3-tts.hf.space/gradio_api/file="+file.path);
+  if(!url.startsWith("https://"))throw Error("Сервер вернул некорректный адрес аудио");
+  status("⬇ Загружаю готовый аудиофайл...");
+  const response=await fetch(url);if(!response.ok)throw Error("Аудиофайл недоступен: "+response.status);
+  const blob=await response.blob();const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  try{const decoded=await ctx.decodeAudioData(await blob.arrayBuffer());sampleRate=decoded.sampleRate;buffer=decoded.getChannelData(0).slice();if(decoded.numberOfChannels>1){const other=decoded.getChannelData(1);for(let i=0;i<buffer.length;i++)buffer[i]=.5*(buffer[i]+other[i])}}finally{await ctx.close()}
+  setRaw(wavData(buffer,sampleRate));
+  $("result").scrollIntoView({behavior:"smooth",block:"start"});
+  status("✅ Клонирование готово! Сначала послушай оригинал, затем настрой тембр.");
+ }catch(e){
+  const msg=String(e?.message||e);
+  if(/quota|zerogpu|limit|gpu|429|exceeded|rate limit|queue full/i.test(msg))status("⚠️ Бесплатная квота сервера исчерпана. Это ограничение Hugging Face, не нашего сайта. Позже можно попробовать снова. "+msg.slice(0,220));
+  else status("❌ Генерация не удалась: "+msg.slice(0,350)+". Если сервер недоступен, открой прямую ссылку Qwen3-TTS ниже.");
+ }finally{uiBusy(false)}
+};
+tuneReadout();
+</script>
+</body></html>
