@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#11242a"><meta name="description" content="Fox Sound Studio — создание оригинальной инструментальной музыки и звуков по описанию для игры Мистер лис.">
+<title>Fox Sound Studio — музыка и игровые звуки на заказ</title>
+<style>
+:root{color-scheme:dark;--p:#192d34;--bg:#0b171c;--border:#38554b;--muted:#b8cec5;--gold:#ffce7c}
+*{box-sizing:border-box}body{margin:0;font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at 20% 0,#274737,#101f27 56%,#0b171c);color:#f6f4ed;min-height:100vh}
+main{max-width:760px;margin:0 auto;padding:18px 14px 50px}
+.hero{display:flex;align-items:center;gap:14px;margin:14px 0 20px}.logo{font-size:43px;background:#244036;border:1px solid #617750;border-radius:20px;padding:12px}
+h1{margin:0;line-height:1.07;font-size:clamp(25px,6vw,35px)}h2{font-size:19px;margin:0 0 10px}
+p{color:var(--muted);margin:7px 0 13px}.sub{font-size:13px}
+.panel{border:1px solid var(--border);border-radius:19px;background:rgba(20,40,43,.96);padding:18px;margin-bottom:14px}
+.tag{display:inline-block;border:1px solid #547354;color:#d3e9d4;font-size:12px;border-radius:99px;padding:4px 9px;margin:3px 7px 11px 0}
+.notice{background:#10272a;padding:12px;border-left:3px solid var(--gold);border-radius:10px;margin:8px 0 15px}
+textarea{font:inherit;color:#fff;background:#0c1d26;border:1px solid #587568;border-radius:12px;padding:13px;width:100%;resize:vertical;min-height:142px}
+button{font:inherit;font-weight:800;padding:14px;border:0;border-radius:12px;min-height:52px;cursor:pointer;width:100%;background:linear-gradient(135deg,#ffe09c,#eba34f);color:#271d14;margin:13px 0 7px}
+button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.small{font-size:13px}.status{font-size:13px;color:#d5f0d7;min-height:20px}
+a{color:#ffcf84}ul{padding-left:21px;margin:5px 0 15px}li{margin:8px 0}
+</style></head>
+<body><main>
+<div class="hero"><div class="logo">🦊🎻</div><div><h1>Fox Sound Studio</h1><p class="sub">Zhenixpick · Авторская музыка и звуки игры</p></div></div>
+<div class="panel">
+<span class="tag">Без готовых пресетов</span><span class="tag">Без слов и вокала</span><span class="tag">Аудио в чате</span>
+<h2>Работаем по твоему описанию</h2>
+<p>Студия теперь используется как творческая мастерская для игры «Мистер лис. Сашины приключения». Ты отправляешь ссылку на этот сайт и описание задачи в рабочий чат ChatGPT. Я создаю оригинальную музыку или игровые звуки и прикладываю файлы прямо в разговоре.</p>
+<div class="notice"><b>Важно:</b> этот сайт не запускает нейросеть и не создаёт музыку самостоятельно. Генерация и подготовка WAV/OGG/MP3 происходят во время работы над запросом в чате. Нет скрытых платных запусков или фоновой обработки.</div>
+<h2>Опиши, что нужно</h2>
+<textarea id="brief" placeholder="Например: нужна тёплая сказочная инструментальная музыка главного меню, без вокала, с живой флейтой, арфой и мягкими струнными, на 45–60 секунд, бесшовно. И 3 варианта звука нажатия кнопки."></textarea>
+<button id="copy" type="button">📋 Скопировать описание для рабочего чата</button>
+<div id="status" class="status" role="status" aria-live="polite"></div>
+<p class="small">Можно просто отправить эту ссылку в рабочий чат и написать задачу там — ничего заполнять здесь необязательно.</p>
+</div>
+<div class="panel">
+<h2>Что можно заказать для игры</h2>
+<ul>
+<li><b>Музыкальные темы:</b> главное меню, лагерь, поиски Кати, уютные уровни, опасные сцены, норы, волшебные находки, победа.</li>
+<li><b>Звуки персонажа и механик:</b> шаги, рывок, прыжок, рогатка, лианы, воздушная пушка, фонари, сундуки, яблоко.</li>
+<li><b>Атмосфера:</b> ветер, листва, ручей, сверчки, лесные птицы, звуки пещер.</li>
+<li><b>Результат в рабочем чате:</b> WAV/OGG для Godot, MP3 для оценки и ZIP с раздельными именованными файлами.</li>
+</ul>
+<p class="small">Схема имён: <code>MrFox_Menu_A_...</code>, <code>Menu_Click_A_...</code>. Все музыкальные темы должны иметь собственную мелодию, развитие и аккуратный стык при необходимости повторения.</p>
+</div>
+<div class="panel"><h2>Предыдущая студия озвучки</h2><p>Голоса лисёнка и комикса остаются отдельно, мы их не меняли.</p><a href="../fox-voice/">🎙️ Открыть Fox Voice Studio</a></div>
+</main>
+<script>
+const textarea=document.getElementById("brief"),status=document.getElementById("status");
+document.getElementById("copy").onclick=async()=>{
+ const text="Fox Sound Studio: https://alexerrove-dotcom.github.io/fox-sound/\nЗадание для игры «Мистер лис. Сашины приключения»:\n"+(textarea.value.trim()||"Сделай оригинальную музыку или игровые звуки по моему следующему сообщению.")+"\nПришли готовые аудиофайлы в этом чате.";
+ try{await navigator.clipboard.writeText(text);status.textContent="✅ Скопировано. Вставь текст в рабочий чат."}
+ catch(e){textarea.value=text;textarea.focus();textarea.select();status.textContent="Выделил текст. Скопируй его вручную и отправь в чат."}
+};
+</script></body></html>
