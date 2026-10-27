@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101a25">
+<title>Fox Voice Studio 0.2 — озвучка лисёнка и комикса</title>
+<meta name="description" content="Бесплатная браузерная студия для тестовой озвучки лесных персонажей. Русская речь, мультяшная высота, скачивание WAV.">
+<style>
+:root{color-scheme:dark;--bg:#0c151e;--p:#172533;--border:#314352;--txt:#f4f7f8;--sub:#b4c5cb;--orange:#ffb458}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;color:var(--txt);background:linear-gradient(150deg,#0a1822,#132c29 58%,#1c211d);min-height:100vh}
+main{max-width:750px;margin:0 auto;padding:16px 14px 45px}
+header{display:flex;gap:13px;align-items:center;margin:10px 0 18px}header .logo{font-size:40px}h1{font-size:clamp(25px,5vw,35px);line-height:1.05;margin:0 0 5px}header p,.muted{color:var(--sub);margin:0;font-size:13px;line-height:1.5}
+.panel{background:rgba(20,34,45,.97);border:1px solid var(--border);border-radius:19px;padding:16px;margin-bottom:14px;box-shadow:0 8px 24px #0002}
+h2{font-size:17px;margin:0 0 13px}.tabs{display:flex;gap:9px;margin-bottom:15px}.tab{flex:1;padding:12px 8px;text-align:center;border-radius:13px;background:#213442;border:1px solid #3a5160;color:#e3edf0;font-weight:700}
+.tab.active{background:#f3a84a;color:#231b11;border-color:#f3a84a}
+label{display:block;font-size:14px;margin:12px 0 6px;color:#e8f0f1;font-weight:650}
+textarea,select,input[type=range]{width:100%;font:inherit}
+textarea,select{background:#0b1923;border:1px solid #465b68;border-radius:11px;color:#fff;padding:12px;font-size:16px;min-height:49px}
+textarea{min-height:105px;line-height:1.48;resize:vertical}textarea:focus,select:focus{outline:2px solid #f0ae60}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.control{display:flex;justify-content:space-between;gap:8px}
+input[type=range]{accent-color:#ffad52;margin:4px 0 5px}
+button{cursor:pointer;border:0}button:disabled{opacity:.58;cursor:wait}
+.primary{background:linear-gradient(125deg,#ffca69,#ed9340);color:#282016;font-size:17px;font-weight:800;border-radius:12px;padding:15px 14px;min-height:51px;width:100%}
+.secondary{border-radius:11px;border:1px solid #617681;background:#263c4c;color:#fff;padding:11px 14px;font-weight:700;min-height:45px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}.actions>*{flex:1}
+audio{width:100%;margin:12px 0 6px}
+.status{color:#d2e7eb;background:#0a222c;border-left:3px solid #ffb458;padding:11px 12px;font-size:14px;line-height:1.5;border-radius:6px;min-height:44px}
+button:focus-visible,a:focus-visible{outline:3px solid #ffcd7d;outline-offset:2px}
+a{color:#ffd28d}small{font-size:12px;color:var(--sub);line-height:1.5;display:block}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b1923;padding:9px;border-radius:10px;color:#bfd1d8;font-size:12px}
+.hidden{display:none!important}.tag{display:inline-block;font-size:12px;border:1px solid #526854;border-radius:99px;padding:4px 8px;color:#c1e7cb;margin:8px 0}
+@media(max-width:400px){.grid{grid-template-columns:1fr}main{padding:12px}.panel{padding:14px}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="logo">🦊</div><div><h1>Fox Voice Studio <span style="font-size:13px;color:#ffca69">v0.2</span></h1><p>Озвучка персонажей и страниц комикса · Русский язык</p></div></header>
+<div class="panel">
+<span class="tag">Бесплатная тестовая версия · без регистрации</span>
+<div class="status" id="status" role="status" aria-live="polite">Голос лисёнка переработан: более естественная основа, меньше писка и ниже скорость. Нажми «Создать голос». При первой загрузке нужно около 63 МБ, лучше Wi-Fi.</div>
+</div>
+<div class="tabs"><button class="tab active" id="tab-one" onclick="switchTab('one')">🎭 Одна реплика</button><button class="tab" id="tab-comic" onclick="switchTab('comic')">📖 Страницы комикса</button></div>
+<section id="view-one" class="panel">
+<h2>1. Кого озвучиваем?</h2>
+<div class="grid">
+<div><label for="character">Персонаж</label><select id="character">
+<option value="fox">🦊 Лисёнок</option><option value="squirrel">🐿️ Белочка</option><option value="badger">🦡 Барсук</option><option value="narrator">📖 Рассказчик</option>
+</select></div>
+<div><label for="emotion">Настроение</label><select id="emotion">
+<option value="joy">😄 Радость</option><option value="curious">✨ Удивление</option><option value="scared">😨 Испуг</option><option value="whisper">🤫 Тихо / тайна</option><option value="brave">💪 Храбрость</option><option value="neutral">💬 Спокойно</option>
+</select></div>
+</div>
+<label for="speech">2. Что персонаж говорит?</label>
+<textarea id="speech" maxlength="450">Привет! Я маленький лисёнок. Какой сегодня удивительный день! Кажется, впереди нас ждёт настоящее приключение.</textarea>
+<div class="grid">
+<div><label class="control" for="pitch"><span>Мультяшная высота</span><b id="pitch-val">+1</b></label><input id="pitch" type="range" min="-2" max="5" step="0.5" value="1"></div>
+<div><label class="control" for="speed"><span>Скорость</span><b id="speed-val">0.94×</b></label><input id="speed" type="range" min="0.78" max="1.18" step="0.01" value="0.94"></div>
+</div>
+<small>Важнее разборчивость: по умолчанию звучит более мягкий высокий голос без сильного искусственного ускорения. Слишком высокое значение опять сделает голос неестественным. Это всё ещё тестовая модель Piper — актёрские эмоции пока ограничены.</small>
+<div style="margin-top:15px"><button id="generate" class="primary">🔊 Создать голос</button></div>
+<div id="result" class="hidden"><audio id="player" controls preload="metadata"></audio>
+<div class="actions"><a id="download" class="secondary" download="fox_voice.wav" style="text-decoration:none;text-align:center">⬇ Скачать WAV</a><button class="secondary" onclick="savePreset()">💾 Запомнить настройки</button></div></div>
+</section>
+<section id="view-comic" class="panel hidden">
+<h2>Озвучить страницу комикса</h2>
+<small>Каждая строка: Персонаж | Эмоция | Текст. Доступны: Лисёнок, Белочка, Барсук, Рассказчик. Эмоции: Радость, Удивление, Испуг, Тайна, Храбрость, Спокойно. Скачивание в ZIP с отдельными WAV и текстом.</small>
+<label for="comic">Реплики</label>
+<textarea id="comic" style="min-height:200px">Рассказчик | Тайна | Однажды в лесу пропали все фонари.
+Лисёнок | Удивление | Ой! А что это там шуршит?
+Белочка | Радость | Лисёнок! Смотри, какую рогатку я сделала!
+Барсук | Спокойно | Вы бы для начала припасы проверили.</textarea>
+<button id="batch" class="primary" style="margin-top:14px">📦 Создать комикс и скачать ZIP</button>
+</section>
+<section class="panel"><h2>Что важно знать</h2>
+<p class="muted">Работает без Colab и GPU-сервера: нейросеть загружается на телефон, создаёт WAV прямо в браузере. На слабых телефонах это может быть медленно. Большой текст разбивай на короткие реплики. Записи не отправляются на наш сервер.</p>
+<p class="muted" style="margin-top:12px">Это тестовый инструмент. Для публикации озвучки в коммерческой игре необходимо дополнительно подтвердить лицензию конкретного голосового файла Piper; сейчас мы не объявляем её автоматически разрешённой. Исходные технологии: <a href="https://piper-tts.github.io/" target="_blank" rel="noreferrer">Piper Browser</a> и <a href="https://huggingface.co/rhasspy/piper-voices" target="_blank" rel="noreferrer">Piper Voices</a>.</p>
+</section>
+</main>
+<script src="https://piper-tts.github.io/vendor/ort/ort.wasm.min.js"></script>
+<script src="https://piper-tts.github.io/vendor/phonemize/piper_phonemize.js"></script>
+<script src="https://piper-tts.github.io/piper-browser.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+"use strict";
+const ROOT_VOICE="https://huggingface.co/rhasspy/piper-voices/resolve/main/ru/ru_RU/";
+const baseVoices={irina:{model:ROOT_VOICE+"irina/medium/ru_RU-irina-medium.onnx",config:ROOT_VOICE+"irina/medium/ru_RU-irina-medium.onnx.json"},denis:{model:ROOT_VOICE+"denis/medium/ru_RU-denis-medium.onnx",config:ROOT_VOICE+"denis/medium/ru_RU-denis-medium.onnx.json"},dmitri:{model:ROOT_VOICE+"dmitri/medium/ru_RU-dmitri-medium.onnx",config:ROOT_VOICE+"dmitri/medium/ru_RU-dmitri-medium.onnx.json"}};
+const profiles={fox:{voice:"irina",pitch:1,speed:.94},squirrel:{voice:"irina",pitch:2,speed:1.01},badger:{voice:"dmitri",pitch:-.5,speed:.94},narrator:{voice:"denis",pitch:0,speed:.95}};
+const moods={joy:{pitch:0,speed:1.03},curious:{pitch:.15,speed:.99},scared:{pitch:.3,speed:1.01},whisper:{pitch:-.15,speed:.89},brave:{pitch:0,speed:1.01},neutral:{pitch:0,speed:1}};
+const el=id=>document.getElementById(id);
+let engine=null,voiceId=null,runBusy=false,latestUrl=null;
+function status(s){el("status").textContent=s}
+function switchTab(tab){el("view-one").classList.toggle("hidden",tab!=="one");el("view-comic").classList.toggle("hidden",tab!=="comic");el("tab-one").classList.toggle("active",tab==="one");el("tab-comic").classList.toggle("active",tab==="comic")}
+function updateSliders(){el("pitch-val").textContent=(+el("pitch").value>0?"+":"")+el("pitch").value;el("speed-val").textContent=(+el("speed").value).toFixed(2)+"×"}
+function chooseProfile(){const key=el("character").value;const saved=JSON.parse(localStorage.getItem("fox-voice-settings-v2")||"{}");const p=saved[key]||profiles[key];el("pitch").value=p.pitch;el("speed").value=p.speed;updateSliders()}
+el("pitch").addEventListener("input",updateSliders);el("speed").addEventListener("input",updateSliders);el("character").addEventListener("change",chooseProfile);
+function savePreset(){try{const data=JSON.parse(localStorage.getItem("fox-voice-settings-v2")||"{}");data[el("character").value]={...profiles[el("character").value],pitch:+el("pitch").value,speed:+el("speed").value};localStorage.setItem("fox-voice-settings-v2",JSON.stringify(data));status("✅ Настройки персонажа сохранены в этом браузере.")}catch(e){status("Не удалось сохранить настройки: "+e.message)}}
+function patches(){if(typeof ort==="undefined"||typeof createPiperPhonemize==="undefined"||typeof Piper==="undefined")throw Error("Библиотеки не загрузились. Проверь подключение к интернету и обнови страницу.");ort.env.wasm.wasmPaths="https://piper-tts.github.io/vendor/ort/";ort.env.wasm.numThreads=1;if(!window.foxPatched){const original=window.createPiperPhonemize;window.createPiperPhonemize=opts=>original({...opts,locateFile:name=>"https://piper-tts.github.io/vendor/phonemize/"+name});window.foxPatched=true;}}
+async function getVoice(voice){patches();if(engine&&voiceId===voice)return engine;if(engine){await engine.dispose();engine=null;voiceId=null}
+const opts=baseVoices[voice];status("⏬ Загружаю русский нейросетевой голос (примерно 63 МБ). На телефоне это может занять некоторое время...");engine=await Piper.createEngine(opts.model,opts.config);voiceId=voice;status("✅ Русский голос загружен. Готовлю реплику...");return engine}
+function pitchPcm(pcm,mult){if(Math.abs(mult-1)<.002)return pcm;const n=Math.max(1,Math.floor(pcm.length/mult));const out=new Float32Array(n);for(let i=0;i<n;i++){let at=i*mult,lo=Math.floor(at),hi=Math.min(pcm.length-1,lo+1),f=at-lo;out[i]=pcm[lo]*(1-f)+pcm[hi]*f;}return out}
+async function synth(text,character,emotion,pitch,speed){text=(text||"").trim();if(!text)throw Error("Сначала напиши слова героя.");if(text.length>450)throw Error("Слишком длинный текст: максимум 450 символов за раз.");const pr=profiles[character],m=moods[emotion]||moods.neutral;const semitones=Math.max(-6,Math.min(11,pitch+m.pitch)),rate=Math.pow(2,semitones/12),tempo=Math.max(.65,Math.min(1.5,speed*m.speed));const model=await getVoice(pr.voice);status("🧠 Нейросеть создаёт голос... Не закрывай вкладку.");const pcm=await model.speak(text,{lengthScale:rate/tempo,noiseScale:.55,noiseW:.65,sentenceSilence:.32});const shifted=pitchPcm(pcm,rate);return Piper.toWav(shifted,model.sampleRate)}
+function toggleBusy(b){runBusy=b;el("generate").disabled=b;el("batch").disabled=b}
+el("generate").onclick=async()=>{if(runBusy)return;toggleBusy(true);try{const blob=await synth(el("speech").value,el("character").value,el("emotion").value,+el("pitch").value,+el("speed").value);if(latestUrl)URL.revokeObjectURL(latestUrl);latestUrl=URL.createObjectURL(blob);el("player").src=latestUrl;el("download").href=latestUrl;el("download").download="fox_"+el("character").value+"_"+Date.now()+".wav";el("result").classList.remove("hidden");status("✅ Готово! Нажми ▶, чтобы послушать, или «Скачать WAV».")}catch(e){status("❌ "+(e&&e.message||String(e))+" Попробуй Chrome и Wi-Fi.")}finally{toggleBusy(false)}};
+const charMap={"лисёнок":"fox","лисенок":"fox","белочка":"squirrel","барсук":"badger","рассказчик":"narrator"};
+const emotionMap={"радость":"joy","удивление":"curious","испуг":"scared","тайна":"whisper","шёпот":"whisper","шепот":"whisper","храбрость":"brave","спокойно":"neutral"};
+el("batch").onclick=async()=>{if(runBusy)return;toggleBusy(true);try{if(typeof JSZip==="undefined")throw Error("Модуль ZIP не загрузился");let lines=el("comic").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);if(lines.length<1||lines.length>12)throw Error("Добавь от 1 до 12 реплик.");const zip=new JSZip(),manifest=["Номер,Персонаж,Эмоция,Текст,Аудио"];let n=0;for(const line of lines){const parts=line.split("|");if(parts.length<3)throw Error("Формат строки: Персонаж | Эмоция | Текст");const ch=parts[0].trim(),emo=parts[1].trim(),txt=parts.slice(2).join("|").trim();const ck=charMap[ch.toLowerCase()],ek=emotionMap[emo.toLowerCase()]||"neutral";if(!ck)throw Error("Неизвестный персонаж: "+ch);n++;status("🎙️ Готовлю реплику "+n+" из "+lines.length+" — "+ch);const p=JSON.parse(localStorage.getItem("fox-voice-settings-v2")||"{}")[ck]||profiles[ck];const audio=await synth(txt,ck,ek,p.pitch,p.speed);const file=String(n).padStart(2,"0")+"_"+ck+".wav";zip.file(file,audio);const csv=s=>'"'+String(s).replace(/"/g,'""')+'"';manifest.push([n,ch,emo,txt,file].map(csv).join(","))}
+zip.file("dialogues.csv","\uFEFF"+manifest.join("\r\n"));status("📦 Упаковываю файлы...");const archive=await zip.generateAsync({type:"blob"});const url=URL.createObjectURL(archive);const a=document.createElement("a");a.href=url;a.download="fox_comic_voices_"+Date.now()+".zip";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);status("✅ ZIP со всеми "+n+" репликами скачан!")}catch(e){status("❌ "+(e&&e.message||String(e)))}finally{toggleBusy(false)}};
+chooseProfile();
+</script>
+</body></html>
