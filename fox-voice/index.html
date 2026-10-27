@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#101a25">
-<title>Fox Voice Studio — озвучка лисёнка и комикса</title>
+<title>Fox Voice Studio 0.2 — озвучка лисёнка и комикса</title>
 <meta name="description" content="Бесплатная браузерная студия для тестовой озвучки лесных персонажей. Русская речь, мультяшная высота, скачивание WAV.">
 <style>
 :root{color-scheme:dark;--bg:#0c151e;--p:#172533;--border:#314352;--txt:#f4f7f8;--sub:#b4c5cb;--orange:#ffb458}
@@ -35,10 +35,10 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b1923;padding:9px;b
 </head>
 <body>
 <main>
-<header><div class="logo">🦊</div><div><h1>Fox Voice Studio</h1><p>Озвучка персонажей и страниц комикса · Русский язык</p></div></header>
+<header><div class="logo">🦊</div><div><h1>Fox Voice Studio <span style="font-size:13px;color:#ffca69">v0.2</span></h1><p>Озвучка персонажей и страниц комикса · Русский язык</p></div></header>
 <div class="panel">
 <span class="tag">Бесплатная тестовая версия · без регистрации</span>
-<div class="status" id="status" role="status" aria-live="polite">Выбери героя, напиши фразу и нажми «Создать голос». Первая загрузка русской нейросети — около 63 МБ; лучше использовать Wi-Fi.</div>
+<div class="status" id="status" role="status" aria-live="polite">Голос лисёнка переработан: более естественная основа, меньше писка и ниже скорость. Нажми «Создать голос». При первой загрузке нужно около 63 МБ, лучше Wi-Fi.</div>
 </div>
 <div class="tabs"><button class="tab active" id="tab-one" onclick="switchTab('one')">🎭 Одна реплика</button><button class="tab" id="tab-comic" onclick="switchTab('comic')">📖 Страницы комикса</button></div>
 <section id="view-one" class="panel">
@@ -52,12 +52,12 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b1923;padding:9px;b
 </select></div>
 </div>
 <label for="speech">2. Что персонаж говорит?</label>
-<textarea id="speech" maxlength="450">Ой! Привет-привет! Хи-хи! Я маленький лисёнок! Ух ты, какие приключения нас ждут!</textarea>
+<textarea id="speech" maxlength="450">Привет! Я маленький лисёнок. Какой сегодня удивительный день! Кажется, впереди нас ждёт настоящее приключение.</textarea>
 <div class="grid">
-<div><label class="control" for="pitch"><span>Мультяшная высота</span><b id="pitch-val">+5</b></label><input id="pitch" type="range" min="-3" max="9" step="0.5" value="5"></div>
-<div><label class="control" for="speed"><span>Скорость</span><b id="speed-val">1.08×</b></label><input id="speed" type="range" min="0.78" max="1.33" step="0.01" value="1.08"></div>
+<div><label class="control" for="pitch"><span>Мультяшная высота</span><b id="pitch-val">+1</b></label><input id="pitch" type="range" min="-2" max="5" step="0.5" value="1"></div>
+<div><label class="control" for="speed"><span>Скорость</span><b id="speed-val">0.94×</b></label><input id="speed" type="range" min="0.78" max="1.18" step="0.01" value="0.94"></div>
 </div>
-<small>Эмоции и мультяшный тембр здесь создаются обработкой звука, а не актёрским исполнением Qwen3-TTS. Для отдельных персонажей сохраняются свои настройки.</small>
+<small>Важнее разборчивость: по умолчанию звучит более мягкий высокий голос без сильного искусственного ускорения. Слишком высокое значение опять сделает голос неестественным. Это всё ещё тестовая модель Piper — актёрские эмоции пока ограничены.</small>
 <div style="margin-top:15px"><button id="generate" class="primary">🔊 Создать голос</button></div>
 <div id="result" class="hidden"><audio id="player" controls preload="metadata"></audio>
 <div class="actions"><a id="download" class="secondary" download="fox_voice.wav" style="text-decoration:none;text-align:center">⬇ Скачать WAV</a><button class="secondary" onclick="savePreset()">💾 Запомнить настройки</button></div></div>
@@ -84,27 +84,27 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b1923;padding:9px;b
 <script>
 "use strict";
 const ROOT_VOICE="https://huggingface.co/rhasspy/piper-voices/resolve/main/ru/ru_RU/";
-const baseVoices={denis:{model:ROOT_VOICE+"denis/medium/ru_RU-denis-medium.onnx",config:ROOT_VOICE+"denis/medium/ru_RU-denis-medium.onnx.json"},dmitri:{model:ROOT_VOICE+"dmitri/medium/ru_RU-dmitri-medium.onnx",config:ROOT_VOICE+"dmitri/medium/ru_RU-dmitri-medium.onnx.json"}};
-const profiles={fox:{voice:"denis",pitch:5,speed:1.08},squirrel:{voice:"denis",pitch:7,speed:1.17},badger:{voice:"dmitri",pitch:-1.5,speed:.93},narrator:{voice:"denis",pitch:0,speed:.96}};
-const moods={joy:{pitch:.7,speed:1.06},curious:{pitch:1,speed:1},scared:{pitch:1.2,speed:1.1},whisper:{pitch:-.7,speed:.88},brave:{pitch:0,speed:1.02},neutral:{pitch:0,speed:1}};
+const baseVoices={irina:{model:ROOT_VOICE+"irina/medium/ru_RU-irina-medium.onnx",config:ROOT_VOICE+"irina/medium/ru_RU-irina-medium.onnx.json"},denis:{model:ROOT_VOICE+"denis/medium/ru_RU-denis-medium.onnx",config:ROOT_VOICE+"denis/medium/ru_RU-denis-medium.onnx.json"},dmitri:{model:ROOT_VOICE+"dmitri/medium/ru_RU-dmitri-medium.onnx",config:ROOT_VOICE+"dmitri/medium/ru_RU-dmitri-medium.onnx.json"}};
+const profiles={fox:{voice:"irina",pitch:1,speed:.94},squirrel:{voice:"irina",pitch:2,speed:1.01},badger:{voice:"dmitri",pitch:-.5,speed:.94},narrator:{voice:"denis",pitch:0,speed:.95}};
+const moods={joy:{pitch:0,speed:1.03},curious:{pitch:.15,speed:.99},scared:{pitch:.3,speed:1.01},whisper:{pitch:-.15,speed:.89},brave:{pitch:0,speed:1.01},neutral:{pitch:0,speed:1}};
 const el=id=>document.getElementById(id);
 let engine=null,voiceId=null,runBusy=false,latestUrl=null;
 function status(s){el("status").textContent=s}
 function switchTab(tab){el("view-one").classList.toggle("hidden",tab!=="one");el("view-comic").classList.toggle("hidden",tab!=="comic");el("tab-one").classList.toggle("active",tab==="one");el("tab-comic").classList.toggle("active",tab==="comic")}
 function updateSliders(){el("pitch-val").textContent=(+el("pitch").value>0?"+":"")+el("pitch").value;el("speed-val").textContent=(+el("speed").value).toFixed(2)+"×"}
-function chooseProfile(){const key=el("character").value;const saved=JSON.parse(localStorage.getItem("fox-voice-settings")||"{}");const p=saved[key]||profiles[key];el("pitch").value=p.pitch;el("speed").value=p.speed;updateSliders()}
+function chooseProfile(){const key=el("character").value;const saved=JSON.parse(localStorage.getItem("fox-voice-settings-v2")||"{}");const p=saved[key]||profiles[key];el("pitch").value=p.pitch;el("speed").value=p.speed;updateSliders()}
 el("pitch").addEventListener("input",updateSliders);el("speed").addEventListener("input",updateSliders);el("character").addEventListener("change",chooseProfile);
-function savePreset(){try{const data=JSON.parse(localStorage.getItem("fox-voice-settings")||"{}");data[el("character").value]={...profiles[el("character").value],pitch:+el("pitch").value,speed:+el("speed").value};localStorage.setItem("fox-voice-settings",JSON.stringify(data));status("✅ Настройки персонажа сохранены в этом браузере.")}catch(e){status("Не удалось сохранить настройки: "+e.message)}}
+function savePreset(){try{const data=JSON.parse(localStorage.getItem("fox-voice-settings-v2")||"{}");data[el("character").value]={...profiles[el("character").value],pitch:+el("pitch").value,speed:+el("speed").value};localStorage.setItem("fox-voice-settings-v2",JSON.stringify(data));status("✅ Настройки персонажа сохранены в этом браузере.")}catch(e){status("Не удалось сохранить настройки: "+e.message)}}
 function patches(){if(typeof ort==="undefined"||typeof createPiperPhonemize==="undefined"||typeof Piper==="undefined")throw Error("Библиотеки не загрузились. Проверь подключение к интернету и обнови страницу.");ort.env.wasm.wasmPaths="https://piper-tts.github.io/vendor/ort/";ort.env.wasm.numThreads=1;if(!window.foxPatched){const original=window.createPiperPhonemize;window.createPiperPhonemize=opts=>original({...opts,locateFile:name=>"https://piper-tts.github.io/vendor/phonemize/"+name});window.foxPatched=true;}}
 async function getVoice(voice){patches();if(engine&&voiceId===voice)return engine;if(engine){await engine.dispose();engine=null;voiceId=null}
 const opts=baseVoices[voice];status("⏬ Загружаю русский нейросетевой голос (примерно 63 МБ). На телефоне это может занять некоторое время...");engine=await Piper.createEngine(opts.model,opts.config);voiceId=voice;status("✅ Русский голос загружен. Готовлю реплику...");return engine}
 function pitchPcm(pcm,mult){if(Math.abs(mult-1)<.002)return pcm;const n=Math.max(1,Math.floor(pcm.length/mult));const out=new Float32Array(n);for(let i=0;i<n;i++){let at=i*mult,lo=Math.floor(at),hi=Math.min(pcm.length-1,lo+1),f=at-lo;out[i]=pcm[lo]*(1-f)+pcm[hi]*f;}return out}
-async function synth(text,character,emotion,pitch,speed){text=(text||"").trim();if(!text)throw Error("Сначала напиши слова героя.");if(text.length>450)throw Error("Слишком длинный текст: максимум 450 символов за раз.");const pr=profiles[character],m=moods[emotion]||moods.neutral;const semitones=Math.max(-6,Math.min(11,pitch+m.pitch)),rate=Math.pow(2,semitones/12),tempo=Math.max(.65,Math.min(1.5,speed*m.speed));const model=await getVoice(pr.voice);status("🧠 Нейросеть создаёт голос... Не закрывай вкладку.");const pcm=await model.speak(text,{lengthScale:rate/tempo,noiseScale:.68,noiseW:.8});const shifted=pitchPcm(pcm,rate);return Piper.toWav(shifted,model.sampleRate)}
+async function synth(text,character,emotion,pitch,speed){text=(text||"").trim();if(!text)throw Error("Сначала напиши слова героя.");if(text.length>450)throw Error("Слишком длинный текст: максимум 450 символов за раз.");const pr=profiles[character],m=moods[emotion]||moods.neutral;const semitones=Math.max(-6,Math.min(11,pitch+m.pitch)),rate=Math.pow(2,semitones/12),tempo=Math.max(.65,Math.min(1.5,speed*m.speed));const model=await getVoice(pr.voice);status("🧠 Нейросеть создаёт голос... Не закрывай вкладку.");const pcm=await model.speak(text,{lengthScale:rate/tempo,noiseScale:.55,noiseW:.65,sentenceSilence:.32});const shifted=pitchPcm(pcm,rate);return Piper.toWav(shifted,model.sampleRate)}
 function toggleBusy(b){runBusy=b;el("generate").disabled=b;el("batch").disabled=b}
 el("generate").onclick=async()=>{if(runBusy)return;toggleBusy(true);try{const blob=await synth(el("speech").value,el("character").value,el("emotion").value,+el("pitch").value,+el("speed").value);if(latestUrl)URL.revokeObjectURL(latestUrl);latestUrl=URL.createObjectURL(blob);el("player").src=latestUrl;el("download").href=latestUrl;el("download").download="fox_"+el("character").value+"_"+Date.now()+".wav";el("result").classList.remove("hidden");status("✅ Готово! Нажми ▶, чтобы послушать, или «Скачать WAV».")}catch(e){status("❌ "+(e&&e.message||String(e))+" Попробуй Chrome и Wi-Fi.")}finally{toggleBusy(false)}};
 const charMap={"лисёнок":"fox","лисенок":"fox","белочка":"squirrel","барсук":"badger","рассказчик":"narrator"};
 const emotionMap={"радость":"joy","удивление":"curious","испуг":"scared","тайна":"whisper","шёпот":"whisper","шепот":"whisper","храбрость":"brave","спокойно":"neutral"};
-el("batch").onclick=async()=>{if(runBusy)return;toggleBusy(true);try{if(typeof JSZip==="undefined")throw Error("Модуль ZIP не загрузился");let lines=el("comic").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);if(lines.length<1||lines.length>12)throw Error("Добавь от 1 до 12 реплик.");const zip=new JSZip(),manifest=["Номер,Персонаж,Эмоция,Текст,Аудио"];let n=0;for(const line of lines){const parts=line.split("|");if(parts.length<3)throw Error("Формат строки: Персонаж | Эмоция | Текст");const ch=parts[0].trim(),emo=parts[1].trim(),txt=parts.slice(2).join("|").trim();const ck=charMap[ch.toLowerCase()],ek=emotionMap[emo.toLowerCase()]||"neutral";if(!ck)throw Error("Неизвестный персонаж: "+ch);n++;status("🎙️ Готовлю реплику "+n+" из "+lines.length+" — "+ch);const p=JSON.parse(localStorage.getItem("fox-voice-settings")||"{}")[ck]||profiles[ck];const audio=await synth(txt,ck,ek,p.pitch,p.speed);const file=String(n).padStart(2,"0")+"_"+ck+".wav";zip.file(file,audio);const csv=s=>'"'+String(s).replace(/"/g,'""')+'"';manifest.push([n,ch,emo,txt,file].map(csv).join(","))}
+el("batch").onclick=async()=>{if(runBusy)return;toggleBusy(true);try{if(typeof JSZip==="undefined")throw Error("Модуль ZIP не загрузился");let lines=el("comic").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);if(lines.length<1||lines.length>12)throw Error("Добавь от 1 до 12 реплик.");const zip=new JSZip(),manifest=["Номер,Персонаж,Эмоция,Текст,Аудио"];let n=0;for(const line of lines){const parts=line.split("|");if(parts.length<3)throw Error("Формат строки: Персонаж | Эмоция | Текст");const ch=parts[0].trim(),emo=parts[1].trim(),txt=parts.slice(2).join("|").trim();const ck=charMap[ch.toLowerCase()],ek=emotionMap[emo.toLowerCase()]||"neutral";if(!ck)throw Error("Неизвестный персонаж: "+ch);n++;status("🎙️ Готовлю реплику "+n+" из "+lines.length+" — "+ch);const p=JSON.parse(localStorage.getItem("fox-voice-settings-v2")||"{}")[ck]||profiles[ck];const audio=await synth(txt,ck,ek,p.pitch,p.speed);const file=String(n).padStart(2,"0")+"_"+ck+".wav";zip.file(file,audio);const csv=s=>'"'+String(s).replace(/"/g,'""')+'"';manifest.push([n,ch,emo,txt,file].map(csv).join(","))}
 zip.file("dialogues.csv","\uFEFF"+manifest.join("\r\n"));status("📦 Упаковываю файлы...");const archive=await zip.generateAsync({type:"blob"});const url=URL.createObjectURL(archive);const a=document.createElement("a");a.href=url;a.download="fox_comic_voices_"+Date.now()+".zip";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);status("✅ ZIP со всеми "+n+" репликами скачан!")}catch(e){status("❌ "+(e&&e.message||String(e)))}finally{toggleBusy(false)}};
 chooseProfile();
 </script>
