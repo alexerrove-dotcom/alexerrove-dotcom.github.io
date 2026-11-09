@@ -28,7 +28,7 @@
   const hero=document.querySelector('.hero');
   if(hero&&!reduced){
     let queued=false;
-    const update=()=>{queued=false;if(window.scrollY<innerHeight*1.6){hero.style.setProperty('--scroll',Math.min(window.scrollY,720)+'px')}};
+    const update=()=>{queued=false;if(window.scrollY<innerHeight*1.6){hero.style.setProperty('--scroll-far',Math.round(Math.min(window.scrollY,720)*.10)+'px');hero.style.setProperty('--scroll-near',Math.round(Math.min(window.scrollY,720)*.22)+'px')}};
     window.addEventListener('scroll',()=>{if(!queued){queued=true;requestAnimationFrame(update)}},{passive:true});
     update();
   }
