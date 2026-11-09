@@ -1,0 +1,7 @@
+/* Character reference sheet shown as actual images rather than blending backgrounds */
+.v5-portraits-loaded .camp-art .actual-character{display:none!important}
+.v5-portraits-loaded .camp-art>img{display:block!important;opacity:1!important;max-width:95%;height:260px!important;max-height:260px;object-fit:contain!important;filter:drop-shadow(0 10px 13px #001b159a);position:relative;z-index:4;margin:auto;transform:none!important}
+.v5-portraits-loaded .camp-art{display:flex;align-items:center;justify-content:center;min-height:280px}
+.v5-hero-loaded .hero-art>.actual-character{display:none!important}
+.v5-hero-loaded .hero-art>img{display:block!important;opacity:1!important;position:relative;z-index:5;max-height:620px;max-width:min(100%,475px);object-fit:contain;filter:drop-shadow(0 20px 18px #011c1499)}
+@media(max-width:720px){.v5-hero-loaded .hero-art>img{max-width:92%;max-height:338px}.v5-portraits-loaded .camp-art>img{max-height:240px;height:240px!important}}
