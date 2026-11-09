@@ -15,11 +15,11 @@
 <meta property="og:title" content="Помоги лисёнку Саше найти сестру 🦊">
 <meta property="og:description" content="Маленький герой. Большое приключение. 100 уровней сказочного леса, тайные норы и настоящая история о семье. Играй бесплатно на Android!">
 <meta property="og:url" content="https://alexerrove-dotcom.github.io/sasha/">
-<meta property="og:image" content="https://static.rustore.ru/2026/10/28/b2/apk/2063778118/content/ICON/d962ebe7-3226-4916-a747-c6d238716d9a.png">
+<meta property="og:image" content="https://static.rustore.ru/2026/10/28/zz/apk/2063778118/content/SCREENSHOT/5198b74c-fb0f-4ed4-8adf-75c48ea26078.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Mr. Fox: Sasha’s Adventures — помоги Саше найти сестру">
 <meta name="twitter:description" content="100 уровней, 10 глав, тайные норы и сказочный лес. Бесплатно в RuStore.">
-<meta name="twitter:image" content="https://static.rustore.ru/2026/10/28/b2/apk/2063778118/content/ICON/d962ebe7-3226-4916-a747-c6d238716d9a.png">
+<meta name="twitter:image" content="https://static.rustore.ru/2026/10/28/zz/apk/2063778118/content/SCREENSHOT/5198b74c-fb0f-4ed4-8adf-75c48ea26078.jpg">
 <link rel="icon" href="https://static.rustore.ru/2026/10/28/b2/apk/2063778118/content/ICON/d962ebe7-3226-4916-a747-c6d238716d9a.png" type="image/png">
 <link rel="preload" href="./forest-art.svg" as="image" type="image/svg+xml">
 <title>Mr. Fox: Sasha’s Adventures — приключение лисёнка Саши</title>
@@ -47,6 +47,8 @@
 @media(max-width:720px){html{scroll-padding-top:70px}.wrapper{width:min(100% - 36px,580px)}.site-header{height:71px}.brand-mark{width:38px;height:38px}.brand-copy strong{font-size:15px}.brand-copy small{font-size:8px}.nav{display:none}.header-actions .button{min-height:39px;padding:9px 14px;font-size:11px}.hero{min-height:0}.hero-grid{grid-template-columns:1fr;padding-top:95px;padding-bottom:82px;min-height:0}.hero-copy{padding:12px 0 0}.eyebrow{font-size:10px;letter-spacing:.17em}.hero h1{font-size:clamp(49px,10.7vw,76px);margin:18px 0}.hero-lead{font-size:15px;line-height:1.74;max-width:560px}.hero-cta .button{min-height:51px}.hero-under{gap:9px 15px;margin-top:22px}.hero-art{min-height:320px;height:370px;margin-top:10px}.hero-art img{width:min(112%,520px)}.hero-art:before{width:68%}.hero-caption{bottom:8px;right:0;font-size:9px}.scroll-hint{display:none}.stats-grid{grid-template-columns:repeat(2,1fr)}.stat{padding:25px 10px}.stat:nth-child(2){border-right:none}.stat:nth-child(-n+2){border-bottom:1px solid var(--border)}.stat strong{font-size:38px}.section{padding:70px 0}.story-grid{grid-template-columns:1fr;gap:36px}.story-text h2{font-size:46px}.story-scene{min-height:315px}.section h2{font-size:clamp(37px,8vw,50px)}.feature-grid{grid-template-columns:1fr}.feature-card{min-height:0;padding:26px 27px}.feature-icon{margin-bottom:14px}.section-head{margin-bottom:35px}.gallery-head{display:block}.gallery-actions{margin:15px 0}.shots{grid-auto-columns:minmax(84%,1fr);gap:14px}.gallery-bottom{align-items:flex-start;flex-direction:column}.cta-section{padding:72px 0 90px}.cta-section:before{inset:12px}.cta-section h2{font-size:clamp(43px,10vw,58px)}.faq-grid{grid-template-columns:1fr;gap:17px}.faq{padding:65px 0 80px}.footer-inner{flex-direction:column;align-items:flex-start}.footer-links{flex-wrap:wrap;gap:16px}.footer{padding-bottom:100px}.mobile-cta{display:flex;position:fixed;z-index:50;bottom:0;left:0;right:0;padding:10px max(17px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom));background:#092622ed;border-top:1px solid #f1e0b52e;backdrop-filter:blur(16px);box-shadow:0 -8px 28px #071b1880;align-items:center;gap:12px}.mobile-cta .label{display:flex;flex-direction:column;line-height:1.3;min-width:0}.mobile-cta strong{font-size:12px}.mobile-cta small{font-size:10px;color:#b6c5b2;margin-top:3px}.mobile-cta .button{min-height:43px;font-size:12px;padding:10px 18px;margin-left:auto}.toast{bottom:85px;width:min(94%,340px)}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 </style>
+<link rel="preload" href="./v2/forest-far.svg" as="image" type="image/svg+xml">
+<link rel="stylesheet" href="./v2/v2.css">
 </head>
 <body>
 <header class="site-header">
@@ -61,10 +63,16 @@
 </header>
 <main id="top">
 <section class="hero" aria-labelledby="hero-title">
- <div class="wrapper hero-grid">
+ <div class="forest-world" aria-hidden="true"><div class="forest-layer far"></div><div class="forest-layer near"></div></div>
+<div class="forest-particles" aria-hidden="true"></div>
+<svg class="hero-corner acorn" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#acorn"></use></svg>
+<svg class="hero-corner mushroom" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#mushroom"></use></svg>
+<svg class="hero-corner lantern" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#lantern"></use></svg>
+<svg class="hero-corner butterfly" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#butterfly"></use></svg>
+<div class="wrapper hero-grid">
   <div class="hero-copy">
    <div class="eyebrow">Приключенческий 2D-платформер</div>
-   <h1 class="serif" id="hero-title">У каждого следа <em>есть история.</em></h1>
+   <h1 class="serif" id="hero-title">Помоги лисёнку Саше <em>найти сестру.</em></h1>
    <p class="hero-lead">Сестрёнка Саши исчезла на лесной опушке. Теперь маленькому лисёнку предстоит большое путешествие — и только ты можешь помочь ему найти дорогу к ней.</p>
    <div class="hero-cta">
     <a class="button primary" href="https://www.rustore.ru/catalog/app/com.zhenixpick.riko.forest02.levelreview" target="_blank" rel="noopener noreferrer">Скачать бесплатно <span class="arrow" aria-hidden="true">↗</span></a>
@@ -87,31 +95,61 @@
 </div></section>
 <section class="section story" id="story">
  <div class="wrapper story-grid">
-  <div class="story-text"><div class="chapter-label"><span></span>Глава 01 · Исчезновение</div>
+  <div class="reveal story-text"><div class="chapter-label"><span></span>Глава 01 · Исчезновение</div>
    <h2 class="serif">Однажды лес <em>замолчал...</em></h2>
    <p>На знакомой поляне остались лишь маленькие следы. Куда пропала сестра? Почему тропы ведут к древним руинам? И какие тайны скрываются глубоко под корнями деревьев?</p>
    <p>Возьми рогатку, соберись с духом и отправляйся вместе с Сашей навстречу неизвестному. Здесь каждая находка приближает к ответу.</p>
    <a class="button outline" href="#features">Открой мир Саши <span aria-hidden="true">↘</span></a>
   </div>
-  <div class="story-scene" aria-label="Сказочная иллюстрация леса"><div class="story-note"><small>Из дневника путешествия</small><b>«Я обязательно тебя найду»</b></div></div>
+  <div class="reveal story-scene" aria-label="Сказочная иллюстрация леса"><svg class="story-ornament" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#lantern"></use></svg><div class="story-note"><small>Из дневника путешествия</small><b>«Я обязательно тебя найду»</b></div></div>
  </div>
+</section>
+<section class="trail" id="journey" aria-labelledby="trail-title">
+ <svg class="decor decor-left" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#mushroom"></use></svg><svg class="decor decor-right" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#crystal"></use></svg>
+ <div class="wrapper"><div class="trail-head reveal">
+  <div class="eyebrow">Три шага к приключению</div><h2 class="serif" id="trail-title">Каждое путешествие<br>начинается с первого следа.</h2><p>За привычным лесом скрывается мир, о котором Саша ещё не знает. Отправляйся вместе с ним.</p>
+ </div><div class="trail-steps">
+  <article class="trail-stop reveal"><div class="trail-icon"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#paw"></use></svg></div><strong>Найди след</strong><p>Исследуй тропы, присматривайся к деталям и узнавай, куда ведёт история.</p></article>
+  <article class="trail-stop reveal"><div class="trail-icon"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#slingshot"></use></svg></div><strong>Преодолей опасность</strong><p>Прыгай через препятствия, сражайся с противниками и открывай скрытые пути.</p></article>
+  <article class="trail-stop reveal"><div class="trail-icon"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#lantern"></use></svg></div><strong>Не теряй надежду</strong><p>Знакомься с друзьями, улучшай снаряжение и продолжай поиски сестры.</p></article>
+ </div></div>
 </section>
 <section class="section features" id="features">
  <div class="wrapper">
-  <div class="section-head"><span class="eyebrow">Не просто платформер</span><h2 class="serif">Лес полон историй.<br>Найди свою.</h2><p>Прыгай, исследуй, раскрывай секреты и возвращайся в лагерь к тем, кто ждёт тебя после каждого приключения.</p></div>
+  <div class="reveal section-head"><span class="eyebrow">Не просто платформер</span><h2 class="serif">Лес полон историй.<br>Найди свою.</h2><p>Прыгай, исследуй, раскрывай секреты и возвращайся в лагерь к тем, кто ждёт тебя после каждого приключения.</p></div>
   <div class="feature-grid">
-   <article class="feature-card"><div class="feature-icon" aria-hidden="true">🌿</div><h3>100 уровней пути</h3><p>10 сюжетных глав: лесные тропы, пропасти, забытые руины и локации, где за каждым поворотом ждёт что-то новое.</p></article>
-   <article class="feature-card"><div class="feature-icon" aria-hidden="true">🕳️</div><h3>Тайны под землёй</h3><p>Ищи скрытые норы, открывай подземелья, помогай их обитателям и находи сундуки с наградами.</p></article>
-   <article class="feature-card"><div class="feature-icon" aria-hidden="true">🏹</div><h3>Рогатка и смелость</h3><p>Используй прыжки, вихревой рывок и точное прицеливание. Впереди ловушки, противники и 10 боссов.</p></article>
-   <article class="feature-card"><div class="feature-icon" aria-hidden="true">⛺</div><h3>Друзья у костра</h3><p>Возвращайся в лагерь, знакомься с лесными жителями, улучшай снаряжение и пополняй припасы.</p></article>
-   <article class="feature-card"><div class="feature-icon" aria-hidden="true">📖</div><h3>История в комиксах</h3><p>Открывай иллюстрированные сцены и собирай воспоминания об удивительном пути Саши.</p></article>
-   <article class="feature-card"><div class="feature-icon" aria-hidden="true">✨</div><h3>Твой темп игры</h3><p>Обычный и лёгкий режимы, настройка экранных кнопок и возможность проходить уровни без интернета.</p></article>
+   <article class="reveal feature-card"><div class="feature-icon" aria-hidden="true"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#map"></use></svg></div><h3>100 уровней пути</h3><p>10 сюжетных глав: лесные тропы, пропасти, забытые руины и локации, где за каждым поворотом ждёт что-то новое.</p></article>
+   <article class="reveal feature-card"><div class="feature-icon" aria-hidden="true"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#burrow"></use></svg></div><h3>Тайны под землёй</h3><p>Ищи скрытые норы, открывай подземелья, помогай их обитателям и находи сундуки с наградами.</p></article>
+   <article class="reveal feature-card"><div class="feature-icon" aria-hidden="true"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#slingshot"></use></svg></div><h3>Рогатка и смелость</h3><p>Используй прыжки, вихревой рывок и точное прицеливание. Впереди ловушки, противники и 10 боссов.</p></article>
+   <article class="reveal feature-card"><div class="feature-icon" aria-hidden="true"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#campfire"></use></svg></div><h3>Друзья у костра</h3><p>Возвращайся в лагерь, знакомься с лесными жителями, улучшай снаряжение и пополняй припасы.</p></article>
+   <article class="reveal feature-card"><div class="feature-icon" aria-hidden="true"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#comic"></use></svg></div><h3>История в комиксах</h3><p>Открывай иллюстрированные сцены и собирай воспоминания об удивительном пути Саши.</p></article>
+   <article class="reveal feature-card"><div class="feature-icon" aria-hidden="true"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#sparkles"></use></svg></div><h3>Твой темп игры</h3><p>Обычный и лёгкий режимы, настройка экранных кнопок и возможность проходить уровни без интернета.</p></article>
+  </div>
+ </div>
+</section>
+<section class="camp-section" id="camp" aria-labelledby="camp-title">
+ <svg class="decor decor-crystal" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#crystal"></use></svg><svg class="decor decor-acorn" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#acorn"></use></svg>
+ <div class="wrapper">
+  <div class="section-head reveal"><div class="eyebrow">Там, где ждут друзья</div><h2 class="serif" id="camp-title">Даже герою нужен<br>тёплый огонёк.</h2><p>В лагере Саша не один. Здесь живут друзья, которые помогут подготовиться к следующему уровню. Познакомься с ними.</p></div>
+  <div class="camp-characters">
+   <article class="camp-character reveal">
+    <div class="camp-art"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#squirrel"></use></svg></div>
+    <div class="camp-info"><span class="camp-role">Мастер рогаток</span><h3>Белка Рыжка</h3><p>Знает толк в метких выстрелах и всегда поможет улучшить рогатку перед опасной дорогой.</p><details><summary>Знакомство с Рыжкой</summary><p>«Мелочь тоже может изменить большое путешествие. Главное — не промахнуться!»</p></details></div>
+   </article>
+   <article class="camp-character reveal">
+    <div class="camp-art"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#badger"></use></svg></div>
+    <div class="camp-info"><span class="camp-role">Хранитель припасов</span><h3>Барсук Тихон</h3><p>Поможет увеличить вместимость сумки, чтобы в трудном пути нашлось место для самого нужного.</p><details><summary>Знакомство с Тихоном</summary><p>«Собирайся с умом. В путешествии важен каждый орех!»</p></details></div>
+   </article>
+   <article class="camp-character reveal">
+    <div class="camp-art"><svg class="" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#otter"></use></svg></div>
+    <div class="camp-info"><span class="camp-role">Забота и поддержка</span><h3>Выдра Лада</h3><p>Помогает пополнить припасы и напоминает, что в лесу всегда найдётся место доброте.</p><details><summary>Знакомство с Ладой</summary><p>«Если дорога кажется длинной, загляни к нам на огонёк».</p></details></div>
+   </article>
   </div>
  </div>
 </section>
 <section class="section gallery" id="screens">
  <div class="wrapper">
-  <div class="gallery-head"><div><span class="eyebrow">Взгляни на приключение</span><h2 class="serif">Мир, который хочется<br>исследовать</h2></div>
+  <div class="reveal gallery-head"><div><span class="eyebrow">Взгляни на приключение</span><h2 class="serif">Мир, который хочется<br>исследовать</h2></div>
   <div><p>Настоящие скриншоты опубликованной игры. Нажми на кадр, чтобы рассмотреть его.</p><div class="gallery-actions"><button class="circle-btn" id="prev-shot" type="button" aria-label="Предыдущие скриншоты">←</button><button class="circle-btn" id="next-shot" type="button" aria-label="Следующие скриншоты">→</button></div></div></div>
   <div class="shots" id="shots" aria-label="Галерея скриншотов">
    <figure class="shot" tabindex="0" role="button" data-name="Лесные тропы" aria-label="Увеличить скриншот: Лесные тропы"><img loading="lazy" alt="Скриншот игры Mr. Fox: лесная локация" src="https://static.rustore.ru/imgproxy/gcslcNKLekDDrZk5zbZGd6lgVWuwv1P4rvRANql4y9A/preset:web_scr_lnd_335/plain/https://static.rustore.ru/2026/10/28/zz/apk/2063778118/content/SCREENSHOT/5198b74c-fb0f-4ed4-8adf-75c48ea26078.jpg@webp"><figcaption>Лесные тропы <span>01 / 04</span></figcaption></figure>
@@ -123,6 +161,7 @@
  </div>
 </section>
 <section class="cta-section" id="download">
+<svg class="decor decor-left" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#flower"></use></svg><svg class="decor decor-right" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#butterfly"></use></svg>
  <div class="wrapper"><span class="eyebrow">Твоё приключение начинается здесь</span><h2 class="serif">Даже маленький герой<br>может пройти <em>большой путь.</em></h2><p>Саша уже отправился на поиски. Пойдём с ним? Скачай игру бесплатно или поделись историей с другом.</p>
   <div class="cta-buttons"><a class="button primary" href="https://www.rustore.ru/catalog/app/com.zhenixpick.riko.forest02.levelreview" target="_blank" rel="noopener noreferrer">Играть бесплатно <span class="arrow" aria-hidden="true">↗</span></a><button class="button outline" id="share-main" type="button">Поделиться с другом <span aria-hidden="true">♡</span></button></div>
   <span class="cta-mini">Android · RuStore · Разработчик Zhenixpick</span>
@@ -139,7 +178,7 @@
 </section>
 </main>
 <footer class="footer"><div class="wrapper footer-inner">
- <div class="footer-left"><img class="brand-mark" src="https://static.rustore.ru/imgproxy/PSP6yDQxaxM_pumbl0tJTVFuxGu9qo0KPwhs_QAJrtA/preset:web_app_icon_62/plain/https://static.rustore.ru/2026/10/28/b2/apk/2063778118/content/ICON/d962ebe7-3226-4916-a747-c6d238716d9a.png@webp" width="36" height="36" alt=""><p><strong style="color:#f1e6d3">Mr. Fox: Sasha’s Adventures</strong><br>© 2026 Zhenixpick · Фан-сайт игры от разработчика</p></div>
+ <div class="footer-left"><img class="brand-mark" src="https://static.rustore.ru/imgproxy/PSP6yDQxaxM_pumbl0tJTVFuxGu9qo0KPwhs_QAJrtA/preset:web_app_icon_62/plain/https://static.rustore.ru/2026/10/28/b2/apk/2063778118/content/ICON/d962ebe7-3226-4916-a747-c6d238716d9a.png@webp" width="36" height="36" alt=""><p><strong style="color:#f1e6d3">Mr. Fox: Sasha’s Adventures</strong><br>© 2026 Zhenixpick · Промо-страница игры</p></div>
  <div class="footer-links"><a href="mailto:Zhenixpick@yandex.ru">Связаться</a><a href="https://www.rustore.ru/catalog/app/com.zhenixpick.riko.forest02.levelreview" target="_blank" rel="noopener noreferrer">Страница RuStore</a><button id="share-footer" type="button">Поделиться</button></div>
 </div></footer>
 <div class="mobile-cta"><div class="label"><strong>Mr. Fox · Саша</strong><small>Бесплатно для Android</small></div><a class="button primary" href="https://www.rustore.ru/catalog/app/com.zhenixpick.riko.forest02.levelreview" target="_blank" rel="noopener noreferrer">Скачать ↗</a></div>
@@ -172,5 +211,6 @@ lightbox.addEventListener('click',function(e){if(e.target===lightbox)closeBox()}
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&lightbox.getAttribute('aria-hidden')==='false')closeBox()});
 })();
 </script>
+<script src="./v2/effects.js" defer></script>
 </body>
 </html>
