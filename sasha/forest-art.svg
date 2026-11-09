@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 860" role="img" aria-labelledby="title desc">
+<title id="title">Лисёнок Саша отправляется в лесное приключение</title>
+<desc id="desc">Сказочная иллюстрация: рыжий лисёнок в бирюзовом шарфе на тропе в лунном волшебном лесу.</desc>
+<defs>
+<linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#123e43"/><stop offset=".58" stop-color="#346a61"/><stop offset="1" stop-color="#8b9d70"/></linearGradient>
+<radialGradient id="mist"><stop stop-color="#d9e8b6" stop-opacity=".36"/><stop offset="1" stop-color="#d9e8b6" stop-opacity="0"/></radialGradient>
+<linearGradient id="fur" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ffcf73"/><stop offset=".34" stop-color="#fa8c38"/><stop offset=".9" stop-color="#b84c2a"/></linearGradient>
+<linearGradient id="tail" x1="0" x2="1" y1="0" y2=".8"><stop stop-color="#9d3b27"/><stop offset=".58" stop-color="#e96b32"/><stop offset="1" stop-color="#ffb452"/></linearGradient>
+<linearGradient id="muzzle" x1="0" x2=".8" y1=".1" y2="1"><stop stop-color="#fff4cf"/><stop offset="1" stop-color="#edce9f"/></linearGradient>
+<linearGradient id="scarf" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6edec9"/><stop offset="1" stop-color="#166a73"/></linearGradient>
+<filter id="glow"><feGaussianBlur stdDeviation="8"/></filter>
+<filter id="shad" x="-25%" y="-25%" width="150%" height="150%"><feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#091e1a" flood-opacity=".35"/></filter>
+</defs>
+<ellipse cx="520" cy="470" rx="480" ry="330" fill="url(#mist)"/>
+<path d="M49 355C115 246 226 205 342 194c80-7 137 12 201-15 80-34 166-47 256-6 57 26 101 72 143 118" stroke="#f8e8aa" stroke-opacity=".18" stroke-width="2" fill="none"/>
+<circle cx="700" cy="192" r="95" fill="#f2e5a7" opacity=".18" filter="url(#glow)"/>
+<circle cx="700" cy="192" r="68" fill="#f7e7b1"/><circle cx="731" cy="166" r="69" fill="#2d605b"/>
+<g opacity=".62" fill="#142f35">
+<path d="M38 595L130 331l83 264zm152 0L278 245l111 350zm510 0l122-319 100 319zm-115 0L697 342l70 253z"/>
+</g>
+<g fill="#1c4f4a" opacity=".85">
+<path d="M0 603Q116 488 230 559T470 554Q598 477 726 550T1000 513v347H0Z"/>
+</g>
+<g opacity=".8" stroke="#143b3b" stroke-width="22" stroke-linecap="round">
+<path d="M87 810Q114 451 102 118M909 835Q880 478 930 85"/>
+</g>
+<g fill="#204f45">
+<ellipse cx="98" cy="121" rx="116" ry="140"/><ellipse cx="18" cy="195" rx="98" ry="125"/><ellipse cx="178" cy="174" rx="94" ry="112"/>
+<ellipse cx="918" cy="132" rx="143" ry="130"/><ellipse cx="829" cy="172" rx="116" ry="121"/><ellipse cx="1020" cy="213" rx="100" ry="115"/>
+</g>
+<g fill="#3f7865" opacity=".82">
+<ellipse cx="140" cy="74" rx="86" ry="68"/><ellipse cx="842" cy="112" rx="100" ry="92"/><ellipse cx="992" cy="105" rx="79" ry="93"/>
+</g>
+<g fill="#b5b88a" opacity=".26"><circle cx="157" cy="122" r="34"/><circle cx="878" cy="82" r="25"/><circle cx="961" cy="208" r="22"/></g>
+<path d="M0 701Q171 605 353 653T724 652Q883 626 1000 689v171H0Z" fill="#294f46"/>
+<path d="M0 765Q201 692 422 725t578 0v135H0Z" fill="#173d36"/>
+<path d="M338 854Q483 746 585 708q141-51 286 6l129 146Z" fill="#9a8056" opacity=".65"/>
+<path d="M389 857q127-107 234-132 91-22 223 15" fill="none" stroke="#d5b97e" stroke-width="12" stroke-linecap="round" opacity=".65"/>
+<g opacity=".87">
+<path d="M815 555l28-115 24 115m-75 0 46-59 48 59" fill="#a1b3a2" opacity=".35"/>
+<path d="M820 552v-65h35v65m-9-44v-34h30v78" fill="#d3c5a5" opacity=".38"/>
+<path d="M806 499l32-42 33 42" fill="#d9b780" opacity=".5"/>
+</g>
+<g fill="#f5db87" opacity=".83">
+<circle cx="306" cy="258" r="4"/><circle cx="452" cy="180" r="3"/><circle cx="857" cy="354" r="4"/><circle cx="790" cy="246" r="3"/><circle cx="211" cy="495" r="3"/><circle cx="712" cy="538" r="4"/><circle cx="575" cy="305" r="3"/>
+</g>
+<g fill="#f6e7ad" opacity=".27" filter="url(#glow)">
+<circle cx="306" cy="258" r="17"/><circle cx="857" cy="354" r="14"/><circle cx="211" cy="495" r="12"/><circle cx="712" cy="538" r="15"/>
+</g>
+<g stroke="#0c3835" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" filter="url(#shad)">
+<!-- fox tail -->
+<path d="M463 646C332 640 292 557 332 500c41-59 108-24 147 24 36 46 55 86 99 91-19 46-65 59-115 31Z" fill="url(#tail)"/>
+<path d="M341 489c-28 57 2 98 54 126 27 14 55 20 77 24-27-18-35-55-33-81-42-51-79-67-98-69Z" fill="#fff0c7" stroke="none"/>
+<!-- back legs -->
+<path d="M571 699l-27 77 51 11 43-88M654 702l-12 73 53 8 27-85" fill="#dc6d35"/>
+<path d="M545 774q26-7 52 5l-5 17h-70q2-13 23-22ZM644 776q25-10 54 5v16h-71q0-12 17-21Z" fill="#432f2c"/>
+<!-- body -->
+<path d="M492 563Q507 502 572 490q103-16 140 70l27 110q-17 54-95 62-84 9-141-49Z" fill="url(#fur)"/>
+<path d="M581 551q-16 61 12 167 54 12 106-10-11-114-33-147Z" fill="#ffe8bd" stroke="none"/>
+<!-- arms -->
+<path d="M533 587q-42 38-35 88l22 10q45-35 54-74" fill="#eb873f"/>
+<path d="M680 583q29 22 53 59l-25 24q-42-15-55-47" fill="#df6d35"/>
+<!-- head -->
+<path d="M510 475q-53-50-60-128-4-42 29-42 45 7 82 73 44-20 88-6 20-64 66-79 34-8 36 29 1 80-45 141 28 65-1 117-34 61-109 63-79 2-115-56-27-45 2-105Z" fill="url(#fur)"/>
+<!-- ears -->
+<path d="M475 333q8 58 52 90-11-47-52-90ZM715 324q-52 38-57 96 45-26 57-96Z" fill="#f3ac96" stroke="none"/>
+<path d="M562 371q24-23 52-32l-13 46" fill="#f7bd69" stroke="none"/>
+<!-- cheeks -->
+<path d="M499 498q-29 25-10 70 11 21 48 23 27 31 63 31 39 0 66-30 40 2 54-32 9-27-11-55-9 48-57 47-18-3-50-7-34 9-53 5-34 0-50-42Z" fill="url(#muzzle)" stroke="none"/>
+<ellipse cx="551" cy="496" rx="14" ry="20" fill="#2b2e29" stroke="none"/><ellipse cx="654" cy="492" rx="14" ry="20" fill="#2b2e29" stroke="none"/>
+<ellipse cx="546" cy="488" rx="4" ry="6" fill="#fff" stroke="none"/><ellipse cx="650" cy="484" rx="4" ry="6" fill="#fff" stroke="none"/>
+<path d="M574 544q28-18 58-2-6 18-28 19-24 1-30-17Z" fill="#302e2c"/>
+<path d="M604 558v15m-1 0q-14 15-25 0m25 0q16 16 30-1" fill="none" stroke="#49372e" stroke-width="4"/>
+<circle cx="524" cy="540" r="11" fill="#f5a18c" opacity=".6" stroke="none"/><circle cx="680" cy="539" r="11" fill="#f5a18c" opacity=".6" stroke="none"/>
+<!-- scarf -->
+<path d="M503 599q100 39 186-11l-10 45q-91 39-165 12Z" fill="url(#scarf)"/>
+<path d="M686 610q50 9 102-36-9 65-62 86l-41-18Z" fill="#3aa9a3"/>
+<path d="M724 656l17 16" stroke="#93e4cd" stroke-width="4"/>
+</g>
+<!-- foreground -->
+<g fill="#75a77c" stroke="#22533f" stroke-width="4">
+<path d="M88 799q-17-73-39-83m39 83q18-74 55-94m-55 94q-4-70 9-106" fill="none"/>
+<path d="M856 803q25-70 62-101m-62 101q-7-59-44-89" fill="none"/>
+<path d="M62 742q31-17 46 12-29 12-46-12ZM131 707q-30-3-34 26 29-2 34-26ZM896 720q-32 0-34 29 30 2 34-29Z"/>
+</g>
+<g fill="#e4ad6e"><circle cx="184" cy="800" r="8"/><circle cx="214" cy="784" r="6"/><circle cx="793" cy="796" r="9"/></g>
+<g stroke="#f5d3a1" stroke-width="2"><path d="M184 785v30m-15-15h30M793 780v31m-15-15h30"/></g>
+</svg>
