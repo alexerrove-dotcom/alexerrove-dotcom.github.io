@@ -18,8 +18,8 @@ body{background:#071a18}
 .hero:after{z-index:4;height:135px;background:linear-gradient(transparent,#0c2221)}
 .forest-world{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 .forest-layer{position:absolute;inset:-3%;width:106%;height:106%;background-position:center bottom;background-size:cover;background-repeat:no-repeat;will-change:transform}
-.forest-layer.far{background-image:url("./forest-far.svg");opacity:.91;transform:translate3d(0,calc(var(--scroll,0px) * .10),0) scale(1.03)}
-.forest-layer.near{z-index:2;background-image:url("./forest-near.svg");background-position:center bottom;opacity:.5;transform:translate3d(0,calc(var(--scroll,0px) * .22),0) scale(1.04)}
+.forest-layer.far{background-image:url("./forest-far.svg");opacity:.91;transform:translate3d(0,var(--scroll-far,0px),0) scale(1.03)}
+.forest-layer.near{z-index:2;background-image:url("./forest-near.svg");background-position:center bottom;opacity:.5;transform:translate3d(0,var(--scroll-near,0px),0) scale(1.04)}
 .hero .wrapper.hero-grid{z-index:3;position:relative}
 .hero-grid{grid-template-columns:1.04fr .96fr;padding-top:110px;min-height:770px}
 .hero-copy{padding-bottom:67px}
