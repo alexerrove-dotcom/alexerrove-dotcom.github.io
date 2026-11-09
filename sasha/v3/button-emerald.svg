@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 150" preserveAspectRatio="none">
+<defs>
+<linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4a8064"/><stop offset=".25" stop-color="#4a8064"/><stop offset=".53" stop-color="#153a31"/><stop offset="1" stop-color="#153a31"/></linearGradient>
+<linearGradient id="rim" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#7cb18c"/><stop offset=".35" stop-color="#c8a66c"/><stop offset=".75" stop-color="#c8a66c"/><stop offset="1" stop-color="#7cb18c"/></linearGradient>
+<radialGradient id="glow"><stop stop-color="#fffbc9" stop-opacity=".58"/><stop offset="1" stop-color="#fff4b9" stop-opacity="0"/></radialGradient>
+<filter id="shadow"><feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#081c16" flood-opacity=".6"/></filter>
+</defs>
+<g filter="url(#shadow)">
+<rect x="17" y="16" width="608" height="116" rx="58" fill="#c8a66c" stroke="#4f402c" stroke-width="5"/>
+<rect x="12" y="10" width="616" height="117" rx="57" fill="url(#rim)" stroke="#7cb18c" stroke-width="5"/>
+<rect x="22" y="19" width="595" height="100" rx="48" fill="url(#panel)" stroke="#ebcc90" stroke-width="4"/>
+<rect x="30" y="28" width="579" height="82" rx="40" fill="none" stroke="#7cb18c" stroke-opacity=".78" stroke-width="3"/>
+<path d="M67 36q200-22 455 0" fill="none" stroke="#fff8d4" stroke-opacity=".37" stroke-width="4" stroke-linecap="round"/>
+<path d="M69 100q230 11 474-2" fill="none" stroke="#c8a66c" stroke-opacity=".22" stroke-width="4"/>
+<!-- leaf branches, asymmetrical -->
+<path d="M45 45q15 36 49 32M536 91q43-10 59-39" fill="none" stroke="#49723d" stroke-width="6" stroke-linecap="round"/>
+<path d="M43 28q-15 22 10 32 22-9 17-31-18-16-27-1Z" fill="#5e9655" stroke="#355c3a" stroke-width="3"/>
+<path d="M68 22q-19 14-6 30 18 11 33-6 0-23-27-24Z" fill="#79a35f" stroke="#355c3a" stroke-width="3"/>
+<path d="M91 58q-12-16-27-4-8 18 10 27 19 2 17-23Z" fill="#6f9c59" stroke="#355c3a" stroke-width="3"/>
+<path d="M573 91q-2-23 19-26 23 9 13 29-18 15-32-3Z" fill="#628e54" stroke="#355c3a" stroke-width="3"/>
+<path d="M590 69q-12-21 6-28 20-3 26 18-8 21-32 10Z" fill="#5e9655" stroke="#355c3a" stroke-width="3"/>
+<path d="M549 103q13-22 30-12 6 22-14 30-20 0-16-18Z" fill="#709e5c" stroke="#355c3a" stroke-width="3"/>
+<path d="M53 24l13 19 10 3M596 61l-9 17-12 6" fill="none" stroke="#d0c78c" stroke-width="2" opacity=".7"/>
+<circle cx="108" cy="73" r="3.5" fill="#7cb18c"/><circle cx="531" cy="69" r="3.5" fill="#7cb18c"/>
+</g>
+</svg>
