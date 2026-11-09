@@ -1,0 +1,12 @@
+/* Crisp, exact original high-resolution Sasha illustration */
+.original-hirez-loaded .hero-art .actual-hero{
+  background-image:var(--original-hero-hires)!important;
+  background-size:100% 100%!important;
+  background-position:center!important;
+  width:min(100%,440px);
+  aspect-ratio:340/466;
+  mix-blend-mode:screen;
+}
+@media(max-width:720px){
+.original-hirez-loaded .hero-art .actual-hero{width:min(96%,270px)}
+}
