@@ -1,0 +1,41 @@
+/* Reference-original buttons & props. Source art is drawn, text remains semantic. */
+.painted-button{position:relative;overflow:visible!important;isolation:isolate;background:none!important;background-image:none!important;box-shadow:none!important;color:transparent!important;text-shadow:none!important;border:0!important;font-size:0!important;min-width:265px;min-height:82px;padding:0!important;transition:transform .19s ease,filter .2s ease!important}
+.painted-button *{visibility:hidden}
+.button.painted-button::before,.button.primary.painted-button::before{content:""!important;display:block!important;position:absolute!important;inset:0!important;width:100%;height:100%;background-image:var(--original-buttons-sheet)!important;background-repeat:no-repeat!important;background-size:100% 300%!important;background-position:center top!important;pointer-events:none;mix-blend-mode:screen}
+.button.painted-button.painted-cream::before{background-position:center center!important}
+.button.painted-button.painted-share::before{background-position:center bottom!important}
+.button.painted-button::after{display:none!important}
+.painted-button:hover{transform:translateY(-4px) scale(1.018)!important;filter:brightness(1.2) drop-shadow(0 0 14px #f4d18b52)!important}
+.painted-button:active{transform:translateY(2px) scale(.98)!important;filter:brightness(.93)!important}
+.hero-cta .button.painted-button{min-width:285px;min-height:92px;flex:1 1 285px}
+.cta-buttons .button.painted-button{width:300px;min-width:270px;min-height:83px}
+.painted-button.painted-share{background:none!important}
+.actual-prop{display:none;position:absolute;z-index:6;aspect-ratio:98/90;background-image:var(--original-props-sheet);background-size:400% 300%;background-repeat:no-repeat;mix-blend-mode:screen;pointer-events:none}
+.original-props-loaded .actual-prop{display:block}
+.prop-lantern{background-position:0% 0%}.prop-mushroom{background-position:33.333% 0%}.prop-crystal{background-position:66.667% 0%}.prop-chest{background-position:100% 0%}
+.prop-paw{background-position:0% 50%}.prop-flower{background-position:33.333% 50%}.prop-butterfly{background-position:66.667% 50%}.prop-vine{background-position:100% 50%}
+.prop-burrow{background-position:0% 100%}.prop-map{background-position:33.333% 100%}.prop-slingshot{background-position:66.667% 100%}.prop-campfire{background-position:100% 100%}
+.original-props-loaded .hero svg.hero-corner,.original-props-loaded .story-scene svg.story-ornament{opacity:0}
+.actual-prop.hero-corner{height:auto;min-height:40px;filter:drop-shadow(0 8px 12px #001915)}
+.original-props-loaded .feature-icon svg,.original-props-loaded .trail-icon svg{opacity:0}
+.feature-icon,.trail-icon{position:relative}
+.actual-prop.feature-prop{width:60px;height:58px;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.actual-prop.trail-prop{width:42px;height:42px;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2}
+.story-scene .actual-prop.story-ornament{right:-18px;top:-19px;width:85px;height:82px;transform:rotate(17deg)}
+.hero .actual-prop.hero-corner.lantern{top:110px;right:36%;width:73px}
+.hero .actual-prop.hero-corner.mushroom{right:4%;bottom:115px;width:80px}
+.hero .actual-prop.hero-corner.butterfly{top:30%;left:45%;width:55px}
+.hero .actual-prop.hero-corner.acorn{display:none}
+.camp-character:after{content:"";position:absolute;pointer-events:none;width:30px;height:30px;border-radius:50%;right:18px;top:14px;background:radial-gradient(circle,#ffe49d54,transparent)}
+@media(max-width:720px){
+ .hero-cta{display:flex;flex-direction:column;align-items:stretch;gap:0}
+ .hero-cta .button.painted-button{flex:auto;min-width:0;width:100%;min-height:85px}
+ .hero-cta .button.painted-button+.button.painted-button{margin-top:-7px}
+ .cta-buttons .button.painted-button{width:100%;min-width:0;min-height:85px}
+ .hero .actual-prop.hero-corner.lantern{top:455px;right:3%;width:39px}
+ .hero .actual-prop.hero-corner.mushroom{right:0%;bottom:62px;width:55px}
+ .hero .actual-prop.hero-corner.butterfly{top:51%;left:auto;right:14%;width:35px}
+ .feature-icon .actual-prop.feature-prop{width:56px;height:56px}
+ .story-scene .actual-prop.story-ornament{width:64px;height:61px;right:-8px}
+}
+@media(prefers-reduced-motion:reduce){.painted-button{transition:none!important}}
