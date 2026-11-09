@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#102a27">
+<meta name="theme-color" content="#0c2420">
 <meta name="color-scheme" content="dark">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="description" content="Mr. Fox: Sasha’s Adventures — сказочный 2D-платформер о лисёнке, который ищет пропавшую сестру. 100 уровней, 10 глав, тайные норы и приключения. Бесплатно в RuStore.">
@@ -21,8 +21,8 @@
 <meta name="twitter:description" content="100 уровней, 10 глав, тайные норы и сказочный лес. Бесплатно в RuStore.">
 <meta name="twitter:image" content="https://static.rustore.ru/2026/10/28/zz/apk/2063778118/content/SCREENSHOT/5198b74c-fb0f-4ed4-8adf-75c48ea26078.jpg">
 <link rel="icon" href="https://static.rustore.ru/2026/10/28/b2/apk/2063778118/content/ICON/d962ebe7-3226-4916-a747-c6d238716d9a.png" type="image/png">
-<link rel="preload" href="./forest-art.svg" as="image" type="image/svg+xml">
-<title>Mr. Fox: Sasha’s Adventures — приключение лисёнка Саши</title>
+<link rel="preload" href="./v3/hero.svg" as="image" type="image/svg+xml">
+<title>Mr. Fox: Sasha’s Adventures — помоги Саше найти сестру</title>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Mr. Fox: Sasha's Adventures","description":"Приключенческий 2D-платформер о лисёнке Саше, который ищет пропавшую сестру.","url":"https://www.rustore.ru/catalog/app/com.zhenixpick.riko.forest02.levelreview","applicationCategory":"Game","operatingSystem":"Android","inLanguage":"ru","isAccessibleForFree":true,"publisher":{"@type":"Organization","name":"Zhenixpick"}}</script>
 <style>
 :root{--night:#0c2221;--forest:#12342e;--leaf:#8dac7c;--gold:#f6c879;--cream:#f8ebd2;--muted:#b2c2ae;--border:rgba(232,241,201,.13);--orange:#e7904b;--deep:#091715}
@@ -49,6 +49,8 @@
 </style>
 <link rel="preload" href="./v2/forest-far.svg" as="image" type="image/svg+xml">
 <link rel="stylesheet" href="./v2/v2.css">
+<link rel="stylesheet" href="./v3/v3.css">
+<style>.nav{gap:9px}.nav a{background:url("./v3/button-emerald.svg") center/100% 100% no-repeat;min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:10px 21px;color:#fcecc9!important;text-shadow:0 1px 3px #17372e;font-weight:700;border-radius:30px;font-size:12px}.nav a:hover{filter:brightness(1.24);transform:translateY(-2px)}.camp-info summary{background:url("./v3/button-emerald.svg") center/100% 100% no-repeat;color:#ffeac1;padding:14px 28px;border-radius:30px;font-size:14px}.faq summary{min-height:66px;padding:13px 8px 13px 22px;border-radius:20px;background:linear-gradient(100deg,#17392e,#0d2a24);border:1px solid #ddb37340;color:#ffe6bd;align-items:center}.faq details{border:0;padding:7px 0}.faq details p{padding:4px 18px 12px}.footer-links a,.footer-links button{background:url("./v3/button-emerald.svg") center/100% 100% no-repeat;color:#ffe7b5;padding:11px 23px;border-radius:35px;text-shadow:0 1px 1px #142820}.footer-links a:hover,.footer-links button:hover{filter:brightness(1.12);color:#fff0d2}.hero-under span{background-image:url("./v3/button-parchment.svg")!important;background-color:transparent!important;background-position:center!important;background-size:100% 100%!important;border:0!important;color:#4a3225!important;text-shadow:0 1px #fff2c0;padding:10px 20px!important}.hero-under span:before{color:#91652c!important}@media(max-width:1000px){.nav a{padding-inline:13px;font-size:11px}}@media(max-width:720px){.nav{display:none}.hero-under span{padding:7px 11px!important}.faq summary{padding:12px 9px 12px 16px;font-size:14px}.footer-links a,.footer-links button{padding:9px 14px}}</style>
 </head>
 <body>
 <header class="site-header">
@@ -81,7 +83,7 @@
    <div class="hero-under"><span>Android 7.0+</span><span>Бесплатно</span><span>Можно играть офлайн</span></div>
   </div>
   <div class="hero-art">
-   <img src="./forest-art.svg" width="1000" height="860" alt="Художественная иллюстрация лисёнка Саши в сказочном лесу. Это не игровой скриншот." fetchpriority="high">
+   <img src="./v3/hero.svg" width="710" height="850" alt="Новая авторская иллюстрация лисёнка Саши в бирюзовом шарфе с рюкзаком и походным снаряжением" fetchpriority="high">
    <span class="hero-caption">Художественная иллюстрация сайта</span>
   </div>
  </div>
@@ -163,7 +165,7 @@
 <section class="cta-section" id="download">
 <svg class="decor decor-left" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#flower"></use></svg><svg class="decor decor-right" aria-hidden="true" focusable="false"><use href="./v2/sprites.svg#butterfly"></use></svg>
  <div class="wrapper"><span class="eyebrow">Твоё приключение начинается здесь</span><h2 class="serif">Даже маленький герой<br>может пройти <em>большой путь.</em></h2><p>Саша уже отправился на поиски. Пойдём с ним? Скачай игру бесплатно или поделись историей с другом.</p>
-  <div class="cta-buttons"><a class="button primary" href="https://www.rustore.ru/catalog/app/com.zhenixpick.riko.forest02.levelreview" target="_blank" rel="noopener noreferrer">Играть бесплатно <span class="arrow" aria-hidden="true">↗</span></a><button class="button outline" id="share-main" type="button">Поделиться с другом <span aria-hidden="true">♡</span></button></div>
+  <div class="cta-buttons"><a class="button primary" href="https://www.rustore.ru/catalog/app/com.zhenixpick.riko.forest02.levelreview" target="_blank" rel="noopener noreferrer">Играть бесплатно <span class="arrow" aria-hidden="true">↗</span></a><button class="button share" id="share-main" type="button">Поделиться с другом <span aria-hidden="true">♡</span></button></div>
   <span class="cta-mini">Android · RuStore · Разработчик Zhenixpick</span>
  </div>
 </section>
