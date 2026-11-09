@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360" role="img"><title>Белка Рыжка</title><defs><linearGradient id="fur" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffcb81"/><stop offset=".43" stop-color="#dd8b4f"/><stop offset="1" stop-color="#a95c3b"/></linearGradient><linearGradient id="vest" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b9b489"/><stop offset=".55" stop-color="#697e5b"/><stop offset="1" stop-color="#3c5a46"/></linearGradient><linearGradient id="leather" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a7734c"/><stop offset=".55" stop-color="#7e503c"/><stop offset="1" stop-color="#47342e"/></linearGradient><linearGradient id="cream" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff8dd"/><stop offset="1" stop-color="#dcc299"/></linearGradient><linearGradient id="teal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#77d4c3"/><stop offset=".5" stop-color="#3b979d"/><stop offset="1" stop-color="#1e616e"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="7" stdDeviation="5" flood-opacity=".36"/></filter></defs>
+<ellipse cx="183" cy="333" rx="123" ry="15" fill="#16362e" opacity=".35"/>
+<g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+<path d="M224 278q96-9 92-102 0-84-66-85-39 0-51 35 77-22 76 44-7 41-56 46Z" fill="url(#fur)" stroke="#71422d" stroke-width="7"/>
+<path d="M280 122q40 56-13 101-21 18-39 21l-11-24q60-10 69-53 4-28-6-45Z" fill="url(#cream)" stroke="none"/>
+<path d="M128 226q-37 15-50 74l32 32 31-36M225 220q38 22 46 69l-29 35-28-22" fill="#da9059" stroke="#71442e" stroke-width="6"/>
+<path d="M129 213q48-28 106 7l20 91q-51 38-128 3Z" fill="url(#vest)" stroke="#55452f" stroke-width="6"/>
+<path d="M149 212q34 33 74-1" fill="none" stroke="#e8d0a7" stroke-width="14"/>
+<path d="M134 251q44 14 102 0" fill="none" stroke="#65412e" stroke-width="13"/>
+<rect x="173" y="243" width="31" height="24" rx="5" fill="#e6b76b" stroke="#695035" stroke-width="4"/>
+<path d="M136 284l-7 36q-6 16-28 18h69l12-31M204 307l15 31h55q-31-9-41-29" fill="#8b5c3e" stroke="#543a2e" stroke-width="5"/>
+<path d="M137 96Q93 32 80 61q-15 37 11 75M228 88q30-66 53-50 18 27-12 89" fill="url(#fur)" stroke="#76462d" stroke-width="6"/>
+<path d="M97 88q-4-14-10-22m160 16 18-30" stroke="#f1b7a1" stroke-width="11" fill="none"/>
+<ellipse cx="185" cy="149" rx="96" ry="91" fill="url(#fur)" stroke="#74432e" stroke-width="6"/>
+<path d="M102 153q13 37 62 53 58 3 105-40-3 63-86 71-83 0-89-64Z" fill="url(#cream)" stroke="none"/>
+<ellipse cx="149" cy="149" rx="18" ry="24" fill="#fff2d4" stroke="none"/><ellipse cx="217" cy="147" rx="18" ry="24" fill="#fff2d4" stroke="none"/>
+<ellipse cx="152" cy="150" rx="10" ry="17" fill="#39322c"/><ellipse cx="219" cy="150" rx="10" ry="17" fill="#39322c"/><circle cx="155" cy="143" r="4" fill="#fff"/><circle cx="221" cy="142" r="4" fill="#fff"/>
+<path d="M168 194q16-10 32 0-4 12-15 12-14 0-17-12Z" fill="#644335" stroke="none"/><path d="M185 204v9m0 0q-14 13-27 0m27 0q14 12 27-1" fill="none" stroke="#684838" stroke-width="4"/>
+<path d="M115 98q25-12 56 0m33-7q27-10 49 8" fill="none" stroke="#ffca7a" stroke-width="7"/>
+<path d="M112 223q63 11 106-7l13 25q-58 28-105 7Z" fill="#b35c56" stroke="#634335" stroke-width="3"/>
+<!-- goggles -->
+<path d="M118 100q60-35 133-2" fill="none" stroke="#6f4a31" stroke-width="10"/>
+<circle cx="146" cy="94" r="26" fill="#9d703d" stroke="#5f4437" stroke-width="5"/><circle cx="146" cy="94" r="17" fill="#9cd1c2" stroke="#e3c888" stroke-width="4"/>
+<circle cx="212" cy="90" r="25" fill="#9d703d" stroke="#5f4437" stroke-width="5"/><circle cx="212" cy="90" r="16" fill="#9cd1c2" stroke="#e3c888" stroke-width="4"/>
+<path d="M137 83l10-7m56 3 11-5" stroke="#fffbe5" stroke-width="5" opacity=".65"/>
+<!-- acorn held -->
+<path d="M183 271q-25-32-4-46 30-15 43 12-3 27-21 40Z" fill="#bf8952" stroke="#604331" stroke-width="4"/>
+<path d="M171 239q28-24 52-4" stroke="#6b4935" stroke-width="12"/>
+<path d="M170 257q-19 0-21 18m73-17q19 6 14 23" stroke="#d89055" stroke-width="14" fill="none"/>
+</g></svg>
