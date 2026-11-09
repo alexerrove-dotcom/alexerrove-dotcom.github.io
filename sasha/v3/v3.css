@@ -1,0 +1,81 @@
+/* Sasha 3.0 — handmade original button art, redesigned characters, refined props */
+:root{--handgold:#e9bf7b;--ink:#332919;--cream:#fff3d6}
+body{font-synthesis:none}
+.button,.circle-btn,.lightbox .close{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.button{min-height:63px;padding:17px 43px 20px;transform:translateY(0);font-family:Georgia,"Times New Roman",serif;font-size:19px;font-weight:700;letter-spacing:-.012em;text-shadow:0 1px 0 #fff5d37c;line-height:1.1;border:0!important;border-radius:48px;background-color:transparent!important;box-shadow:none!important;transition:filter .25s,transform .18s ease!important;isolation:isolate}
+.button:before,.button.primary:before{display:none!important}
+.button:after{content:"";position:absolute;z-index:2;inset:8% 10%;border-radius:40px;pointer-events:none;box-shadow:inset 0 4px 7px #fff8d014;opacity:.2}
+.button.primary{background-image:url("./button-gold.svg")!important;background-size:100% 100%;background-position:center;background-repeat:no-repeat!important;color:#452b19!important;text-shadow:0 1px 0 #fff9ce!important}
+.button.outline{background-image:url("./button-parchment.svg")!important;background-size:100% 100%;background-position:center;background-repeat:no-repeat!important;color:#392a20!important;text-shadow:0 1px 0 #fffbe9!important}
+.button.share,.button.emerald{background-image:url("./button-emerald.svg")!important;background-size:100% 100%;background-position:center;background-repeat:no-repeat!important;color:#fff1ca!important;text-shadow:0 2px 2px #142f27!important}
+.button:hover{filter:brightness(1.13) drop-shadow(0 4px 15px #f2c57250);transform:translateY(-3px)}
+.button:active{filter:brightness(.93);transform:translateY(2px) scale(.98)}
+.button.small{font-size:15px;padding:11px 25px 14px;min-height:53px}
+.button .arrow{font-size:17px}
+.hero-cta{gap:6px;margin-left:-5px}.hero-cta .button{min-height:74px;font-size:19px;padding:22px 41px}
+.hero-cta .button.primary{padding:22px 45px}
+.hero-cta .button.outline{padding:22px 42px}
+.hero-art{min-height:660px;filter:drop-shadow(5px 26px 27px #031d1780)}
+.hero-art img{width:min(770px,121%);max-height:min(75svh,735px);object-fit:contain;animation:heroBreathe 7s ease-in-out infinite;filter:drop-shadow(0 15px 12px #0b2b1c70)}
+@keyframes heroBreathe{0%,100%{transform:translateY(1px) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+.hero-art:before{background:radial-gradient(circle,#f6d78b2e 4%,transparent 68%);border:2px solid #fce6aa55;box-shadow:0 0 0 36px #f2d7ac07,0 0 0 76px #f9e6be04,0 0 80px #edbf7e3c}
+.hero-caption{right:9%;bottom:21px;background:#102e2a99;box-shadow:0 0 10px #09241a66;padding:3px 10px;border-radius:30px}
+.hero h1{font-size:clamp(52px,5.45vw,82px);line-height:1.01;letter-spacing:-.052em}
+.hero .eyebrow{border-color:#f0cc8c63}
+.hero .hero-under span{border:1px solid #efc88861;background:#153d348b;color:#f7edca;padding:8px 12px}
+.hero .scroll-hint{color:#f5e6bb}
+.feature-card{border-radius:28px;background:linear-gradient(149deg,#325a43,#17382e 65%,#142f27);outline:2px solid #e1b87422;outline-offset:-10px;box-shadow:inset 0 0 0 2px #d4c08722,0 12px 28px #050f0c6e}
+.feature-card:hover{filter:saturate(1.13)}
+.feature-icon{width:72px;height:72px;border:0;background:radial-gradient(ellipse at 40% 29%,#e8c08061,#2245357c 66%),url("./button-emerald.svg") center / 100% 100% no-repeat;border-radius:23px;display:grid;place-items:center;box-shadow:0 5px 18px #071b145e}
+.feature-icon svg{width:54px;height:54px;filter:drop-shadow(0 5px 2px #0005)}
+.section-head .eyebrow{color:#f4d8a1}
+.camp-art{min-height:275px;overflow:visible;background:radial-gradient(ellipse at center 78%,#dabc7e50,transparent 62%),linear-gradient(180deg,#284e3c,#16362c)}
+.camp-art:before{width:210px;height:210px;border:2px solid #f1cf9066;box-shadow:0 0 0 20px #f9dfac08,0 0 45px #dcae6561}
+.camp-art img{width:92%;max-width:290px;height:260px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 15px 8px #041c1680);transition:transform .4s ease}
+.camp-character:hover .camp-art img{transform:translateY(-9px) rotate(-1deg)}
+.camp-info{padding:15px 28px 34px}
+.camp-character{border-radius:27px;box-shadow:0 11px 43px #020f0c66, inset 0 1px 0 #f7e2a355}
+.camp-info h3{color:#fff1ce;text-shadow:0 3px 11px #0b1c1355}
+.camp-info details{padding-top:17px}
+.story-scene{box-shadow:0 11px 0 #071e1a,0 23px 45px #03181483}
+.gallery .shot{border-width:6px;border-image:none;background:#a67f4a;border-color:#9c794d;outline:2px solid #f6d99c;outline-offset:-12px;box-shadow:0 14px 35px #010d0a9c}
+.gallery .shot figcaption{background:linear-gradient(100deg,#264b39,#102b27)}
+.circle-btn,.lightbox .close{display:inline-flex;align-items:center;justify-content:center;position:relative;border:0;background:transparent url("./button-circle.svg") center / 100% 100% no-repeat;box-shadow:none;color:#ffdda1;font-family:Georgia,serif;text-shadow:0 2px 3px #142d22;font-size:27px;transition:transform .18s,filter .18s}
+.circle-btn{width:57px;height:57px}
+.circle-btn:hover,.lightbox .close:hover{transform:translateY(-2px) scale(1.06);filter:brightness(1.16)}
+.circle-btn:active,.lightbox .close:active{transform:scale(.95);filter:brightness(.9)}
+.lightbox .close{top:15px;right:17px;width:56px;height:56px;font-size:31px;border-radius:50%}
+.faq summary:after{display:grid;place-items:center;flex:none;width:38px;height:38px;color:#f8d292;font-family:Georgia,serif;line-height:1;background:url("./button-circle.svg") center / contain no-repeat;text-shadow:0 1px 2px #0d241e;border-radius:50%;font-size:23px;margin-top:-9px}
+.trail-icon{width:76px;height:76px;background:url("./button-circle.svg") center / contain no-repeat;border:0;box-shadow:none}
+.trail-icon svg{width:40px;height:40px}
+.trail-steps:before{border-color:#f0c57b7c}
+.trail-stop strong{color:#ffe9bd}
+.cta-buttons{gap:7px}
+.cta-buttons .button{min-height:72px}
+.footer-links button{border-bottom:1px solid #d2b77c58}
+.mobile-cta .button{font-size:14px;font-weight:700}
+@media(max-width:1020px){.hero-art img{width:min(690px,116%)}.hero-cta .button{padding-inline:31px;font-size:16px}}
+@media(max-width:720px){
+.hero-grid{padding-top:108px;gap:0}.hero h1{font-size:clamp(47px,11vw,67px)}
+.hero-lead{font-size:15px}
+.hero-cta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:0 -4px}
+.hero-cta .button,.hero-cta .button.primary,.hero-cta .button.outline{font-size:clamp(12px,3.3vw,16px);min-height:60px;padding:15px 12px 18px;white-space:normal;text-align:center;gap:3px}
+.hero-art{min-height:320px;height:340px;margin-top:0}
+.hero-art img{width:min(105%,400px);max-height:335px}
+.hero-art:before{width:69%}.hero-caption{bottom:-5px;right:5%;font-size:8px}
+.hero-under{gap:6px;margin-top:13px}.hero .hero-under span{font-size:10px;padding:6px 8px}
+.hero-corner.lantern{top:410px;right:3%;width:37px}
+.camp-characters{gap:20px}.camp-art{min-height:250px}.camp-art img{height:242px;max-width:290px}
+.button{font-size:16px;min-height:57px;padding:14px 24px 17px}
+.button.small{font-size:12px;padding:11px 18px;min-height:45px}
+.cta-buttons{display:grid;grid-template-columns:1fr;gap:10px;max-width:340px;margin:auto}
+.cta-buttons .button{font-size:17px;min-height:65px}
+.mobile-cta{padding:8px 16px calc(7px + env(safe-area-inset-bottom));background:#0b2924f4;border-top:1px solid #dec18c6b;gap:8px}
+.mobile-cta .button{font-size:13px;min-height:45px;padding:11px 18px 12px}
+.mobile-cta .label strong{font-size:12px}
+.story-text .button{padding-inline:28px}
+.circle-btn{width:53px;height:53px}
+.feature-card{padding:28px 25px}
+}
+@media(max-width:390px){.hero h1{font-size:clamp(44px,11.2vw,54px)}.brand-copy strong{font-size:13px}.topbar .header-actions .button{font-size:11px;padding-inline:13px}.hero-cta .button{font-size:12px}.hero-art{height:305px;min-height:305px}.hero-art img{max-height:305px}.hero-corner.lantern{top:450px}}
+@media(prefers-reduced-motion:reduce){.hero-art img{animation:none!important}.camp-art img{transition:none!important}.button,.circle-btn{transition:none!important}}
