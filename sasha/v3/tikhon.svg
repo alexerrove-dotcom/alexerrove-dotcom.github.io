@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360" role="img"><title>Барсук Тихон</title><defs><linearGradient id="fur" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffcb81"/><stop offset=".43" stop-color="#dd8b4f"/><stop offset="1" stop-color="#a95c3b"/></linearGradient><linearGradient id="vest" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#b9b489"/><stop offset=".55" stop-color="#697e5b"/><stop offset="1" stop-color="#3c5a46"/></linearGradient><linearGradient id="leather" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a7734c"/><stop offset=".55" stop-color="#7e503c"/><stop offset="1" stop-color="#47342e"/></linearGradient><linearGradient id="cream" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff8dd"/><stop offset="1" stop-color="#dcc299"/></linearGradient><linearGradient id="teal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#77d4c3"/><stop offset=".5" stop-color="#3b979d"/><stop offset="1" stop-color="#1e616e"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="7" stdDeviation="5" flood-opacity=".36"/></filter></defs>
+<ellipse cx="184" cy="333" rx="128" ry="15" fill="#16362e" opacity=".35"/>
+<g filter="url(#shadow)" stroke-linecap="round" stroke-linejoin="round">
+<path d="M112 223q72-37 151-2l32 95q-110 50-208-1Z" fill="url(#vest)" stroke="#484c3a" stroke-width="6"/>
+<path d="M130 223q39 22 86-2l35 84q-63 29-111 0Z" fill="url(#cream)" stroke="none"/>
+<path d="M97 252q-30 11-24 46l44 27 30-29-22-35m141-18q33 12 32 46l-46 33-29-26 23-29" fill="#696b65" stroke="#42423d" stroke-width="6"/>
+<path d="M91 293q37 26 71 3m80-2q29 22 57-6" stroke="#53544d" stroke-width="19" fill="none"/>
+<path d="M132 291q52 18 113 2" stroke="#71503a" stroke-width="21" fill="none"/>
+<rect x="179" y="281" width="34" height="25" rx="5" fill="#e8c17e" stroke="#7a5338" stroke-width="4"/>
+<path d="M122 307l-18 32h80l11-31m16 0 11 31h79l-31-29" fill="#71523e" stroke="#4b4036" stroke-width="5"/>
+<path d="M105 87Q62 43 62 78q-12 52 31 69m160-58q42-47 52-13 12 41-31 75" fill="#626663" stroke="#3f4440" stroke-width="6"/>
+<ellipse cx="182" cy="157" rx="104" ry="97" fill="#e2ded1" stroke="#434740" stroke-width="6"/>
+<path d="M135 72q-64 41-44 122 4 29 39 47l35-12q-47-86 15-156Z" fill="#565b59" stroke="none"/>
+<path d="M225 74q66 38 50 115-9 33-39 53l-33-19q45-87-6-149Z" fill="#575c5a" stroke="none"/>
+<path d="M152 93q30 42 22 98l26 7q8-62-12-122" fill="#f9f4df" stroke="none"/>
+<path d="M114 182q28 20 57 9m23-1q32 14 55-12" stroke="#a9a99a" stroke-width="4" fill="none"/>
+<ellipse cx="140" cy="165" rx="13" ry="17" fill="#353d39"/><ellipse cx="230" cy="161" rx="13" ry="17" fill="#353d39"/>
+<circle cx="145" cy="158" r="4" fill="#fff"/><circle cx="235" cy="155" r="4" fill="#fff"/>
+<path d="M164 205q20-17 42-2-5 24-23 25-19 1-19-23Z" fill="#494440" stroke="none"/>
+<path d="M183 225v10m0 0q-21 16-38 1m38-1q17 16 36-2" stroke="#675951" stroke-width="4" fill="none"/>
+<!-- equipment and lantern -->
+<path d="M124 252L100 313" stroke="#6f4f34" stroke-width="17"/><path d="M106 302l-8 24" stroke="#e2c789" stroke-width="3"/>
+<g transform="translate(80 288)"><path d="M3 0v-15q12-13 22 0v15" fill="none" stroke="#c4a36f" stroke-width="5"/><path d="M-7 4h42v43H-7Z" fill="#725940" stroke="#c9a86f" stroke-width="5"/><path d="M3 10h22v26H3Z" fill="#ffc66d"/><path d="M13 34q-6-12 1-19 9 8 4 19Z" fill="#fff2b2"/></g>
+</g></svg>
