@@ -1,0 +1,18 @@
+/* v4 uses the exact character artwork generated for this website, not vector approximations */
+.actual-character{position:absolute;z-index:4;display:none;aspect-ratio:165/227;background-image:var(--original-character-sheet);background-size:200% 200%;background-repeat:no-repeat;mix-blend-mode:screen;pointer-events:none;image-rendering:auto;filter:drop-shadow(0 13px 17px #0921199a)}
+.originals-loaded .actual-character{display:block}
+.hero-art{position:relative;overflow:visible}
+.hero-art .actual-character{width:min(100%,450px);left:50%;top:50%;background-position:left top;transform:translate(-50%,-50%);animation:sashaAlive 6.5s ease-in-out infinite}
+.originals-loaded .hero-art>img{opacity:0}
+.camp-art{position:relative;isolation:isolate;min-height:315px;overflow:hidden}
+.camp-art .actual-character{width:min(82%,230px);left:50%;top:50%;transform:translate(-50%,-49%);filter:drop-shadow(0 10px 13px #0009)}
+.originals-loaded .camp-art>img{opacity:0}
+.camp-art .actual-ryzhka{background-position:right top}
+.camp-art .actual-tikhon{background-position:left bottom}
+.camp-art .actual-lada{background-position:right bottom}
+.camp-art .actual-character{mix-blend-mode:screen}
+.hero-art .actual-character{mix-blend-mode:screen}
+@keyframes sashaAlive{0%,100%{transform:translate(-50%,-50%) rotate(-1deg)}50%{transform:translate(-50%,-52%) rotate(1deg)}}
+@media(max-width:850px){.hero-art .actual-character{width:min(105%,370px)}}
+@media(max-width:720px){.hero-art{min-height:355px;height:355px}.hero-art .actual-character{width:min(94%,260px)}.camp-art{min-height:290px}.camp-art .actual-character{width:min(82%,205px)}}
+@media(prefers-reduced-motion:reduce){.hero-art .actual-character{animation:none}}
