@@ -1,0 +1,908 @@
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FoxFX 5.0 — WebGL2 · GIF · MP4 · GLB</title><meta name="theme-color" content="#09090a"><meta name="description" content="FoxFX — локальная обработка изображений и видео: ASCII, dithering, halftone, matrix rain и ретро-эффекты.">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" href="icon-192.png"><style>
+:root{color-scheme:dark;--bg:#080809;--panel:#0d0d0f;--panel2:#101013;--text:#bebec3;--bright:#eeeeef;--muted:#62626b;--border:#242429;--sub:#17171b;--accent:#dcdce3;font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:11px/1.55 ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}button,input,select{font:inherit}button,summary{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:1px solid var(--bright);outline-offset:2px}button{background:transparent;border:1px solid var(--border);color:var(--text)}button:hover:not(:disabled){background:var(--sub);color:var(--bright)}button:disabled{cursor:not-allowed;opacity:.35}.app{height:100dvh;min-height:550px;display:grid;grid-template-columns:235px minmax(320px,1fr) 276px;overflow:hidden}.sidebar{min-height:0;background:var(--panel);overflow-y:auto;scrollbar-width:thin;scrollbar-color:#303036 transparent;display:flex;flex-direction:column}.source-panel{border-right:1px solid var(--border)}.settings-panel{border-left:1px solid var(--border)}.brand{height:58px;flex:none;display:flex;align-items:center;padding:0 18px;font-size:15px;color:var(--bright);letter-spacing:-.6px;border-bottom:1px solid var(--border)}.brand>span:first-child{color:#b4b4be}.brand-sub{font-size:8px;color:var(--muted);letter-spacing:.2px;margin-left:8px}.fold{border-bottom:1px solid var(--border);flex:none}.fold-head,details>summary{height:39px;padding:0 14px;color:var(--bright);display:flex;justify-content:space-between;align-items:center;list-style:none;font-size:11px;user-select:none}details>summary::-webkit-details-marker{display:none}details>summary::before{content:'+ ';white-space:pre;color:var(--muted)}details[open]>summary::before{content:'− '}details .fold-body{padding-top:2px}.fold-head>span:last-child{font-size:10px;color:var(--muted)}.fold-head button{border:0;font-size:10px;color:var(--muted);padding:4px}.fold-head button:hover{color:var(--bright)}.fold-body{padding:0 14px 14px}.source-meta{margin-bottom:10px;color:var(--muted);line-height:2}.source-meta div:first-child{display:flex;justify-content:space-between}.source-meta button{border:0;color:var(--muted)}#fileInfoName{max-width:190px;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:middle}.drop-zone{min-height:68px;border:1px dashed #35353e;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:7px;color:#91919a;padding:10px 6px;cursor:pointer;transition:background .15s}.drop-zone:hover,.drop-zone.dragging{border-color:#7c7c8b;background:#16161a}.drop-zone small{font-size:9px;color:#54545d}.effect-list{display:flex;flex-direction:column;gap:0;padding:0 8px 12px}.effect{min-height:25px;width:100%;display:flex;align-items:center;text-align:left;gap:9px;padding:2px 8px;color:#83838d;border:0;border-radius:2px}.effect:before{content:'○';color:#595960;font-size:11px}.effect.active{background:#1a1a20;color:#f3f3f6}.effect.active:before{content:'●';color:#e8e8ee}.effect:hover{background:#17171b}.preset-group{display:flex;flex-direction:column;gap:3px}.preset-group button,.wide{padding:7px 9px;border:1px solid transparent;text-align:left}.preset-group button:hover{border-color:#313139}.section-label{font-size:10px;color:#9a9aa3;margin:4px 0 10px}.section-space{margin-top:21px;margin-bottom:12px}.wide{width:100%;border-color:var(--border);margin-bottom:7px}.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}.mini-grid button{padding:6px 3px}.sidebar-footer,.right-footer{margin-top:auto;padding:12px 13px;font-size:9px;color:#63636b;display:flex;justify-content:space-between;align-items:center}.local-pill{color:#7f9987}.workspace{position:relative;background:#09090b;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}.stage-head{position:absolute;left:0;right:0;z-index:4;top:0;padding:13px 16px;display:flex;justify-content:center;align-items:center;pointer-events:none}.stage-title{color:#ccccd2;font-size:10px}.engine-tag{color:#53535b}.online-dot{color:#ececf0;font-size:10px}.stage-actions{position:absolute;right:13px;top:9px;display:flex;gap:5px;pointer-events:auto}.stage-actions button{height:28px;width:28px;font-size:14px;color:#898992}.stage-frame{position:relative;flex:1;min-height:100px;min-width:0;display:grid;place-items:center;overflow:hidden}.canvas-holder{height:100%;width:100%;display:grid;place-items:center;padding:45px 16px 35px;position:relative;touch-action:pan-y}.canvas-holder canvas{max-width:100%;max-height:100%;object-fit:contain;width:auto;height:auto;box-shadow:0 0 14px #0008}.empty-state{position:absolute;z-index:3;left:0;right:0;top:0;bottom:0;background:#09090b;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center;color:#777780}.empty-state[hidden]{display:none}.empty-symbol{color:#3b3b44;font-size:30px;margin-bottom:10px;line-height:1}.empty-state p{margin:3px 0;font-size:11px;color:#93939a}.empty-state span{color:#515159;font-size:10px}.stage-bottom{height:37px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 13px;gap:10px;font-size:10px;color:#5e5e66}.stage-bottom-controls{display:flex;align-items:center;gap:7px}.stage-bottom-controls button{border:0;padding:3px 6px;color:#7c7c85}.stage-bottom-controls button:hover{background:var(--panel2)}.stage-bottom-controls span{min-width:31px;text-align:center}.secondary-tools{border-top:1px solid #141418;height:32px;font-size:9px}.secondary-tools button{padding:4px 6px;font-size:10px;border:0}.secondary-tools>span{margin-left:auto;text-align:right}.settings-main>.fold-body{padding:0 14px 18px}.effect-caption{font-size:12px;color:var(--bright);margin:1px 0 12px}.settings-fields{display:flex;flex-direction:column;gap:9px}.field{display:flex;flex-direction:column;gap:5px}.field>label{display:flex;justify-content:space-between;color:#9c9ca6;align-items:center;font-size:10px}.field output{color:#9f9fa9}.field>input[type=range]{width:100%;height:11px;accent-color:#c0c0c9;background:transparent;margin:0}.field select,.field input[type=number]{background:#101013;color:#c2c2cb;border:1px solid #37373e;min-height:26px;padding:4px 8px;width:100%;border-radius:0}.field input[type=color]{height:25px;padding:0;width:56px;border:1px solid #41414c;background:var(--panel2)}.field.toggle{flex-direction:row;align-items:center;justify-content:space-between}.field.toggle label{order:0}.field.toggle input{order:1;accent-color:#ceced8}.color-control{display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:8px}.color-control label{font-size:10px;color:#9999a1}.color-control>select{max-width:105px}.color-control input[type=color]{width:47px}.color-control select{width:110px;border:1px solid var(--border);background:#141417;color:#dfdfe7;padding:5px}.settings-panel details .fold-body{padding:2px 14px 15px}.export-options{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:8px 0}.export-options button{padding:8px 8px 7px;text-align:left;min-height:44px;border:1px solid #2a2a31;display:flex;flex-direction:column;gap:2px}.export-options button.chosen{border-color:#8b8b98;color:#eeeef2}.export-options strong{font-size:11px;font-weight:500}.export-options span{color:#666670;font-size:9px}.format-description{color:#81818b;font-size:10px;margin:12px 0 10px}.download{background:#dedee3;color:#0e0e11;border:1px solid #eeeef2;padding:10px 8px;width:100%;font-weight:600}.download:disabled{opacity:.35}.download:hover:not(:disabled){background:#fff;color:#000}.export-note{display:block;font-size:9px;color:#707079;margin-top:10px;line-height:1.6}#toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,10px);z-index:20;padding:11px 14px;background:#24242b;border:1px solid #51515b;color:#eee;opacity:0;transition:.2s;pointer-events:none;font-size:11px}#toast.show{opacity:1;transform:translate(-50%,0)}.compare-line{position:absolute;z-index:2;pointer-events:none;width:2px;background:white}.compare-line span{position:absolute;top:50%;left:-13px;border-radius:100%;height:26px;width:26px;background:#fff;color:#000;display:grid;place-items:center}#engineCompat{display:none!important}[hidden]{display:none!important}
+.light{--bg:#dadade;--panel:#f3f3f5;--panel2:#e4e4e7;--text:#33333a;--bright:#1c1c21;--muted:#686870;--border:#c5c5cc;--sub:#e4e4e7;color-scheme:light}.light .workspace,.light .empty-state{background:#e1e1e5}.light .effect.active{background:#d1d1d6}.light .effect.active:before{color:#333}.light .stage-head{color:#202029}.light .stage-title{color:#282831}.light .download{background:#111;color:#fff}
+@media(max-width:920px){.app{grid-template-columns:195px minmax(300px,1fr) 235px}.brand{padding:0 12px}.fold-head,details>summary{padding:0 11px}.fold-body,.settings-main>.fold-body{padding-left:11px;padding-right:11px}.effect{min-height:28px}}
+@media(max-width:760px){.app{height:auto;min-height:100dvh;display:flex;flex-direction:column;overflow:visible}.workspace{order:0;height:min(68dvh,550px);min-height:370px;border-bottom:1px solid var(--border)}.source-panel{order:1;overflow:visible;border-right:0;border-bottom:1px solid var(--border)}.settings-panel{order:2;overflow:visible;border-left:0}.brand{height:40px}.effect-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;padding:0 9px 14px}.effect{min-height:31px;white-space:nowrap;font-size:10px}.fold-head{height:35px}.sidebar-footer{margin-top:5px}.stage-head{padding-top:10px}.stage-actions{top:7px}.stage-tip{font-size:9px}.stage-bottom{padding:0 9px}.secondary-tools>span{display:none}.settings-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px 17px}.effect-caption{margin-bottom:10px}.settings-panel .fold-body{padding-bottom:20px}.settings-panel details .fold-body{padding-bottom:18px}}
+@media(max-width:390px){.effect-list{grid-template-columns:repeat(2,minmax(0,1fr))}.settings-fields{gap:12px}.stage-bottom-controls{gap:3px}.stage-bottom{gap:4px}}
+
+#gpuToggle{height:28px;min-width:37px;font-size:10px;padding:0 6px}#gpuToggle.active{color:#b4ffc4;border-color:#3a6946;background:#101e14}
+
+@media(max-width:760px){.stage-head{justify-content:flex-start;padding-left:9px}.stage-title{font-size:9px;max-width:calc(100% - 155px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.stage-actions{gap:3px}}
+
+#progressPanel[hidden]{display:none}#progressPanel{position:fixed;z-index:9999;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:14px;align-items:center;width:min(440px,calc(100vw - 20px));padding:16px;border:1px solid #50505a;border-radius:12px;color:white;background:#16171c;box-shadow:0 20px 40px #000a;font:12px monospace}#progressPanel progress{flex:1;min-width:40px}#progressPanel button{min-height:32px;background:#303036;border:1px solid #777;border-radius:5px;color:white}
+
+</style></head><body>
+<div class="app">
+  <aside class="sidebar source-panel" id="sourcePanel">
+    <div class="brand">Fox<span>FX</span><span class="brand-sub"> / EFFECTS STUDIO</span></div>
+    <section class="fold shown"><div class="fold-head"><span>− Input</span><span id="inputStatus">Standby</span></div><div class="fold-body">
+      <div class="source-meta" id="sourceMeta" hidden><div>Image loaded <button id="clearInput" title="Очистить изображение">Clear</button></div><div><span id="fileInfoName">—</span></div><div id="fileResolution">Resolution —</div></div>
+      <label id="uploadZone" class="drop-zone" for="fileInput" tabindex="0"><span class="upload-main">Drop file or click to browse</span><small>PNG, JPG, GIF, WebP, MP4, WebM, GLB</small></label>
+      <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,.glb,model/gltf-binary" hidden>
+    </div></section>
+    <section class="fold shown"><div class="fold-head"><span>− Effects</span><span id="effectCount" aria-live="polite"></span></div>
+       <div class="fold-body effect-list" id="effectList" role="group" aria-label="Effects">
+         <button class="effect active" data-effect="ascii">ASCII</button><button class="effect" data-effect="dithering">Dithering</button>
+         <button class="effect" data-effect="halftone">Halftone</button><button class="effect" data-effect="matrix">Matrix Rain</button>
+         <button class="effect" data-effect="dots">Dots</button><button class="effect" data-effect="contour">Contour</button>
+         <button class="effect" data-effect="pixel-sort">Pixel Sort</button><button class="effect" data-effect="blockify">Blockify</button>
+         <button class="effect" data-effect="threshold">Threshold</button><button class="effect" data-effect="edges">Edge Detection</button>
+         <button class="effect" data-effect="crosshatch">Crosshatch</button><button class="effect" data-effect="wave">Wave Lines</button>
+         <button class="effect" data-effect="noise">Noise Field</button><button class="effect" data-effect="voronoi">Voronoi</button>
+         <button class="effect" data-effect="vhs">VHS</button>
+       </div></section>
+    <details class="fold"><summary>Presets</summary><div class="fold-body">
+      <p class="section-label">BUILT-IN PRESETS</p><div class="preset-group"><button data-reference-preset="terminal">Classic Terminal</button><button data-reference-preset="matrix">Matrix</button><button data-reference-preset="retro">Retro CRT</button><button data-reference-preset="detail">High Detail</button><button data-reference-preset="minimal">Minimal</button><button data-reference-preset="cyber">Cyberpunk</button></div>
+      <p class="section-label">CUSTOM PRESETS</p><button class="wide" id="saveCustom">+ Save Current Settings</button><button class="wide" id="loadCustom">Load saved preset</button><div class="mini-grid"><button id="exportPreset">Export JSON</button><button id="importPreset">Import JSON</button></div><input id="presetFile" hidden type="file" accept="application/json,.json">
+    </div></details>
+    <div class="sidebar-footer"><span>FoxFX / Original implementation</span><span class="local-pill">● LOCAL</span></div>
+  </aside>
+  <main class="workspace" id="workspace" aria-label="Image preview">
+    <div class="stage-head"><span class="stage-title"><span class="online-dot">●</span> <span id="miniEffect">ASCII</span> <span class="engine-tag" id="engineStatus">[CANVAS 2D]</span></span><div class="stage-actions"><button id="gpuToggle" title="Включить или выключить GPU-обработку" aria-label="GPU-обработка">GPU</button><button id="lightTheme" title="Сменить тему" aria-label="Тема">◐</button><button id="cameraBtn" title="Камера" aria-label="Камера">▣</button><button id="fullBtn" title="Во весь экран" aria-label="Во весь экран">⛶</button></div></div>
+    <div class="stage-frame" id="stageFrame"><div class="canvas-holder" id="canvasHolder"><canvas id="outputCanvas" width="900" height="600" aria-label="Preview of selected visual effect"></canvas><div class="compare-line" id="compareLine" hidden><span>⇆</span></div></div>
+      <div class="empty-state" id="emptyState"><div class="empty-symbol">✥</div><p>Awaiting input</p><span>Drop a file or select a source</span></div>
+    </div>
+    <div class="stage-bottom"><span class="stage-tip" id="previewInfo">No input</span><div class="stage-bottom-controls"><button id="zoomOutBtn" title="Zoom out">−</button><span id="zoomValue">100%</span><button id="zoomInBtn" title="Zoom in">+</button><button id="resetView">Reset</button><span id="zoomActual">100%</span></div><button id="playBtn" hidden>▶ Play</button></div>
+    <div class="stage-bottom secondary-tools"><button id="topUploadBtn">↥ Open file</button><button id="beforeBtn" title="Compare original and effect">◐ Before / After</button><span>Scroll to pan · Ctrl+Scroll to zoom</span></div>
+  </main>
+  <aside class="sidebar settings-panel" id="settingsPanel">
+    <section class="fold shown settings-main"><div class="fold-head"><span>− Settings</span><button id="resetBtn">Reset</button></div><div class="fold-body">
+      <div class="effect-caption" id="effectName">ASCII</div><div class="settings-fields" id="effectFields"></div>
+      <p class="section-label section-space">Adjustments</p><div class="settings-fields" id="adjustFields"></div>
+      <p class="section-label section-space">Color</p><div class="settings-fields" id="colorFields"></div>
+    </div></section>
+    <details class="fold" id="processingDetails"><summary>Processing</summary><div class="fold-body settings-fields" id="processingFields"></div></details>
+    <details class="fold" id="postDetails"><summary>Post-Processing</summary><div class="fold-body settings-fields" id="postFields"></div></details>
+    <details class="fold" id="exportDetails" open><summary>Export</summary><div class="fold-body">
+      <p class="section-label">Format</p><div class="export-options" id="formatOptions">
+      <button data-format="png" class="chosen"><strong>PNG</strong><span>.png</span></button><button data-format="jpeg"><strong>JPEG</strong><span>.jpg</span></button><button data-format="gif"><strong>GIF</strong><span>.gif</span></button><button data-format="video"><strong>MP4</strong><span>.mp4</span></button><button data-format="webm"><strong>WebM</strong><span>.webm</span></button><button data-format="svg"><strong>SVG</strong><span>.svg</span></button><button data-format="txt"><strong>Text</strong><span>.txt</span></button><button data-format="three"><strong>Three.js</strong><span>.html</span></button>
+      </div><div class="format-description" id="formatDescription">High quality image</div>
+      <button class="download" id="exportSelected" disabled>Export PNG</button><small class="export-note">MP4 требует кодек H.264 и WebCodecs либо MediaRecorder. GIF без звука, HTML Three.js — интерактивный просмотр.</small>
+      </div></details>
+    <div class="right-footer">All media stays in your browser</div>
+  </aside>
+</div>
+<!-- Compatibility controls for the shared tested Canvas 2D engine. Visual UI is above. -->
+<div id="engineCompat" hidden>
+ <button id="undoBtn"></button><button id="redoBtn"></button><button id="helpBtn"></button><button id="closeHelp"></button>
+ <button id="randomBtn"></button><button id="savePresetBtn"></button><button id="loadPresetBtn"></button><button id="installBtn"></button>
+ <input id="effectSearch"><span id="effectTitle"></span><span id="settingEffect"></span><span id="stageStamp"></span><span id="fileName"></span><span id="fileType"></span>
+ <input id="scale" type="range" min="3" max="48" value="8"><output id="scaleValue"></output><input id="intensity" type="range" min="0" max="100" value="100"><output id="intensityValue"></output>
+ <input id="thresholdValue" type="range" min="0" max="100" value="50"><output id="thresholdValueValue"></output>
+ <input id="brightness" type="range" min="-100" max="100"><output id="brightnessValue"></output>
+ <input id="contrast" type="range" min="-100" max="100"><output id="contrastValue"></output>
+ <input id="saturation" type="range" min="-100" max="100"><output id="saturationValue"></output>
+ <input id="hue" type="range" min="-180" max="180"><output id="hueValue"></output>
+ <select id="colorMode"><option value="original">Original</option><option value="mono">Mono</option><option value="accent">Accent</option></select>
+ <input id="accentColor" type="color" value="#ffffff"><input id="bgColor" type="color" value="#000000">
+ <select id="resolution"><option value="900">900</option><option value="1400">1400</option><option value="2000">2000</option></select>
+ <button id="pngBtn"></button><button id="jpgBtn"></button><button id="svgBtn"></button><button id="webmBtn"></button><button id="exportBtn"></button>
+ <dialog id="helpDialog"><button autofocus>Close</button></dialog><video id="inputVideo" playsinline muted></video>
+</div>
+<div id="toast" role="status"></div><div id="progressPanel" hidden><span id="progressTitle">Processing</span><progress id="progressBar" max="100" value="0"></progress><button type="button" id="cancelExport">Cancel</button></div>
+<script>
+// PWA is only registered on secure origins; a downloaded HTML file works without it.
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.warn));
+}
+</script><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}</script><script>
+/* FoxFX GPU stage v4: original WebGL2 full-screen post-processing shader.
+   Input is the app's composited Canvas 2D frame. If WebGL2 is unavailable,
+   the existing CPU post-processing path remains active without modification. */
+(() => {
+  'use strict';
+  const vertex = `#version 300 es
+    precision highp float;
+    in vec2 aPosition;
+    out vec2 vUV;
+    void main(){ vUV = aPosition * 0.5 + 0.5; gl_Position=vec4(aPosition,0.,1.); }
+  `;
+  const fragment = `#version 300 es
+    precision highp float;
+    uniform sampler2D uImage;
+    uniform vec2 uResolution;
+    uniform float uTime;
+    uniform float uBloom;
+    uniform float uGrain;
+    uniform float uGrainIntensity;
+    uniform float uGrainSize;
+    uniform float uGrainSpeed;
+    uniform float uChromatic;
+    uniform float uScanlines;
+    uniform float uVignette;
+    uniform float uCRT;
+    uniform float uPhosphor;
+    in vec2 vUV;
+    out vec4 outColor;
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453123); }
+    void main(){
+      vec2 uv = vUV;
+      float dx = uv.x - 0.5;
+      float dy = uv.y - 0.5;
+      vec2 q=uv;
+      if(uCRT > 0.5){
+        q=uv + vec2(dx*dy*dy,dy*dx*dx)*0.12;
+      }
+      vec3 rgb=texture(uImage, clamp(q,0.,1.)).rgb;
+      if(uChromatic>0.5){
+        vec2 sh=vec2(1.5 / uResolution.x,0.);
+        rgb.r=texture(uImage,clamp(q+sh,0.,1.)).r;
+        rgb.b=texture(uImage,clamp(q-sh,0.,1.)).b;
+      }
+      if(uBloom>0.5){
+        vec2 px=2.0/uResolution;
+        vec3 halo=texture(uImage,clamp(q+vec2(px.x,0),0.,1.)).rgb;
+        halo+=texture(uImage,clamp(q-vec2(px.x,0),0.,1.)).rgb;
+        halo+=texture(uImage,clamp(q+vec2(0,px.y),0.,1.)).rgb;
+        halo+=texture(uImage,clamp(q-vec2(0,px.y),0.,1.)).rgb;
+        rgb=min(vec3(1.),rgb+max(halo*.25-.25,0.)*.18);
+      }
+      float posY = (1.0-q.y)*uResolution.y;
+      float posX = q.x*uResolution.x;
+      if(uScanlines>0.5 || uCRT>0.5){
+        float line=step(1.15,mod(posY,4.));
+        rgb *= mix(0.73,1.,line);
+      }
+      if(uPhosphor>0.5){
+        float stripe=mod(floor(posX),3.);
+        rgb *= vec3(stripe<1. ? 1.0:0.93, stripe>=1. && stripe<2. ? 1.0:0.93, stripe>=2. ? 1.0:0.93);
+      }
+      if(uGrain>0.5){
+        float seed=floor(uTime*mix(2.0,60.0,uGrainSpeed/100.));
+        vec2 cell=floor(gl_FragCoord.xy/max(1.,uGrainSize));
+        float noise=(hash(cell+seed*17.0)-.5)*.32*clamp(uGrainIntensity/100.0,0.,1.);
+        rgb=clamp(rgb+noise,0.,1.);
+      }
+      if(uVignette>0.5 || uCRT>0.5){
+        float vig=1.0-smoothstep(.20,.78,length((uv-.5)*vec2(1.1,1.0)));
+        rgb *= mix(1.0,mix(.26,1.0,vig),uVignette>0.5 ? 0.65:0.38);
+      }
+      outColor=vec4(rgb,1.);
+    }
+  `;
+  let canvas, gl, program, buffer, texture, attrib, uniforms, enabled=true, status='init', failures=0;
+  const keys=['uResolution','uTime','uBloom','uGrain','uGrainIntensity','uGrainSize','uGrainSpeed','uChromatic','uScanlines','uVignette','uCRT','uPhosphor'];
+  function compile(type,src){
+    const shader=gl.createShader(type);gl.shaderSource(shader,src);gl.compileShader(shader);
+    if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){const error=gl.getShaderInfoLog(shader);gl.deleteShader(shader);throw Error(error);}
+    return shader;
+  }
+  function init(){
+    try{
+      canvas=document.createElement('canvas');
+      gl=canvas.getContext('webgl2',{alpha:false,antialias:false,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+      if(!gl){status='unavailable';return;}
+      const v=compile(gl.VERTEX_SHADER,vertex),f=compile(gl.FRAGMENT_SHADER,fragment);
+      program=gl.createProgram();gl.attachShader(program,v);gl.attachShader(program,f);gl.linkProgram(program);
+      gl.deleteShader(v);gl.deleteShader(f);
+      if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));
+      gl.useProgram(program);
+      attrib=gl.getAttribLocation(program,'aPosition');
+      uniforms=Object.fromEntries(keys.map(k=>[k,gl.getUniformLocation(program,k)]));
+      buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+      gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(attrib);gl.vertexAttribPointer(attrib,2,gl.FLOAT,false,0,0);
+      texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+      gl.uniform1i(gl.getUniformLocation(program,'uImage'),0);
+      canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();status='lost';});
+      canvas.addEventListener('webglcontextrestored',()=>{status='lost';init();});
+      status='ready';
+    }catch(err){console.warn('FoxFX WebGL2 unavailable:',err);status='error';}
+  }
+  function apply(input,post={},now=0){
+    if(!enabled||status!=='ready')return null;
+    const w=input.width,h=input.height;
+    if(!w||!h||w>gl.getParameter(gl.MAX_TEXTURE_SIZE)||h>gl.getParameter(gl.MAX_TEXTURE_SIZE))return null;
+    try{
+      if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
+      gl.useProgram(program);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(attrib);
+      gl.vertexAttribPointer(attrib,2,gl.FLOAT,false,0,0);
+      gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,input);
+      gl.uniform2f(uniforms.uResolution,w,h);
+      gl.uniform1f(uniforms.uTime,now*.001);
+      gl.uniform1f(uniforms.uBloom,post.postBloom?1:0);
+      gl.uniform1f(uniforms.uGrain,post.postGrain?1:0);
+      gl.uniform1f(uniforms.uGrainIntensity,Math.max(0,Number(post.grainIntensity??35)));
+      gl.uniform1f(uniforms.uGrainSize,Math.max(1,Number(post.grainSize??2)));
+      gl.uniform1f(uniforms.uGrainSpeed,Math.max(0,Number(post.grainSpeed??50)));
+      gl.uniform1f(uniforms.uChromatic,post.postChromatic?1:0);
+      gl.uniform1f(uniforms.uScanlines,post.postScanlines?1:0);
+      gl.uniform1f(uniforms.uVignette,post.postVignette?1:0);
+      gl.uniform1f(uniforms.uCRT,post.postCRT?1:0);
+      gl.uniform1f(uniforms.uPhosphor,post.postPhosphor?1:0);
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+      if(gl.isContextLost()){status='lost';return null;}
+      failures=0;return canvas;
+    }catch(err){if(++failures<3)console.warn('FoxFX GPU fallback:',err);status='error';return null;}
+  }
+  init();
+  window.FoxGPU={apply,get supported(){return status==='ready';},get enabled(){return enabled;},get active(){return enabled&&status==='ready';},toggle(){enabled=!enabled;return enabled&&status==='ready';},get status(){return status;}};
+})();
+
+</script><script>
+/* FoxFX GPU filters — an independent WebGL2 implementation of the 15 effects. */
+(()=>{'use strict';
+const vert=`#version 300 es
+in vec2 a;out vec2 uv;void main(){uv=a*.5+.5;gl_Position=vec4(a,0.,1.);}`;
+const frag=`#version 300 es
+precision highp float;
+in vec2 uv;out vec4 outColor;uniform sampler2D tex,atlas;uniform vec2 resolution;
+uniform float time,scale,threshold,amount,p1,p2,p3,p4,p5;uniform int mode,palette;
+uniform vec3 fg,bg;
+float random(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+vec3 pix(vec2 x){return texture(tex,clamp(x,0.,1.)).rgb;}
+float luma(vec3 c){return dot(c,vec3(.2126,.7152,.0722));}
+vec3 colored(vec3 c){return palette==1?vec3(luma(c)):palette==2?fg*luma(c):c;}
+float edges(vec2 x){vec2 d=1./resolution;float a=luma(pix(x-d)),b=luma(pix(x+vec2(d.x,-d.y))),c=luma(pix(x+vec2(-d.x,d.y))),e=luma(pix(x+d));return min(1.,length(vec2((b+e)-(a+c),(c+e)-(a+b)))*1.7);}
+float glyph(vec2 xy,float cell,float brightness){vec2 cellcoord=fract(xy/cell);float glyphId=floor(clamp(brightness,0.,.999)*16.);return texture(atlas,vec2((glyphId+cellcoord.x)/16.,cellcoord.y)).r;}
+void main(){vec2 xy=gl_FragCoord.xy;float s=max(3.,scale),v=luma(pix(uv));vec3 c=pix(uv);float d;
+if(mode==0){float cell=max(6.,s*p1*.42+p2);vec2 at=(floor(xy/cell)+.5)*cell/resolution;d=glyph(xy,cell,luma(pix(at)));c=mix(bg,colored(pix(at)),d);}
+else if(mode==1){float mat=max(2.,p2);vec2 ix=mod(floor(xy),mat);float x=random(ix)-.5;float bit=step(.5,v+x*p1*.65);c=mix(bg,fg,bit);}
+else if(mode==2){float an=p3;vec2 r=mat2(cos(an),-sin(an),sin(an),cos(an))*xy;vec2 local=fract(r/max(3.,p2))-.5;float radius=sqrt(max(0.,1.-v))*.62*p1;d=p5<.5?length(local):p5<1.5?max(abs(local.x),abs(local.y)):abs(local.y);c=mix(bg,fg,1.-smoothstep(radius-.035,radius+.035,d));}
+else if(mode==3){float cell=max(5.,p1);vec2 id=floor(xy/cell);float top=mod(time*p2*15.+random(vec2(id.x,2.))*resolution.y/cell,resolution.y/cell+20.);float dist=p4>.5?id.y-top:top-id.y;float trail=step(0.,dist)*exp(-max(0.,dist)/max(1.,p3));d=glyph(xy,cell,random(id+floor(time*p2)));c=mix(bg,fg*clamp(trail*p5,0.,1.),d);}
+else if(mode==4){vec2 a=fract(xy/s)-.5;float r=sqrt(max(0.,1.-luma(pix((floor(xy/s)+.5)*s/resolution))))*.64;c=mix(bg,colored(pix(uv)),1.-smoothstep(r-.04,r+.04,length(a)));}
+else if(mode==5){d=smoothstep(threshold*.25,threshold*.25+.15,edges(uv));c=mix(bg,fg,d);}
+else if(mode==6){float n=random(vec2(floor(xy.y/s),floor(time)));vec2 at=uv+vec2((n-.5)*s*5.*smoothstep(threshold-.15,threshold+.15,v)/resolution.x,0.);c=colored(pix(at));}
+else if(mode==7){vec2 at=(floor(xy/s)+.5)*s/resolution;c=colored(pix(at));}
+else if(mode==8){c=mix(bg,fg,step(threshold,v));}
+else if(mode==9){c=mix(bg,fg,smoothstep(threshold*.7,threshold*.7+.15,edges(uv)));}
+else if(mode==10){float a=abs(sin((xy.x+xy.y)*3.14159/s)),b=abs(sin((xy.x-xy.y)*3.14159/s));d=(step(.20,1.-v)*step(a,.15)+step(.6,1.-v)*step(b,.15));c=mix(bg,fg,min(1.,d));}
+else if(mode==11){float wave=sin(xy.x*.012+time)*s*p1+(v-.5)*s;d=mod(xy.y+wave,s);c=mix(bg,colored(pix(uv)),1.-smoothstep(.8,2.,d));}
+else if(mode==12){d=random(floor(xy/s)+floor(time*4.));c=colored(vec3(clamp(v+(d-.5)*p1,0.,1.)));}
+else if(mode==13){vec2 g=xy/s,id=floor(g),at=id;float best=999.;for(int x=-1;x<=1;x++)for(int y=-1;y<=1;y++){vec2 test=id+vec2(float(x),float(y)),r=test+vec2(random(test),random(test+19.));float delta=length(g-r);if(delta<best){best=delta;at=r;}}c=colored(pix(at*s/resolution));}
+else if(mode==14){float line=xy.y;float drift=sin(line*.019+time*4.)*p1*20./resolution.x;drift+=step(.97,random(vec2(floor(line/7.),floor(time*5.))))*p5*.2;vec2 q=clamp(uv+vec2(drift,0.),0.,1.);c=vec3(pix(q+vec2(p3*.01,0.)).r,pix(q).g,pix(q-vec2(p3*.01,0.)).b);c+=(random(floor(xy/2.)+floor(time*20.))-.5)*p2*.3;c*=1.-p4*.30*step(.6,sin(line*.35));}
+outColor=vec4(clamp(mix(pix(uv),c,amount),0.,1.),1.);
+}`;
+let gl,canvas,program,tex,atlas,position,locations,status='loading';
+const types=['ascii','dithering','halftone','matrix','dots','contour','pixel-sort','blockify','threshold','edges','crosshatch','wave','noise','voronoi','vhs'];
+function compile(kind,text){const sh=gl.createShader(kind);gl.shaderSource(sh,text);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(sh));return sh;}
+function init(){try{canvas=document.createElement('canvas');gl=canvas.getContext('webgl2',{preserveDrawingBuffer:true,alpha:false,powerPreference:'high-performance'});if(!gl){status='unavailable';return;}
+const v=compile(gl.VERTEX_SHADER,vert),f=compile(gl.FRAGMENT_SHADER,frag);program=gl.createProgram();gl.attachShader(program,v);gl.attachShader(program,f);gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);
+const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);position=gl.getAttribLocation(program,'a');gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
+locations=Object.fromEntries(['tex','atlas','resolution','time','scale','threshold','amount','p1','p2','p3','p4','p5','mode','palette','fg','bg'].map(k=>[k,gl.getUniformLocation(program,k)]));
+const makeTexture=unit=>{const t=gl.createTexture();gl.activeTexture(gl.TEXTURE0+unit);gl.bindTexture(gl.TEXTURE_2D,t);for(const key of [gl.TEXTURE_WRAP_S,gl.TEXTURE_WRAP_T])gl.texParameteri(gl.TEXTURE_2D,key,gl.CLAMP_TO_EDGE);for(const key of [gl.TEXTURE_MIN_FILTER,gl.TEXTURE_MAG_FILTER])gl.texParameteri(gl.TEXTURE_2D,key,gl.LINEAR);return t;};
+tex=makeTexture(0);atlas=makeTexture(1);const image=document.createElement('canvas');image.width=16*24;image.height=32;const g=image.getContext('2d');g.fillStyle='black';g.fillRect(0,0,image.width,image.height);g.fillStyle='white';g.font='bold 25px monospace';g.textAlign='center';g.textBaseline='middle';const chars='  .:-=+*#%@MW&8B$';for(let i=0;i<16;i++)g.fillText(chars[i],i*24+12,16);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);gl.uniform1i(locations.tex,0);gl.uniform1i(locations.atlas,1);status='ready';}catch(e){status='error';console.warn('GPU effect shader:',e)}}
+function color(hex){return [1,3,5].map(i=>parseInt(String(hex||'#ffffff').slice(i,i+2),16)/255||0)}
+function render(src,s,t){if(status!=='ready'||!window.FoxGPU?.enabled)return null;try{if(canvas.width!==src.width||canvas.height!==src.height){canvas.width=src.width;canvas.height=src.height;gl.viewport(0,0,src.width,src.height);}gl.useProgram(program);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);gl.uniform2f(locations.resolution,src.width,src.height);gl.uniform1f(locations.time,t/1000);gl.uniform1f(locations.scale,Math.max(3,Number(s.scale)||8));gl.uniform1f(locations.threshold,Number(s.thresholdValue||50)/100);gl.uniform1f(locations.amount,Number(s.intensity||100)/100);gl.uniform1i(locations.mode,types.indexOf(s.effect));gl.uniform1i(locations.palette,s.colorMode==='mono'?1:s.colorMode==='accent'?2:0);gl.uniform3fv(locations.fg,color(s.accentColor));gl.uniform3fv(locations.bg,color(s.bgColor));let e=s.extra||{},p=[];
+switch(s.effect){case 'ascii':p=[Number(e.asciiScale??2),Number(e.charSpacing||0)];break;case 'dithering':p=[Number(e.ditherIntensity??1),Number(e.ditherMatrix||4)];break;case 'halftone':p=[Number(e.halfScale??1),Number(e.halfSpacing??8),Number(e.halfAngle??45)*Math.PI/180,0,['Circle','Square','Line'].indexOf(e.halfShape||'Circle')];break;case 'matrix':p=[Number(e.matrixCell||12),Number(e.matrixSpeed||1),Number(e.matrixTrail||15),e.matrixDirection==='Up'?1:0,Number(e.matrixGlow??1)];break;case 'wave':p=[Number(e.waveStrength??1)];break;case 'noise':p=[Number(e.noiseAmount??1)];break;case 'vhs':p=[Number(e.vhsDist??.5),Number(e.vhsNoise??.3),Number(e.vhsBleed??.5),Number(e.vhsScan??.3),Number(e.vhsTrack??.2)];break;}
+for(let k=1;k<=5;k++)gl.uniform1f(locations['p'+k],p[k-1]??0);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);return canvas;}catch(err){status='error';console.warn('GPU effect fallback:',err);return null}}
+init();window.FoxFXEffects={render,get status(){return status},get ready(){return status==='ready'}};
+})();
+
+</script><script>
+
+/* FoxFX Visual Lab. Original, dependency-free Canvas 2D implementation.
+   No scripts, shaders or other source files from third-party effects websites are used. */
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const canvas = $('outputCanvas'), ctx = canvas.getContext('2d', {willReadFrequently:true});
+  const source = document.createElement('canvas'), sourceCtx = source.getContext('2d', {willReadFrequently:true});
+  const adjusted = document.createElement('canvas'), adjustedCtx = adjusted.getContext('2d', {willReadFrequently:true});
+  const fxCanvas = document.createElement('canvas'), fxCtx = fxCanvas.getContext('2d', {willReadFrequently:true});
+  const video = $('inputVideo');
+  const ids = ['scale','intensity','thresholdValue','brightness','contrast','saturation','hue','colorMode','accentColor','bgColor','resolution'];
+  const titles = {ascii:'ASCII / TEXT RENDER',dithering:'DITHERING / PIXELS',halftone:'HALFTONE / PRINT',matrix:'MATRIX / DIGITAL RAIN',dots:'DOTS / PARTICLES',contour:'CONTOUR / OUTLINES','pixel-sort':'PIXEL SORT / GLITCH',blockify:'BLOCKIFY / LOW-RES',threshold:'THRESHOLD / BINARY',edges:'EDGE DETECTION / SOBEL',crosshatch:'CROSSHATCH / INK',wave:'WAVE LINES / FLOW',noise:'NOISE FIELD / GRAIN',voronoi:'VORONOI / MOSAIC',vhs:'VHS / ANALOG TAPE',duotone:'DUOTONE / COLOR GRADING',chromatic:'CHROMATIC / RGB SHIFT',posterize:'POSTERIZE / COLOR LEVELS',crt:'CRT / CLASSIC DISPLAY',neon:'NEON / EDGE GLOW'};
+  const s = {effect:'ascii',scale:8,intensity:100,thresholdValue:50,brightness:0,contrast:0,saturation:0,hue:0,colorMode:'original',accentColor:'#c6ff70',bgColor:'#000000',resolution:900,extra:{}};
+  let dirty=true, compare=false, compareX=.5, zoom=1, isVideo=false, animationFrame=0, lastRender=0, demoSeed=1, sourceUrl=null, isRecording=false, recorder=null;
+  let adjustedDirty=true, cachedImg=null, loadedImage=null, externalCanvas=null, sourceWidth=900, sourceHeight=600, loadSeq=0;
+  let history=[], historyCursor=-1;
+  let toastTimeout=0, svgCache='';
+  const clamp=(v,min=0,max=255)=>Math.max(min,Math.min(max,v));
+  const lum=(r,g,b)=>.2126*r+.7152*g+.0722*b;
+  const random=(n)=>{const x=Math.sin(n*127.1+demoSeed*17.17)*43758.5453;return x-Math.floor(x)};
+  function colorParts(hex){return [parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)];}
+  function rgb(i){return `rgb(${i[0]|0},${i[1]|0},${i[2]|0})`;}
+  function rgba(i,a){return `rgba(${i[0]|0},${i[1]|0},${i[2]|0},${a})`;}
+  function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.classList.remove('show'),3200);}
+  function resizeCanvas(w,h){
+    const maxW=s.resolution,maxH=s.resolution, f=Math.min(1,maxW/w,maxH/h);
+    const outW=Math.max(1,Math.round(w*f)),outH=Math.max(1,Math.round(h*f));
+    [canvas,source,adjusted,fxCanvas].forEach(c=>{c.width=outW;c.height=outH;});
+    $('previewInfo').textContent=`${outW} × ${outH} / READY`;
+    dirty=true;adjustedDirty=true;cachedImg=null;updateCompareLine();
+  }
+  function drawDemo(){
+    isVideo=false;loadedImage=null;externalCanvas=null;sourceWidth=900;sourceHeight=600;loadSeq++;video.pause();if(sourceUrl){URL.revokeObjectURL(sourceUrl);sourceUrl=null;}
+    resizeCanvas(900,600);$('previewInfo').textContent='No input';
+    const w=source.width,h=source.height;
+    const g=sourceCtx.createLinearGradient(0,0,w,h);g.addColorStop(0,'#101b46');g.addColorStop(.45,'#33558b');g.addColorStop(1,'#e67e65');sourceCtx.fillStyle=g;sourceCtx.fillRect(0,0,w,h);
+    const moon=sourceCtx.createRadialGradient(w*.73,h*.29,8,w*.73,h*.29,210);moon.addColorStop(0,'#ffe8b5');moon.addColorStop(.22,'#ffda9b');moon.addColorStop(.23,'#ffd99655');moon.addColorStop(1,'#f5a36b00');sourceCtx.fillStyle=moon;sourceCtx.fillRect(0,0,w,h);
+    for(let n=0;n<75;n++){const x=random(n*2+13)*w,y=random(n*2+17)*h*.65,r=.5+random(n*4+9)*1.5;sourceCtx.fillStyle=`rgba(255,250,240,${.2+random(n+20)*.7})`;sourceCtx.beginPath();sourceCtx.arc(x,y,r,0,Math.PI*2);sourceCtx.fill();}
+    function ridge(color,points){sourceCtx.fillStyle=color;sourceCtx.beginPath();sourceCtx.moveTo(0,h);sourceCtx.lineTo(points[0][0]*w,points[0][1]*h);for(const p of points.slice(1))sourceCtx.lineTo(p[0]*w,p[1]*h);sourceCtx.lineTo(w,h);sourceCtx.closePath();sourceCtx.fill();}
+    ridge('#32435e',[[0,.64],[.12,.45],[.27,.62],[.41,.44],[.56,.62],[.73,.42],[.9,.61],[1,.50]]);
+    ridge('#172e45',[[0,.78],[.12,.57],[.25,.79],[.42,.55],[.59,.77],[.78,.58],[.95,.77],[1,.7]]);
+    ridge('#0d2131',[[0,.91],[.17,.72],[.30,.93],[.48,.75],[.66,.95],[.86,.69],[1,.84]]);
+    // Original geometric fox silhouette, built exclusively from Canvas polygons.
+    sourceCtx.save();sourceCtx.translate(w*.42,h*.56);sourceCtx.rotate((random(4)-.5)*.04);
+    function poly(points,fill){sourceCtx.fillStyle=fill;sourceCtx.beginPath();sourceCtx.moveTo(...points[0]);for(const p of points.slice(1))sourceCtx.lineTo(...p);sourceCtx.closePath();sourceCtx.fill();}
+    poly([[-155,-145],[-92,-205],[-28,-126],[31,-204],[98,-143],[92,48],[-139,49]],'#fb9759');
+    poly([[-128,-150],[-90,-187],[-63,-115]],'#2b2936');poly([[8,-119],[34,-185],[70,-145]],'#2b2936');
+    poly([[-150,-130],[-74,-52],[-92,27],[-21,97],[-11,30],[54,-26],[94,-132],[100,35],[27,128],[-91,127],[-161,40]],'#ed6a45');
+    poly([[-147,0],[-48,24],[-15,112],[17,32],[92,0],[35,115],[-78,118]],'#ffe8cc');
+    poly([[-13,28],[14,29],[2,43]],'#263143');
+    poly([[-83,-44],[-55,-35],[-72,-24]],'#192536');poly([[32,-35],[58,-44],[46,-22]],'#192536');
+    sourceCtx.restore();
+    const haze=sourceCtx.createLinearGradient(0,h*.66,0,h);haze.addColorStop(0,'#9b597000');haze.addColorStop(1,'#ff9b7247');sourceCtx.fillStyle=haze;sourceCtx.fillRect(0,h*.66,w,h*.34);
+    $('fileName').textContent='ДЕМО-СЦЕНА / ГОТОВО';$('fileType').textContent='DEMO';$('playBtn').hidden=true;
+    dirty=true;
+  }
+  function loadFile(file){
+    if(!file)return;
+    if(/\.glb$/i.test(file.name)){window.Fox3D?.loadFile?.(file);return;}
+    if(externalCanvas){externalCanvas=null;window.Fox3D?.stop?.();}
+    if(video.srcObject){video.srcObject.getTracks().forEach(track=>track.stop());video.srcObject=null;}
+    const currentLoad=++loadSeq;
+    const isImg=file.type.startsWith('image/'),isVid=file.type.startsWith('video/');
+    if(!isImg&&!isVid){toast('Поддерживаются изображения и видео MP4 / WebM');return;}
+    if(file.size>200*1024*1024){toast('Файл слишком большой (максимум 200 МБ)');return;}
+    if(sourceUrl){URL.revokeObjectURL(sourceUrl);sourceUrl=null;}
+    loadedImage=null;sourceUrl=URL.createObjectURL(file);$('fileName').textContent=file.name.toUpperCase();$('fileType').textContent=isImg?'IMAGE':'VIDEO';
+    if(isImg){
+      video.pause();isVideo=false;$('playBtn').hidden=true;
+      const img=new Image();img.onload=()=>{if(currentLoad!==loadSeq)return;loadedImage=img;sourceWidth=img.naturalWidth;sourceHeight=img.naturalHeight;resizeCanvas(sourceWidth,sourceHeight);sourceCtx.clearRect(0,0,source.width,source.height);sourceCtx.drawImage(img,0,0,source.width,source.height);dirty=true;adjustedDirty=true;document.querySelector('#emptyState').hidden=true;document.body.classList.add('has-input');toast('Изображение загружено');};
+      img.onerror=()=>{if(currentLoad===loadSeq)toast('Не удалось прочитать изображение');};img.src=sourceUrl;
+    } else {
+      isVideo=true;video.src=sourceUrl;video.load();$('playBtn').hidden=false;
+      video.onloadedmetadata=()=>{if(currentLoad!==loadSeq)return;sourceWidth=video.videoWidth||900;sourceHeight=video.videoHeight||600;resizeCanvas(sourceWidth,sourceHeight);video.play().then(()=>{$('playBtn').textContent='Ⅱ Пауза';}).catch(()=>{$('playBtn').textContent='▶ Видео';toast('Нажмите «Видео» для воспроизведения');});dirty=true;document.querySelector('#emptyState').hidden=true;document.body.classList.add('has-input');};
+      video.onerror=()=>{if(currentLoad===loadSeq)toast('Видео не поддерживается этим браузером');};
+    }
+  }
+  function reflowSource(){
+    if(externalCanvas){resizeCanvas(sourceWidth,sourceHeight);dirty=true;adjustedDirty=true;return;}
+    if(isVideo){resizeCanvas(sourceWidth,sourceHeight);dirty=true;return;}
+    if(loadedImage){resizeCanvas(sourceWidth,sourceHeight);sourceCtx.clearRect(0,0,source.width,source.height);sourceCtx.drawImage(loadedImage,0,0,source.width,source.height);adjustedDirty=true;dirty=true;return;}
+    drawDemo();
+  }
+  function drawAdjusted(){
+    if(externalCanvas){sourceCtx.clearRect(0,0,source.width,source.height);sourceCtx.drawImage(externalCanvas,0,0,source.width,source.height);}
+    if(isVideo&&video.readyState>=2){sourceCtx.clearRect(0,0,source.width,source.height);sourceCtx.drawImage(video,0,0,source.width,source.height);}
+    const w=source.width,h=source.height,ex=s.extra||{};
+    const ppCanvas=document.createElement('canvas');ppCanvas.width=w;ppCanvas.height=h;
+    const pp=ppCanvas.getContext('2d',{willReadFrequently:true});
+    pp.filter=`blur(${Number(ex.procBlur||0)}px) contrast(${100+Number(ex.procEdge||0)*8}%)`;
+    pp.drawImage(source,0,0);
+    const img=pp.getImageData(0,0,w,h),d=img.data;
+    const contrastFactor=(259*(s.contrast+255))/(255*(259-s.contrast));
+    const sat=1+s.saturation/100,brightness=s.brightness*1.8,rad=s.hue*Math.PI/180,co=Math.cos(rad),si=Math.sin(rad);
+    const accent=colorParts(s.accentColor);
+    for(let i=0;i<d.length;i+=4){
+      let r=d[i],g=d[i+1],b=d[i+2];
+      if(Number(ex.sharpness||0)>0){const px=(i/4|0),x=px%w,y=Math.floor(px/w);if(x>0&&x<w-1&&y>0&&y<h-1){const m=Number(ex.sharpness),a=i-w*4,z=i+w*4;for(let k=0;k<3;k++){const sh=5*d[i+k]-d[a+k]-d[z+k]-d[i-4+k]-d[i+4+k];if(k===0)r=clamp(r+(sh-r)*m*.35);if(k===1)g=clamp(g+(sh-g)*m*.35);if(k===2)b=clamp(b+(sh-b)*m*.35);}}}
+      const gray=lum(r,g,b);
+      r=gray+(r-gray)*sat;g=gray+(g-gray)*sat;b=gray+(b-gray)*sat;
+      if(s.hue){const rr=r*(.213+co*.787-si*.213)+g*(.715-co*.715-si*.715)+b*(.072-co*.072+si*.928);const gg=r*(.213-co*.213+si*.143)+g*(.715+co*.285+si*.140)+b*(.072-co*.072-si*.283);const bb=r*(.213-co*.213-si*.787)+g*(.715-co*.715+si*.715)+b*(.072+co*.928+si*.072);r=rr;g=gg;b=bb;}
+      r=clamp(contrastFactor*(r-128)+128+brightness);g=clamp(contrastFactor*(g-128)+128+brightness);b=clamp(contrastFactor*(b-128)+128+brightness);
+      const gamma=Math.max(.2,Number(ex.gamma||1)), map=Math.max(.1,Number(ex.procBrightnessMap||1));
+      r=clamp(255*Math.pow(r/255,1/gamma/map));g=clamp(255*Math.pow(g/255,1/gamma/map));b=clamp(255*Math.pow(b/255,1/gamma/map));
+      if(ex.procInvert){r=255-r;g=255-g;b=255-b;}
+      if(ex.procQuantize>1){const levels=Number(ex.procQuantize)-1;r=Math.round(r/255*levels)*255/levels;g=Math.round(g/255*levels)*255/levels;b=Math.round(b/255*levels)*255/levels;}
+      if(s.colorMode==='mono'){const l=lum(r,g,b);r=g=b=l;}
+      if(s.colorMode==='accent'){const l=lum(r,g,b)/255;r=accent[0]*l;g=accent[1]*l;b=accent[2]*l;}
+      d[i]=r;d[i+1]=g;d[i+2]=b;
+    }
+    adjustedCtx.putImageData(img,0,0);return img;
+  }
+  const pixel=(d,w,h,x,y)=>{x=clamp(x|0,0,w-1);y=clamp(y|0,0,h-1);const i=(y*w+x)*4;return [d[i],d[i+1],d[i+2]];};
+  function paintEffects(img,t){
+    const w=fxCanvas.width,h=fxCanvas.height,d=img.data,ex=s.extra||{},step=Math.max(3,s.scale|0),accent=colorParts(s.accentColor),bg=s.bgColor;
+    fxCtx.setTransform(1,0,0,1,0,0);fxCtx.globalAlpha=1;fxCtx.globalCompositeOperation='source-over';fxCtx.clearRect(0,0,w,h);
+    const fillBG=()=>{fxCtx.fillStyle=bg;fxCtx.fillRect(0,0,w,h);};
+    const sample=(x,y)=>pixel(d,w,h,x,y);
+    const glyphs=ex.charSet==='DIGITS'?'@0123456789:;., ':ex.charSet==='BLOCKS'?'█▓▒░∙ ':ex.charSet==='MINIMAL'?'@#*+-. ':'@#W%8&$OX+=-:,. ';
+    if(s.effect==='ascii'||s.effect==='matrix'){
+      fillBG();const cell=s.effect==='matrix'?Math.max(6,Number(ex.matrixCell||12)):Math.max(5,step*1.25);
+      const cw=ex.outputWidth>0&&s.effect==='ascii'?Math.max(2,w/ex.outputWidth):Math.max(3,cell*.67+Number(ex.charSpacing||0));
+      const ch=Math.max(4,cell+Number(ex.charSpacing||0));const rows=Math.ceil(h/ch),cols=Math.ceil(w/cw);
+      fxCtx.textBaseline='top';fxCtx.font=`${Math.round(cell)}px monospace`;
+      for(let yy=0;yy<rows;yy++)for(let xx=0;xx<cols;xx++){
+        const x=xx*cw,y=yy*ch,c=sample(x+cw/2,y+ch/2),l=Math.pow(lum(...c)/255,1+Number(ex.procShape||0)*.9);
+        if(s.effect==='ascii'){
+          const char=glyphs[Math.min(glyphs.length-1,Math.floor(l*(glyphs.length-1)))];
+          if(char===' ')continue;
+          fxCtx.fillStyle=s.colorMode==='original'?rgb(c):s.colorMode==='mono'?`rgb(${l*255|0},${l*255|0},${l*255|0})`:rgba(accent,clamp(l*.9+.1,0,1));fxCtx.fillText(char,x,y);
+        }else{
+          const speed=Number(ex.matrixSpeed||1), trail=Number(ex.matrixTrail||15);
+          const offset=((t*.10*speed+random(xx+111)*h*1.4)%(h+ch*8)),head=ex.matrixDirection==='Up'?(h-offset+5*ch):(offset-5*ch),dis=Math.abs(y-head);
+          const glow=dis<trail*ch?1-dis/(trail*ch):0;
+          const lit=(random(xx*152+yy*31+Math.floor(t/180))>.27)&&l>.06;
+          if(!lit)continue;
+          fxCtx.fillStyle=rgba(accent,clamp((.12+l*.38+glow*.7)*Number(ex.matrixGlow??1)*(1-Number(ex.matrixBgOpacity??.3)*.6),0,1));
+          fxCtx.fillText('0123456789ABCDEF▣◇#+'[(xx*17+yy*13+(t/85|0))%20],x,y);
+        }
+      }return;
+    }
+    if(s.effect==='dithering'){
+      const base2=[0,2,3,1],base4=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+      const size=ex.ditherAlgo==='Bayer 8x8'?8:ex.ditherAlgo==='Bayer 4x4'?4:Number(ex.ditherMatrix||4),matrix=size===2?base2:size===8?Array.from({length:64},(_,idx)=>{let x=idx%8,y=idx>>3,v=0;for(let b=0;b<3;b++){v=4*v+((x&1)*2+(y&1));x>>=1;y>>=1;}return v;}):base4;
+      const out=fxCtx.createImageData(w,h),o=out.data,threshold=s.thresholdValue/100;
+      const di=Math.max(0,Number(ex.ditherIntensity??1));
+      if(ex.ditherAlgo==='Floyd-Steinberg'){
+        const work=new Float32Array(d.length);for(let k=0;k<d.length;k++)work[k]=d[k];
+        for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+          const i=(y*w+x)*4;
+          for(let k=0;k<3;k++){
+            const old=work[i+k],newVal=s.colorMode==='original'?(old>=128?255:0):(old>=threshold*255?255:0);
+            o[i+k]=s.colorMode==='accent'?newVal*accent[k]/255:newVal;const err=(old-newVal)*di;
+            if(x+1<w)work[i+4+k]+=err*7/16;
+            if(y+1<h){if(x>0)work[i+w*4-4+k]+=err*3/16;work[i+w*4+k]+=err*5/16;if(x+1<w)work[i+w*4+4+k]+=err*1/16;}
+          }o[i+3]=255;
+        }fxCtx.putImageData(out,0,0);return;
+      }
+      for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4,v=(matrix[(y%size)*size+x%size]+.5)/(size*size)-.5;const c=sample(x,y),bias=v*128*di*(ex.ditherModulation?.5+lum(...c)/510+0.5:1);
+        if(s.colorMode==='original'){for(let k=0;k<3;k++)o[i+k]=clamp(Math.round((c[k]+bias)/85)*85);}
+        else{const l=lum(...c)+bias,vv=l>=threshold*255?255:0;for(let k=0;k<3;k++)o[i+k]=s.colorMode==='accent'?accent[k]*vv/255:vv;}
+        o[i+3]=255;}fxCtx.putImageData(out,0,0);return;
+    }
+    if(s.effect==='halftone'||s.effect==='dots'){
+      fillBG();const size=s.effect==='halftone'?Math.max(3,Number(ex.halfSpacing||8)*2):Math.max(3,Number(ex.dotsSpacing||step)*2.3);
+      for(let y=0;y<h;y+=size)for(let x=0;x<w;x+=size){const angle=Number(ex.halfAngle||0)*Math.PI/180;const xx=x+size/2,yy=y+size/2;
+        const sx=s.effect==='halftone'?w/2+(xx-w/2)*Math.cos(angle)-(yy-h/2)*Math.sin(angle):xx;
+        const sy=s.effect==='halftone'?h/2+(xx-w/2)*Math.sin(angle)+(yy-h/2)*Math.cos(angle):yy;
+        const c=sample(sx,sy),l=s.effect==='dots'&&ex.dotsInvert?1-lum(...c)/255:lum(...c)/255;
+        const radius=s.effect==='halftone'?(ex.halfInvert?l:1-l)*size*.56*Number(ex.halfScale||1):Math.max(.2,l*size*.5);
+        fxCtx.beginPath();
+        if(s.effect==='halftone'&&ex.halfShape==='Square')fxCtx.rect(x+size/2-radius,y+size/2-radius,radius*2,radius*2);
+        else if(s.effect==='halftone'&&ex.halfShape==='Line')fxCtx.rect(x+size/2-radius,y+size/2-radius*.18,radius*2,radius*.36);
+        else fxCtx.arc(x+size/2,y+size/2,radius,0,Math.PI*2);
+        fxCtx.fillStyle=s.effect==='halftone'?(s.colorMode==='original'?rgb(c):rgb(accent)):(s.colorMode==='original'?rgb(c):rgb(accent));fxCtx.fill();}return;
+    }
+    if(s.effect==='blockify'){
+      const tmp=document.createElement('canvas');tmp.width=Math.max(1,Math.round(w/step/2));tmp.height=Math.max(1,Math.round(h/step/2));
+      const tctx=tmp.getContext('2d');tctx.imageSmoothingEnabled=true;tctx.drawImage(adjusted,0,0,tmp.width,tmp.height);fxCtx.imageSmoothingEnabled=false;fxCtx.drawImage(tmp,0,0,w,h);fxCtx.imageSmoothingEnabled=true;return;
+    }
+    if(s.effect==='threshold'||s.effect==='edges'||s.effect==='contour'||s.effect==='noise'){
+      const o=fxCtx.createImageData(w,h),out=o.data,threshold=s.thresholdValue*2.55;
+      const gray=new Float32Array(w*h);for(let i=0;i<gray.length;i++)gray[i]=lum(d[i*4],d[i*4+1],d[i*4+2]);
+      for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+        const n=y*w+x,i=n*4,l=gray[n];let v=l;
+        if(s.effect==='threshold')v=l>threshold?255:0;
+        if(s.effect==='edges'||s.effect==='contour'){
+          if(x===0||y===0||x===w-1||y===h-1)v=0;
+          else{const a=gray[(y-1)*w+x-1],b=gray[(y-1)*w+x],c=gray[(y-1)*w+x+1],ee=gray[y*w+x-1],f=gray[y*w+x+1],g=gray[(y+1)*w+x-1],hh=gray[(y+1)*w+x],j=gray[(y+1)*w+x+1];
+            const gx=-a-2*ee-g+c+2*f+j,gy=-a-2*b-c+g+2*hh+j,edge=Math.sqrt(gx*gx+gy*gy);
+            v=s.effect==='contour'?(edge>(threshold*.55)?clamp(edge*2):0):clamp(edge*1.4);
+          }
+        }
+        if(s.effect==='noise')v=clamp(l+((random(n*31+Math.floor(t/110)*199)-.5)*130*Number(ex.noiseAmount??1)));
+        for(let k=0;k<3;k++)out[i+k]=s.colorMode==='original'&&s.effect==='noise'?clamp(d[i+k]+v-l):s.colorMode==='mono'?v:accent[k]*v/255;
+        out[i+3]=255;
+      }fxCtx.putImageData(o,0,0);return;
+    }
+    if(s.effect==='pixel-sort'){
+      const out=new Uint8ClampedArray(d),chunk=Math.max(12,step*10),thr=s.thresholdValue*2.55;
+      for(let y=0;y<h;y+=1)for(let x=0;x<w;x+=chunk){const end=Math.min(w,x+chunk),pixels=[];
+        for(let xx=x;xx<end;xx++){const k=(y*w+xx)*4,c=[d[k],d[k+1],d[k+2]],bright=lum(...c);pixels.push({c,bright});}
+        if(pixels.filter(p=>p.bright>thr).length<3)continue;
+        pixels.sort((a,b)=>a.bright-b.bright);
+        for(let xx=x;xx<end;xx++){const k=(y*w+xx)*4,c=pixels[xx-x].c;out[k]=c[0];out[k+1]=c[1];out[k+2]=c[2];}
+      }const im=new ImageData(out,w,h);fxCtx.putImageData(im,0,0);return;
+    }
+    if(s.effect==='crosshatch'){
+      fillBG();const cell=step*1.8;fxCtx.lineWidth=1.1;fxCtx.strokeStyle=s.colorMode==='mono'?'#eeeeee':rgba(accent,.95);
+      for(let y=0;y<h;y+=cell)for(let x=0;x<w;x+=cell){const l=lum(...sample(x+cell/2,y+cell/2))/255;
+        function line(x1,y1,x2,y2){fxCtx.beginPath();fxCtx.moveTo(x1,y1);fxCtx.lineTo(x2,y2);fxCtx.stroke();}
+        if(l<.85)line(x,y+cell,x+cell,y);
+        if(l<.55)line(x,y,x+cell,y+cell);
+        if(l<.25)line(x,y+cell/2,x+cell/2,y);
+      }return;
+    }
+    if(s.effect==='wave'){
+      fillBG();const cell=Math.max(6,step*1.5);fxCtx.lineWidth=Math.max(.9,step*.15);fxCtx.strokeStyle=s.colorMode==='mono'?'#e2e2e2':rgba(accent,.82);
+      for(let y=0;y<h;y+=cell){fxCtx.beginPath();for(let x=0;x<w;x+=3){const l=lum(...sample(x,y))/255,drift=Math.sin(x/48+t/450+y/65)*3;
+          const yp=y+(l-.5)*cell*1.9*Number(ex.waveStrength??1)+drift;if(x===0)fxCtx.moveTo(x,yp);else fxCtx.lineTo(x,yp);}fxCtx.stroke();}return;
+    }
+    if(s.effect==='voronoi'){
+      const out=fxCtx.createImageData(w,h),o=out.data,sz=Math.max(9,step*3),cols=Math.ceil(w/sz)+1,rows=Math.ceil(h/sz)+1,centers=[];
+      for(let gy=-1;gy<=rows;gy++)for(let gx=-1;gx<=cols;gx++){const cx=(gx+.12+random(gx*9+gy*97)*.76)*sz,cy=(gy+.12+random(gx*47+gy*23)*.76)*sz;centers.push([cx,cy,...sample(cx,cy),gx,gy]);}
+      const W=cols+2;for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+        const gx=Math.floor(x/sz)+1,gy=Math.floor(y/sz)+1;let nearest=null,dist=Infinity;
+        for(let iy=-1;iy<=1;iy++)for(let ix=-1;ix<=1;ix++){const p=centers[(gy+iy)*W+(gx+ix)];if(!p)continue;const dd=(p[0]-x)**2+(p[1]-y)**2;if(dd<dist){dist=dd;nearest=p;}}
+        const k=(y*w+x)*4;if(nearest){const edge=Math.sqrt(dist)/sz>.57?.73:1;for(let c=0;c<3;c++)o[k+c]=nearest[c+2]*edge;}o[k+3]=255;
+      }fxCtx.putImageData(out,0,0);return;
+    }
+    if(s.effect==='vhs'){
+      fxCtx.drawImage(adjusted,0,0);fxCtx.save();fxCtx.globalCompositeOperation='screen';fxCtx.globalAlpha=Number(ex.vhsBleed??.5)*.4;fxCtx.drawImage(adjusted,3+Math.sin(t/80)*2,0);fxCtx.restore();
+      for(let y=0;y<h;y+=3){fxCtx.fillStyle=y%6===0?`rgba(0,0,0,${Number(ex.vhsScan??.3)*.47})`:'#ffffff08';fxCtx.fillRect(0,y,w,1);}
+      const band=Math.floor((t/12)%(h+100))-100;fxCtx.fillStyle=`rgba(255,255,255,${Number(ex.vhsTrack??.2)*.5})`;fxCtx.fillRect(0,band,w,38);
+      const y=Math.floor(random(Math.floor(t/180)*31)*h);fxCtx.drawImage(adjusted,0,y,w,Math.min(14,h-y),Math.sin(t/60)*14*Number(ex.vhsDist??.5)*2,y,w,Math.min(14,h-y));
+      for(let n=0;n<Math.round(400*Number(ex.vhsNoise??.3));n++){const x=random(n*12+Math.floor(t/100))*w,yy=random(n*32+Math.floor(t/100))*h;fxCtx.fillStyle='rgba(255,255,255,.10)';fxCtx.fillRect(x,yy,2,1);}return;
+    }
+    if(s.effect==='duotone'||s.effect==='posterize'||s.effect==='chromatic'){
+      const o=fxCtx.createImageData(w,h),out=o.data,bgRGB=colorParts(bg),shift=Math.max(2,Math.round(step*1.2)),levels=Math.max(2,Math.round(3+step/4));
+      for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+        const i=(y*w+x)*4,l=lum(d[i],d[i+1],d[i+2])/255;
+        if(s.effect==='duotone')for(let k=0;k<3;k++)out[i+k]=bgRGB[k]*(1-l)+accent[k]*l;
+        else if(s.effect==='posterize')for(let k=0;k<3;k++)out[i+k]=Math.round(d[i+k]/255*(levels-1))*255/(levels-1);
+        else{
+          const r=((y*w+Math.min(w-1,x+shift))*4),b=((y*w+Math.max(0,x-shift))*4);
+          out[i]=d[r];out[i+1]=d[i+1];out[i+2]=d[b+2];
+        }
+        out[i+3]=255;
+      }
+      fxCtx.putImageData(o,0,0);return;
+    }
+    if(s.effect==='crt'){
+      fxCtx.drawImage(adjusted,0,0);
+      fxCtx.save();fxCtx.globalAlpha=.28;fxCtx.fillStyle='#000';for(let y=0;y<h;y+=4)fxCtx.fillRect(0,y,w,2);
+      fxCtx.globalAlpha=.12;fxCtx.fillStyle=s.accentColor;for(let x=0;x<w;x+=7)fxCtx.fillRect(x,0,1,h);
+      fxCtx.globalAlpha=1;
+      const glow=fxCtx.createRadialGradient(w/2,h/2,w*.18,w/2,h/2,w*.76);
+      glow.addColorStop(0,'#00000000');glow.addColorStop(1,'#000000dd');fxCtx.fillStyle=glow;fxCtx.fillRect(0,0,w,h);
+      fxCtx.restore();return;
+    }
+    if(s.effect==='neon'){
+      const o=fxCtx.createImageData(w,h),out=o.data,threshold=s.thresholdValue*1.2;
+      const gray=new Float32Array(w*h);for(let i=0;i<gray.length;i++)gray[i]=lum(d[i*4],d[i*4+1],d[i*4+2]);
+      const background=colorParts(bg);
+      for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+        const n=y*w+x,i=n*4;
+        let edge=0;
+        if(x>0&&y>0&&x<w-1&&y<h-1){
+          const gx=gray[n+1]-gray[n-1],gy=gray[n+w]-gray[n-w];edge=clamp((Math.abs(gx)+Math.abs(gy)-threshold)*3)/255;
+        }
+        for(let k=0;k<3;k++)out[i+k]=background[k]+(accent[k]-background[k])*edge;
+        out[i+3]=255;
+      }
+      fxCtx.putImageData(o,0,0);
+      fxCtx.save();fxCtx.globalCompositeOperation='screen';fxCtx.filter='blur(5px)';fxCtx.globalAlpha=.7;
+      fxCtx.drawImage(fxCanvas,0,0);fxCtx.restore();return;
+    }
+    fxCtx.drawImage(adjusted,0,0);
+  }
+  function render(t){
+    if(!source.width)return;
+    if(adjustedDirty || externalCanvas || (isVideo && video.readyState >= 2 && !video.paused)){
+      cachedImg=drawAdjusted();adjustedDirty=false;
+    }
+    if(!cachedImg)return;
+    const w=canvas.width,h=canvas.height;
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle=s.bgColor;ctx.fillRect(0,0,w,h);
+    ctx.drawImage(adjusted,0,0);
+    const fxGPU=window.FoxFXEffects?.render(adjusted,s,t);
+    if(fxGPU){fxCtx.clearRect(0,0,w,h);fxCtx.drawImage(fxGPU,0,0,w,h);}
+    else paintEffects(cachedImg,t);
+    if(compare){ctx.save();ctx.beginPath();ctx.rect(compareX*w,0,w,h);ctx.clip();}
+    ctx.globalAlpha=fxGPU?1:s.intensity/100;ctx.drawImage(fxCanvas,0,0);ctx.globalAlpha=1;
+    if(compare)ctx.restore();
+    const post=s.extra||{};
+    // WebGL2 postprocessing: upload the composited frame, shade on GPU, and
+    // read it into the visible 2D canvas. Fall back to the existing CPU path
+    // whenever WebGL2, context or texture allocation is unavailable.
+    const gpuFrame=window.FoxGPU?.apply(canvas,post,t);
+    if(gpuFrame){
+      ctx.clearRect(0,0,w,h);ctx.drawImage(gpuFrame,0,0);
+      return;
+    }
+    ctx.save();
+    if(post.postCRT){ctx.fillStyle='rgba(0,0,0,.20)';for(let y=0;y<h;y+=5)ctx.fillRect(0,y,w,2);const vign=ctx.createRadialGradient(w/2,h/2,w*.10,w/2,h/2,w*.72);vign.addColorStop(0,'#0000');vign.addColorStop(1,'#0009');ctx.fillStyle=vign;ctx.fillRect(0,0,w,h);}
+    if(post.postPhosphor){ctx.fillStyle='rgba(200,255,210,.045)';for(let x=0;x<w;x+=3)ctx.fillRect(x,0,1,h);}
+    if(post.postScanlines){ctx.fillStyle='rgba(0,0,0,.32)';for(let y=0;y<h;y+=4)ctx.fillRect(0,y,w,1);}
+    if(post.postGrain){const count=Math.min(20000,Math.floor(w*h/150*Number(post.grainIntensity||35)/35));ctx.fillStyle='rgba(255,255,255,.12)';for(let k=0;k<count;k++)ctx.fillRect(random(k*91+Math.floor(t/(600-5*Math.min(100,Number(post.grainSpeed||50)))))*w,random(k*63+Math.floor(t/(600-5*Math.min(100,Number(post.grainSpeed||50)))))*h,Number(post.grainSize||2),Number(post.grainSize||2));}
+    if(post.postVignette){const v=ctx.createRadialGradient(w/2,h/2,w*.15,w/2,h/2,w*.8);v.addColorStop(0,'#0000');v.addColorStop(1,'#000c');ctx.fillStyle=v;ctx.fillRect(0,0,w,h);}
+    if(post.postBloom){ctx.globalCompositeOperation='screen';ctx.globalAlpha=.23;ctx.filter='blur(9px)';ctx.drawImage(fxCanvas,0,0);ctx.filter='none';}
+    if(post.postChromatic){ctx.globalCompositeOperation='screen';ctx.globalAlpha=.08;ctx.drawImage(fxCanvas,3,0);ctx.drawImage(fxCanvas,-3,0);}
+    ctx.restore();
+  }
+  function frame(t){
+    if(!document.body.classList.contains('has-input')){animationFrame=requestAnimationFrame(frame);return;}
+    const animated=['matrix','vhs','wave','noise'].includes(s.effect)||!!s.extra?.postGrain||!!externalCanvas,playing=isVideo&&!video.paused;
+    if(dirty||((animated||playing||isRecording)&&t-lastRender>70)){
+      lastRender=t;dirty=false;
+      try{render(t);}catch(e){console.error('FoxFX render error:',e);toast('Ошибка обработки: попробуйте уменьшить файл');}
+    }
+    animationFrame=requestAnimationFrame(frame);
+  }
+  function setEffect(effect,record=false){if(!titles[effect])return;s.effect=effect;
+    document.querySelectorAll('.effect').forEach(b=>{const selected=b.dataset.effect===effect;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));});
+    $('effectTitle').textContent=titles[effect];$('settingEffect').textContent=effect.toUpperCase().replace('-',' ');$('stageStamp').textContent='FX / '+String(Object.keys(titles).indexOf(effect)+1).padStart(3,'0');dirty=true;window.dispatchEvent(new CustomEvent('foxfx-effect',{detail:effect}));if(record)pushHistory();
+  }
+  function writeInputs(){ids.forEach(id=>{const e=$(id);if(e)e.value=s[id]});
+    for(const key of ['scale','intensity','thresholdValue','brightness','contrast','saturation','hue']){const value=$(key+'Value');if(value)value.textContent=s[key]+(['intensity','thresholdValue'].includes(key)?'%':key==='hue'?'°':'');}
+    // thresholdValue's output ID is thresholdValueValue; handled above.
+    dirty=true;
+  }
+  function updateHistoryButtons(){
+    $('undoBtn').disabled=historyCursor<=0;$('redoBtn').disabled=historyCursor>=history.length-1;
+  }
+  function pushHistory(){
+    const snap=JSON.stringify(s);
+    if(history[historyCursor]===snap)return;
+    history=history.slice(0,historyCursor+1);history.push(snap);
+    if(history.length>40)history.shift();historyCursor=history.length-1;
+    updateHistoryButtons();
+    try{localStorage.setItem('foxfx-v3-last',snap);}catch(e){}
+  }
+  function travelHistory(direction){
+    const next=historyCursor+direction;
+    if(next<0||next>=history.length)return;
+    historyCursor=next;Object.assign(s,JSON.parse(history[next]));writeInputs();setEffect(s.effect);
+    reflowSource();updateHistoryButtons();toast(direction<0?'Действие отменено':'Действие повторено');
+  }
+  function updatePresetButtons(){
+    let stored=null;
+    try{stored=localStorage.getItem('foxfx-v2-preset');}catch(e){}
+    $('loadPresetBtn').disabled=!stored;
+  }
+  function updateCompareLine(){
+    const line=$('compareLine');if(!line||!compare){if(line)line.hidden=true;return;}
+    const bounds=canvas.getBoundingClientRect(),parent=$('canvasHolder').getBoundingClientRect();
+    line.hidden=false;line.style.left=(bounds.left-parent.left+bounds.width*compareX)+'px';
+    line.style.top=(bounds.top-parent.top)+'px';line.style.height=bounds.height+'px';
+  }
+  function applyPreset(name){
+    const presets={terminal:{effect:'matrix',scale:8,intensity:100,thresholdValue:42,brightness:-6,contrast:25,saturation:-50,hue:0,colorMode:'accent',accentColor:'#73ff94',bgColor:'#020b08'},mono:{effect:'dithering',scale:7,intensity:100,thresholdValue:50,brightness:8,contrast:28,saturation:-100,hue:0,colorMode:'mono',accentColor:'#ffffff',bgColor:'#101010'},cinema:{effect:'vhs',scale:6,intensity:90,thresholdValue:50,brightness:0,contrast:15,saturation:25,hue:0,colorMode:'original',accentColor:'#ff6ea5',bgColor:'#101422'},print:{effect:'halftone',scale:6,intensity:100,thresholdValue:50,brightness:5,contrast:15,saturation:-60,hue:0,colorMode:'accent',accentColor:'#ebaf69',bgColor:'#181617'}};
+    if(!presets[name])return;Object.assign(s,presets[name]);writeInputs();setEffect(s.effect);pushHistory();toast(`Пресет ${name} применён`);
+  }
+  function fileDownload(blob,filename){if(!blob){toast('Экспорт не поддерживается');return;}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);toast('Файл сохранён');}
+  function exportImage(type){if(!canvas.width)return;render(performance.now());canvas.toBlob(blob=>fileDownload(blob,`foxfx-${s.effect}.${type==='image/png'?'png':'jpg'}`),type,type==='image/jpeg'?.92:undefined);}
+  function exportSvg(){
+    if(s.effect!=='ascii'){toast('SVG доступен только для эффекта ASCII');return;}
+    render(performance.now());const img=adjustedCtx.getImageData(0,0,canvas.width,canvas.height),d=img.data,w=canvas.width,h=canvas.height,step=Math.max(6,s.scale*1.25),cw=Math.max(4,step*.67),ch=step,glyphs='@#W%8&$OX+=-:,. ',accent=colorParts(s.accentColor);
+    const safe=(txt)=>String(txt).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    let text=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect width="100%" height="100%" fill="${s.bgColor}"/><g font-family="monospace" font-size="${Math.round(ch)}" dominant-baseline="text-before-edge">`;
+    for(let y=0;y<h;y+=ch)for(let x=0;x<w;x+=cw){const c=pixel(d,w,h,x+cw/2,y+ch/2),l=lum(...c)/255,chx=glyphs[Math.min(glyphs.length-1,Math.floor(l*(glyphs.length-1)))];if(chx===' ')continue;const fill=s.colorMode==='original'?rgb(c):s.colorMode==='mono'?rgb([l*255,l*255,l*255]):rgb(accent);text+=`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" fill="${fill}">${safe(chx)}</text>`;}
+    text+='</g></svg>';fileDownload(new Blob([text],{type:'image/svg+xml'}),`foxfx-${s.effect}.svg`);
+  }
+  function exportWebm(){
+    if(isRecording){toast('Запись уже идёт');return;}
+    if(!canvas.captureStream||typeof MediaRecorder==='undefined'){toast('Ваш браузер не поддерживает запись WebM');return;}
+    const stream=canvas.captureStream(24);let rec;
+    try{const mime=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(MediaRecorder.isTypeSupported.bind(MediaRecorder));rec=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);}
+    catch(e){stream.getTracks().forEach(track=>track.stop());toast('WebM недоступен в этом браузере');return;}
+    const chunks=[];rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+    rec.onstop=()=>{isRecording=false;$('webmBtn').textContent='◉ WEBM';stream.getTracks().forEach(track=>track.stop());if(chunks.length)fileDownload(new Blob(chunks,{type:rec.mimeType||'video/webm'}),`foxfx-${s.effect}.webm`);else toast('Браузер не сохранил видеоданные');};
+    rec.onerror=()=>{toast('Ошибка записи видео');};
+    rec.start(100);recorder=rec;isRecording=true;$('webmBtn').textContent='● ЗАПИСЬ…';toast('Записывается 4 секунды анимации');
+    setTimeout(()=>{if(rec.state==='recording')rec.stop();},4000);
+  }
+  document.querySelectorAll('.effect').forEach(b=>b.addEventListener('click',()=>setEffect(b.dataset.effect,true)));
+  document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>applyPreset(b.dataset.preset)));
+  ids.forEach(id=>{
+    const el=$(id);
+    el.addEventListener('input',e=>{
+      const numeric=['scale','intensity','thresholdValue','brightness','contrast','saturation','hue','resolution'].includes(id);
+      const next=numeric?Number(e.target.value):e.target.value;
+      if(s[id]===next)return;
+      s[id]=next;
+      if(id==='resolution')reflowSource();
+      else if(!['intensity','bgColor'].includes(id))adjustedDirty=true;
+      writeInputs();
+    });
+    el.addEventListener('change',()=>pushHistory());
+  });
+  $('resetBtn').addEventListener('click',()=>{
+    Object.assign(s,{scale:8,intensity:100,thresholdValue:50,brightness:0,contrast:0,saturation:0,hue:0,colorMode:'original',accentColor:'#c6ff70',bgColor:'#000000'});
+    setEffect('ascii');adjustedDirty=true;writeInputs();pushHistory();toast('Настройки сброшены');
+  });
+  $('fileInput').addEventListener('change',e=>{loadFile(e.target.files?.[0]);e.target.value='';});
+  $('topUploadBtn').addEventListener('click',()=>$('fileInput').click());
+  const dz=$('uploadZone');dz.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('fileInput').click();}});
+  ['dragenter','dragover'].forEach(name=>{dz.addEventListener(name,e=>{e.preventDefault();dz.classList.add('dragging')});$('stageFrame').addEventListener(name,e=>e.preventDefault());});
+  ['dragleave','drop'].forEach(name=>dz.addEventListener(name,e=>{e.preventDefault();dz.classList.remove('dragging');if(name==='drop')loadFile(e.dataTransfer.files[0]);}));
+  $('stageFrame').addEventListener('drop',e=>{e.preventDefault();loadFile(e.dataTransfer.files[0]);});
+  document.addEventListener('paste',e=>{const file=[...(e.clipboardData?.items||[])].find(x=>x.type.startsWith('image/'))?.getAsFile();if(file){loadFile(file);toast('Изображение вставлено из буфера');}});
+  $('randomBtn').addEventListener('click',()=>{demoSeed++;drawDemo();toast('Создана новая демо-сцена');});
+  $('beforeBtn').addEventListener('click',()=>{
+    compare=!compare;$('beforeBtn').setAttribute('aria-pressed',String(compare));
+    $('beforeBtn').textContent=compare?'◐ Сравнение · вкл':'◐ Сравнить';
+    $('stageFrame').classList.toggle('compare-active',compare);dirty=true;
+    updateCompareLine();if(compare)toast('Передвигайте границу по изображению');
+  });
+  const comparePosition=e=>{
+    const rect=canvas.getBoundingClientRect();compareX=clamp((e.clientX-rect.left)/rect.width,0,1);
+    updateCompareLine();dirty=true;
+  };
+  let comparePointerId=null;
+  $('stageFrame').addEventListener('pointerdown',e=>{
+    if(!compare||e.button>0)return;
+    comparePointerId=e.pointerId;$('stageFrame').setPointerCapture(e.pointerId);comparePosition(e);e.preventDefault();
+  });
+  $('stageFrame').addEventListener('pointermove',e=>{if(compare&&e.pointerId===comparePointerId)comparePosition(e);});
+  ['pointerup','pointercancel','lostpointercapture'].forEach(evt=>$('stageFrame').addEventListener(evt,()=>comparePointerId=null));
+  const setZoom=value=>{
+    zoom=clamp(Math.round(value*4)/4,.75,2.5);
+    canvas.style.transform=`scale(${zoom})`;
+    $('zoomValue').textContent=Math.round(zoom*100)+'%';requestAnimationFrame(updateCompareLine);
+  };
+  $('zoomOutBtn').addEventListener('click',()=>setZoom(zoom-.25));
+  $('zoomInBtn').addEventListener('click',()=>setZoom(zoom+.25));
+  $('canvasHolder').addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();setZoom(zoom+(e.deltaY<0?.25:-.25));},{passive:false});
+  window.addEventListener('resize',updateCompareLine);
+  $('playBtn').addEventListener('click',()=>{if(!isVideo)return;if(video.paused){video.play().then(()=>{$('playBtn').textContent='Ⅱ Пауза';}).catch(()=>toast('Не удаётся воспроизвести видео'));}else{video.pause();$('playBtn').textContent='▶ Видео';}dirty=true;});
+  $('effectSearch').addEventListener('input',e=>{
+    const q=e.target.value.toLocaleLowerCase('ru');let count=0;
+    document.querySelectorAll('.effect').forEach(btn=>{const match=btn.textContent.toLocaleLowerCase('ru').includes(q);btn.hidden=!match;if(match)count++;});
+    $('effectCount').textContent=count+' TYPES';
+  });
+  $('undoBtn').addEventListener('click',()=>travelHistory(-1));
+  $('redoBtn').addEventListener('click',()=>travelHistory(1));
+  document.addEventListener('keydown',e=>{
+    if(!(e.ctrlKey||e.metaKey)||e.altKey)return;
+    if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName))return;
+    if(e.key.toLowerCase()==='z'){e.preventDefault();travelHistory(e.shiftKey?1:-1);}
+    if(e.key.toLowerCase()==='y'){e.preventDefault();travelHistory(1);}
+  });
+  $('savePresetBtn').addEventListener('click',()=>{
+    try{localStorage.setItem('foxfx-v2-preset',JSON.stringify(s));updatePresetButtons();toast('Мой пресет сохранён на этом устройстве');}
+    catch(e){toast('Хранилище браузера недоступно');}
+  });
+  $('loadPresetBtn').addEventListener('click',()=>{
+    try{const saved=JSON.parse(localStorage.getItem('foxfx-v2-preset'));
+      if(!saved)return;const oldRes=s.resolution;Object.assign(s,saved);
+      if(oldRes!==s.resolution)reflowSource();adjustedDirty=true;writeInputs();setEffect(s.effect);pushHistory();toast('Мой пресет загружен');
+    }catch(e){toast('Не удалось загрузить пресет');}
+  });
+  $('pngBtn').addEventListener('click',()=>exportImage('image/png'));
+  $('jpgBtn').addEventListener('click',()=>exportImage('image/jpeg'));
+  $('svgBtn').addEventListener('click',exportSvg);
+  $('webmBtn').addEventListener('click',exportWebm);
+  $('exportBtn').addEventListener('click',()=>exportImage('image/png'));
+  $('helpBtn').addEventListener('click',()=>$('helpDialog').showModal());$('closeHelp').addEventListener('click',()=>$('helpDialog').close());
+  // Installable offline app when hosted on HTTPS. Local standalone HTML remains independent.
+  let installPrompt=null;
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('installBtn').hidden=false;});
+  $('installBtn').addEventListener('click',async()=>{
+    if(!installPrompt)return;const prompt=installPrompt;installPrompt=null;$('installBtn').hidden=true;
+    try{await prompt.prompt();}catch(e){toast('Установка недоступна в этом браузере');}
+  });
+  window.addEventListener('appinstalled',()=>{$('installBtn').hidden=true;toast('FoxFX установлен');});
+  if(('serviceWorker' in navigator)&&(location.protocol==='https:'||location.hostname==='localhost')){
+    void 0;
+  }
+  window.addEventListener('beforeunload',()=>{cancelAnimationFrame(animationFrame);if(sourceUrl)URL.revokeObjectURL(sourceUrl);});
+  // Recover settings only when the local data has known types and the effect exists.
+  try{const restored=JSON.parse(localStorage.getItem('foxfx-v3-last')||'null');
+    if(restored&&titles[restored.effect]){
+      for(const id of ids){if(Object.hasOwn(restored,id)){const input=$(id);if(input.type==='range'&&typeof restored[id]!=='number')continue;s[id]=restored[id];}}
+      s.effect=restored.effect;
+    }
+  }catch(e){}
+  setEffect(s.effect);writeInputs();drawDemo();pushHistory();updatePresetButtons();animationFrame=requestAnimationFrame(frame);
+  window.FoxAPI={s,loadFile,getCanvas(){return canvas;},renderAt(t){render(t);},setExternalCanvas(other,name='3D model'){externalCanvas=other;loadedImage=null;isVideo=false;video.pause();sourceWidth=other.width;sourceHeight=other.height;resizeCanvas(sourceWidth,sourceHeight);document.querySelector('#emptyState').hidden=true;document.body.classList.add('has-input');$('fileName').textContent=name;$('fileType').textContent='GLB';$('playBtn').hidden=true;dirty=true;adjustedDirty=true;},resetSource(){externalCanvas=null;window.Fox3D?.stop?.();video.pause();if(video.srcObject){video.srcObject.getTracks().forEach(t=>t.stop());video.srcObject=null;}drawDemo();},updateExtra(p){Object.assign(s.extra,p);adjustedDirty=true;dirty=true;pushHistory();},markDirty(){dirty=true;adjustedDirty=true;},usePreset(x){applyPreset(x);},exportTxt(){if(s.effect!=='ascii'){toast('TXT доступен для ASCII');return;}drawAdjusted();const d=adjustedCtx.getImageData(0,0,source.width,source.height).data,w=source.width,h=source.height,cell=Math.max(6,s.scale*1.25),cw=cell*.65,chars='@#W%8&$OX+=-:,. ';let lines=[];for(let y=0;y<h;y+=cell){let line='';for(let x=0;x<w;x+=cw){const px=pixel(d,w,h,x,y);line+=chars[Math.min(chars.length-1,Math.floor(lum(...px)/255*(chars.length-1)))];}lines.push(line);}fileDownload(new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'}),'foxfx-ascii.txt');},
+  async startWebcam(){const stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});if(video.srcObject){video.srcObject.getTracks().forEach(t=>t.stop());}video.pause();video.removeAttribute('src');video.srcObject=stream;isVideo=true;video.onloadedmetadata=()=>{sourceWidth=video.videoWidth||640;sourceHeight=video.videoHeight||480;resizeCanvas(sourceWidth,sourceHeight);video.play();document.querySelector('#emptyState').hidden=true;document.body.classList.add('has-input');$('fileName').textContent='Webcam';$('fileType').textContent='LIVE';$('playBtn').hidden=false;};},fileName:()=>$('fileName').textContent};
+  
+})();
+
+
+</script><script>
+/* FoxFX reference-aligned UI. Independent implementation. */
+(()=>{'use strict';
+const $=id=>document.getElementById(id), api=window.FoxAPI;
+if(!api){console.error('FX engine unavailable');return;}
+const labels={ascii:'ASCII',dithering:'Dithering',halftone:'Halftone',matrix:'Matrix Rain',dots:'Dots',contour:'Contour','pixel-sort':'Pixel Sort',blockify:'Blockify',threshold:'Threshold',edges:'Edge Detection',crosshatch:'Crosshatch',wave:'Wave Lines',noise:'Noise Field',voronoi:'Voronoi',vhs:'VHS'};
+const X=api.s.extra;
+const base={charSet:'STANDARD',charSpacing:0,outputWidth:0,ditherAlgo:'Bayer 8x8',ditherIntensity:1,ditherMatrix:4,ditherModulation:false,halfShape:'Circle',halfScale:1,halfSpacing:8,halfAngle:45,halfInvert:false,matrixCell:12,matrixSpeed:1,matrixTrail:15,matrixDirection:'Down',matrixGlow:1,matrixBgOpacity:.3,vhsDist:.5,vhsNoise:.3,vhsBleed:.5,vhsScan:.3,vhsTrack:.2,procInvert:false,procBrightnessMap:1,procEdge:0,procBlur:0,procQuantize:0,procShape:0,postBloom:false,postGrain:true,grainIntensity:35,grainSize:2,grainSpeed:50,postChromatic:false,postScanlines:false,postVignette:false,postCRT:false,postPhosphor:false,gamma:1,sharpness:0};
+for(const [k,v] of Object.entries(base))if(X[k]===undefined)X[k]=v;
+let fileReady=false,format='png';
+const range=(name,key,min,max,step,def,unit='',compat=false)=>({name,key,min,max,step,def,unit,kind:'range',compat});
+const choice=(name,key,options,def,compat=false)=>({name,key,options,def,kind:'choice',compat});
+const toggle=(name,key,def=false)=>({name,key,def,kind:'toggle'});
+const effectControls={
+ ascii:[range('Scale','scale',1,12,1,2),range('Spacing','charSpacing',-4,12,.5,0),range('Output Width','outputWidth',0,180,1,0),choice('Character Set','charSet',['STANDARD','BLOCKS','DIGITS','MINIMAL'],'STANDARD')],
+ dithering:[choice('Algorithm','ditherAlgo',['Bayer 8x8','Bayer 4x4','Floyd-Steinberg'],'Bayer 8x8'),range('Intensity','ditherIntensity',0,2,.1,1),choice('Matrix Size','ditherMatrix',[['2x2 (Small)','2'],['4x4 (Medium)','4'],['8x8 (Large)','8']],'4'),toggle('Modulation','ditherModulation')],
+ halftone:[choice('Shape','halfShape',['Circle','Square','Line'],'Circle'),range('Dot Scale','halfScale',.2,2,.1,1),range('Spacing','halfSpacing',3,25,1,8),range('Angle','halfAngle',0,180,1,45,'°'),toggle('Invert','halfInvert')],
+ matrix:[choice('Character Set','charSet',['STANDARD','BLOCKS','DIGITS','MINIMAL'],'STANDARD'),range('Cell Size','matrixCell',6,32,1,12),range('Spacing','charSpacing',-4,12,.5,0),range('Speed','matrixSpeed',.1,4,.1,1),range('Trail Length','matrixTrail',2,35,1,15),choice('Direction','matrixDirection',['Down','Up'],'Down'),range('Glow','matrixGlow',0,3,.1,1),range('BG Opacity','matrixBgOpacity',0,1,.1,.3)],
+ dots:[range('Size','scale',2,22,1,7),range('Spacing','dotsSpacing',1,25,1,8),toggle('Invert','dotsInvert')],
+ contour:[range('Thickness','scale',2,24,1,8),range('Threshold','thresholdValue',0,100,1,50,'%',true)],
+ 'pixel-sort':[range('Segment Size','scale',2,28,1,10),range('Threshold','thresholdValue',0,100,1,50,'%',true)],
+ blockify:[range('Block Size','scale',2,38,1,10)],
+ threshold:[range('Threshold','thresholdValue',0,100,1,50,'%',true),toggle('Invert','procInvert')],
+ edges:[range('Sensitivity','thresholdValue',0,100,1,50,'%',true),range('Line Size','scale',2,24,1,8)],
+ crosshatch:[range('Line Spacing','scale',2,24,1,8),range('Threshold','thresholdValue',0,100,1,50,'%',true)],
+ wave:[range('Line Spacing','scale',2,25,1,8),range('Wave Strength','waveStrength',0,3,.1,1)],
+ noise:[range('Grain Scale','scale',2,24,1,8),range('Noise Amount','noiseAmount',0,2,.1,1)],
+ voronoi:[range('Cell Size','scale',2,26,1,8)],
+ vhs:[range('Distortion','vhsDist',0,1,.1,.5),range('Noise','vhsNoise',0,1,.1,.3),range('Color Bleed','vhsBleed',0,1,.1,.5),range('Scanlines','vhsScan',0,1,.1,.3),range('Tracking Error','vhsTrack',0,1,.1,.2)]
+};
+const adjustControls=[range('Brightness','brightness',-100,100,1,0,'',true),range('Contrast','contrast',-100,100,1,0,'',true),range('Saturation','saturation',-100,100,1,0,'',true),range('Hue Rotation','hue',-180,180,1,0,'°',true),range('Sharpness','sharpness',0,2,.1,0),range('Gamma','gamma',.2,3,.1,1)];
+const colorControls=[choice('Mode','colorMode',[['Original','original'],['Mono','mono'],['Single color','accent']],'original',true),{name:'Foreground',key:'accentColor',kind:'color',compat:true},{name:'Background',key:'bgColor',kind:'color',compat:true},range('Intensity','intensity',0,1,.05,1,'',true)];
+const procControls=[toggle('Invert','procInvert'),range('Brightness Map','procBrightnessMap',.2,2,.1,1),range('Edge Enhance','procEdge',0,5,.5,0),range('Blur','procBlur',0,5,.5,0),range('Quantize Colors','procQuantize',0,16,1,0),range('Shape Matching','procShape',0,1,.1,0)];
+const postControls=[toggle('Bloom','postBloom'),toggle('Grain','postGrain',true),range('Intensity (Grain)','grainIntensity',0,100,1,35),range('Size (Grain)','grainSize',1,5,1,2),range('Speed (Grain)','grainSpeed',0,100,1,50),toggle('Chromatic','postChromatic'),toggle('Scanlines','postScanlines'),toggle('Vignette','postVignette'),toggle('CRT Curve','postCRT'),toggle('Phosphor','postPhosphor')];
+function read(d){if(d.compat){const k=d.key==='intensity'?'intensity':d.key;return k==='intensity'?api.s.intensity/100:api.s[k]??d.def;}if(d.key==='scale'&&api.s.effect==='ascii')return X.asciiScale??2;if(d.key==='scale')return api.s.scale;return X[d.key]??d.def;}
+function write(d,value){if(d.compat){let val=value;if(d.key==='intensity')val=Math.round(Number(value)*100);const node=$(d.key);node.value=val;node.dispatchEvent(new Event('input',{bubbles:true}));node.dispatchEvent(new Event('change',{bubbles:true}));return;}if(d.key==='scale'){if(api.s.effect==='ascii'){X.asciiScale=Number(value);$('scale').value=Math.round(Number(value)*4);$('scale').dispatchEvent(new Event('input',{bubbles:true}));}else{$('scale').value=value;$('scale').dispatchEvent(new Event('input',{bubbles:true}));}api.updateExtra({});return;}api.updateExtra({[d.key]:d.kind==='toggle'?!!value:d.kind==='range'?Number(value):value});}
+function createField(d){const div=document.createElement('div');div.className='field'+(d.kind==='toggle'?' toggle':'');const lab=document.createElement('label');lab.textContent=d.name;div.append(lab);const id='field-'+d.key+'-'+(d.name.replace(/[^a-z]/gi,'').toLowerCase());lab.htmlFor=id;let control;
+ if(d.kind==='range'){const output=document.createElement('output');lab.append(output);control=document.createElement('input');control.type='range';Object.assign(control,{min:d.min,max:d.max,step:d.step,id});const val=read(d);control.value=val;output.textContent=(Number(val).toFixed(d.step<1?1:0))+d.unit;control.addEventListener('input',()=>{output.textContent=Number(control.value).toFixed(d.step<1?1:0)+d.unit;write(d,control.value)});control.addEventListener('change',()=>api.markDirty());}
+ else if(d.kind==='toggle'){control=document.createElement('input');control.type='checkbox';control.id=id;control.checked=Boolean(read(d));control.addEventListener('change',()=>write(d,control.checked));}
+ else if(d.kind==='color'){control=document.createElement('input');control.type='color';control.id=id;control.value=read(d)||'#ffffff';control.addEventListener('input',()=>write(d,control.value));}
+ else {control=document.createElement('select');control.id=id;const options=d.options.map(o=>Array.isArray(o)?o:[o,o]);for(const [t,v] of options){const el=document.createElement('option');el.textContent=t;el.value=v;control.append(el);}control.value=String(read(d));control.addEventListener('change',()=>write(d,control.value));}
+ if(d.kind==='color'){div.classList.add('color-control');}div.append(control);return div;}
+function renderFields(where,fields){const parent=$(where);parent.replaceChildren(...fields.map(createField));}
+function renderSettings(){const eff=api.s.effect;$('effectName').textContent=labels[eff]||eff;$('miniEffect').textContent=labels[eff]||eff;renderFields('effectFields',effectControls[eff]||[]);renderFields('adjustFields',adjustControls);renderFields('colorFields',colorControls);}
+function resetView(){const z=$('zoomValue');for(let i=0;i<15&&z.textContent!=='100%';i++){const n=parseInt(z.textContent)||100;$(n>100?'zoomOutBtn':'zoomInBtn').click();}}
+$('resetView').addEventListener('click',resetView);
+function refreshGPU(){const gpu=window.FoxGPU,active=!!gpu?.active;const tag=$('engineStatus');if(tag)tag.textContent=active?(window.FoxFXEffects?.ready?'[WEBGL2 EFFECTS]':'[WEBGL2 POST]'):'[CANVAS 2D]';const b=$('gpuToggle');if(b){b.classList.toggle('active',active);b.title=active?'WebGL2 активен. Переключить на CPU':(gpu?.supported?'Включить WebGL2':'WebGL2 недоступен в этом браузере');b.setAttribute('aria-pressed',String(active));}}
+$('gpuToggle').addEventListener('click',()=>{window.FoxGPU?.toggle();refreshGPU();api.markDirty();notify(window.FoxGPU?.active?'WebGL2 включён':(window.FoxGPU?.supported?'Canvas 2D включён':'WebGL2 недоступен — работает Canvas 2D'));});refreshGPU();
+$('lightTheme').addEventListener('click',()=>document.body.classList.toggle('light'));
+$('fullBtn').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await $('workspace').requestFullscreen();else await document.exitFullscreen();}catch(e){notify('Полный экран недоступен');}});
+$('cameraBtn').addEventListener('click',async()=>{try{await api.startWebcam();notify('Камера подключена');}catch(e){notify('Нужен HTTPS и разрешение для камеры');}});
+function notify(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(notify.timer);notify.timer=setTimeout(()=>el.classList.remove('show'),3200)}
+function inputReady(){return document.body.classList.contains('has-input')}
+function refreshSource(){const ready=inputReady();fileReady=ready;$('inputStatus').textContent=ready?'Loaded':'Standby';$('sourceMeta').hidden=!ready;$('fileInfoName').textContent=$('fileName').textContent||'—';$('fileResolution').textContent=$('previewInfo').textContent||'Resolution —';$('exportSelected').disabled=!ready;$('clearInput').disabled=!ready;$('formatOptions').querySelector('[data-format="video"]').disabled=!ready;updateFormat();}
+new MutationObserver(refreshSource).observe(document.body,{attributes:true,attributeFilter:['class']});
+new MutationObserver(refreshSource).observe($('previewInfo'),{childList:true,characterData:true,subtree:true});
+$('clearInput').addEventListener('click',()=>{api.resetSource();document.body.classList.remove('has-input');$('emptyState').hidden=false;refreshSource();});
+$('topUploadBtn').addEventListener('click',()=>{}); // Engine's existing click listener handles upload.
+window.addEventListener('foxfx-effect',()=>{renderSettings();updateFormat()});
+$('resetBtn').addEventListener('click',()=>{Object.assign(X,base);renderSettings();api.markDirty();});
+function applyReferencePreset(key){const defs={terminal:{effect:'ascii',scale:8,accentColor:'#a6f59b',bgColor:'#000000',colorMode:'accent',contrast:25},matrix:{effect:'matrix',scale:8,accentColor:'#00ff66',bgColor:'#000000',colorMode:'accent'},retro:{effect:'vhs',scale:8,accentColor:'#ffffff',bgColor:'#000000',colorMode:'original',contrast:15},detail:{effect:'ascii',scale:5,accentColor:'#ffffff',bgColor:'#000000',colorMode:'original'},minimal:{effect:'threshold',scale:8,accentColor:'#ffffff',bgColor:'#000000',colorMode:'mono'},cyber:{effect:'halftone',scale:8,accentColor:'#ff8ace',bgColor:'#050715',colorMode:'accent'}};const p=defs[key];if(!p)return;Object.assign(api.s,p);api.markDirty();const eff=document.querySelector(`.effect[data-effect="${p.effect}"]`);eff?.click();for(const name of ['scale','accentColor','bgColor','colorMode','contrast']){if(p[name]!==undefined){$(name).value=p[name];$(name).dispatchEvent(new Event('input',{bubbles:true}));}}renderSettings();notify('Preset applied');}
+document.querySelectorAll('[data-reference-preset]').forEach(el=>el.addEventListener('click',()=>applyReferencePreset(el.dataset.referencePreset)));
+$('saveCustom').addEventListener('click',()=>{try{localStorage.setItem('foxfx-custom',JSON.stringify({effect:api.s.effect,values:api.s,extra:X}));notify('Preset saved on this device');}catch(e){notify('Local storage unavailable')}});
+function importPreset(p){if(!p||!p.values||!labels[p.effect])throw new Error('Invalid preset');const allowed=['brightness','contrast','saturation','hue','scale','intensity','thresholdValue','colorMode','accentColor','bgColor','resolution'];for(const k of allowed){if(p.values[k]!==undefined)api.s[k]=p.values[k];}if(p.extra)for(const k of Object.keys(base))if(p.extra[k]!==undefined)X[k]=p.extra[k];api.markDirty();document.querySelector(`.effect[data-effect="${p.effect}"]`).click();for(const k of allowed){const input=$(k);if(input){input.value=api.s[k];input.dispatchEvent(new Event('input',{bubbles:true}));}}renderSettings();notify('Preset loaded');}
+$('loadCustom').addEventListener('click',()=>{try{importPreset(JSON.parse(localStorage.getItem('foxfx-custom')))}catch(e){notify('No saved preset found')}});
+function downloadText(text,filename,mime){const u=URL.createObjectURL(new Blob([text],{type:mime})),a=document.createElement('a');a.href=u;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(u),10000);}
+$('exportPreset').addEventListener('click',()=>downloadText(JSON.stringify({effect:api.s.effect,values:api.s,extra:X},null,2),'foxfx-preset.json','application/json'));
+$('importPreset').addEventListener('click',()=>$('presetFile').click());$('presetFile').addEventListener('change',async e=>{try{const file=e.target.files?.[0];if(file)importPreset(JSON.parse(await file.text()))}catch(err){notify('Could not import preset')}e.target.value='';});
+const exportDescriptions={png:'High quality image',jpeg:'Compressed image',gif:'Animated GIF · 4 seconds',video:'MP4 · H.264 with browser codec support',webm:'WebM · MediaRecorder',svg:'Vector ASCII text',txt:'Plain ASCII text',three:'Interactive Three.js HTML · online library'};
+function updateFormat(){document.querySelectorAll('[data-format]').forEach(b=>b.classList.toggle('chosen',b.dataset.format===format));$('formatDescription').textContent=exportDescriptions[format];$('exportSelected').textContent='Export '+({jpeg:'JPEG',video:'MP4',webm:'WebM',txt:'Text'}[format]||format.toUpperCase());$('exportSelected').disabled=!fileReady||(['svg','txt'].includes(format)&&api.s.effect!=='ascii');}
+document.querySelectorAll('[data-format]').forEach(b=>b.addEventListener('click',()=>{if(b.disabled)return;format=b.dataset.format;updateFormat()}));
+$('exportSelected').addEventListener('click',()=>{if(!fileReady)return;const btn={png:'pngBtn',jpeg:'jpgBtn',svg:'svgBtn',video:'webmBtn'}[format];if(btn&&format!=='video')$(btn).click();else if(format==='video')window.FoxExport?.mp4();else if(format==='webm')$('webmBtn').click();else if(format==='gif')window.FoxExport?.gif();else if(format==='three')window.Fox3D?.exportScene?.();else if(format==='txt')api.exportTxt();else notify('Format not available');});
+// Configure initial reference-aligned defaults; original renderer remains Canvas 2D and self-contained.
+api.s.accentColor='#ffffff';$('accentColor').value='#ffffff';api.s.bgColor='#000000';$('bgColor').value='#000000';api.markDirty();
+renderFields('processingFields',procControls);renderFields('postFields',postControls);renderSettings();refreshSource();updateFormat();
+})();
+
+</script><script>
+/* Original GIF encoder; standards-based MP4 with MediaRecorder/WebCodecs. */
+(()=>{'use strict';const $=id=>document.getElementById(id),api=()=>window.FoxAPI;let busy=false,abort=false;
+function progress(label,percent){$('progressPanel').hidden=false;$('progressTitle').textContent=label;$('progressBar').value=percent;}
+function message(text){const t=$('toast');t.textContent=text;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200)}
+$('cancelExport').onclick=()=>{abort=true};
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const save=(blob,name)=>{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);message('Saved '+name)};
+function stage(longest){const src=api().getCanvas(),rate=Math.min(1,longest/Math.max(src.width,src.height)),width=Math.max(2,Math.floor(src.width*rate/2)*2),height=Math.max(2,Math.floor(src.height*rate/2)*2),c=document.createElement('canvas');c.width=width;c.height=height;return {src,c,width,height,ctx:c.getContext('2d',{willReadFrequently:true})};}
+function paint(a,t){api().renderAt(t);a.ctx.drawImage(a.src,0,0,a.width,a.height)}
+const u16=(a,v)=>a.push(v&255,v>>8&255);
+function palette(){let out=[];for(let i=0;i<256;i++)out.push(Math.round((i>>5)*255/7),Math.round(((i>>2)&7)*255/7),Math.round((i&3)*255/3));return out;}
+function indexPixels(d){let r=new Uint8Array(d.length/4);for(let j=0,k=0;j<d.length;j+=4,k++)r[k]=((d[j]>>5)<<5)|((d[j+1]>>5)<<2)|(d[j+2]>>6);return r;}
+function lzw(p){let dict=new Map(),next=258,bits=9,threshold=512,output=[],v=0,held=0;
+ const emit=x=>{v|=x<<held;held+=bits;while(held>=8){output.push(v&255);v>>>=8;held-=8}};
+ const reset=()=>{dict.clear();next=258;bits=9;threshold=512};reset();emit(256);let prefix=p[0];
+ for(let i=1;i<p.length;i++){let k=p[i],key=prefix*256+k,value=dict.get(key);if(value!==undefined){prefix=value;continue;}emit(prefix);if(next<4096){dict.set(key,next++);if(next>threshold&&bits<12){bits++;threshold<<=1;}}else{emit(256);reset();}prefix=k;}
+ emit(prefix);emit(257);if(held)output.push(v&255);return output;}
+async function gif(){if(busy)return;busy=true;abort=false;try{const a=stage(480),fps=10,count=40,g=[71,73,70,56,57,97];u16(g,a.width);u16(g,a.height);g.push(247,0,0,...palette(),33,255,11,78,69,84,83,67,65,80,69,50,46,48,3,1,0,0,0);
+ let deadline=performance.now();for(let i=0;i<count;i++){if(abort)throw Error('cancelled');paint(a,performance.now()+i*100);const idx=indexPixels(a.ctx.getImageData(0,0,a.width,a.height).data);g.push(33,249,4,0);u16(g,10);g.push(0,0,44);u16(g,0);u16(g,0);u16(g,a.width);u16(g,a.height);g.push(0,8);const encoded=lzw(idx);for(let k=0;k<encoded.length;k+=255)g.push(Math.min(255,encoded.length-k),...encoded.slice(k,k+255));g.push(0);progress('GIF '+(i+1)+' / '+count,(i+1)*100/count);deadline+=100;await wait(Math.max(0,deadline-performance.now()));}
+ g.push(59);save(new Blob([new Uint8Array(g)],{type:'image/gif'}),'foxfx-'+api().s.effect+'.gif');}catch(e){message(e.message==='cancelled'?'Export cancelled':'GIF export failed');console.error(e);}finally{busy=false;$('progressPanel').hidden=true;}}
+async function recordMP4(){const mime=['video/mp4;codecs="avc1.42E01E"','video/mp4'].find(x=>typeof MediaRecorder!=='undefined'&&MediaRecorder.isTypeSupported(x));if(!mime)return false;
+ const a=stage(960),stream=a.c.captureStream(24),r=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:2400000});const chunks=[];
+ await new Promise((resolve,reject)=>{r.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};r.onerror=e=>reject(e.error||Error('MediaRecorder'));r.onstop=resolve;r.start(200);
+ (async()=>{const start=performance.now();while(performance.now()-start<4000&&!abort){paint(a,performance.now());progress('Recording MP4',Math.min(99,(performance.now()-start)/40));await wait(40)}if(r.state==='recording')r.stop()})().catch(reject);});stream.getTracks().forEach(t=>t.stop());if(!abort&&chunks.length)save(new Blob(chunks,{type:'video/mp4'}),'foxfx-'+api().s.effect+'.mp4');return true;}
+async function encodeMP4(){if(!window.VideoEncoder||!window.VideoFrame)throw Error('No WebCodecs');const mux=await import('https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/build/mp4-muxer.mjs');const a=stage(960),fps=24,count=96,config={codec:'avc1.42001f',width:a.width,height:a.height,bitrate:2400000,framerate:fps,latencyMode:'quality',avc:{format:'avc'}};
+ if(!(await VideoEncoder.isConfigSupported(config)).supported)throw Error('No H264 codec');const target=new mux.ArrayBufferTarget(),writer=new mux.Muxer({target,video:{codec:'avc',width:a.width,height:a.height,frameRate:fps},fastStart:'in-memory'});let err;
+ const enc=new VideoEncoder({output:(chunk,meta)=>writer.addVideoChunk(chunk,meta),error:e=>{err=e}});enc.configure(config);
+ try{let next=performance.now();for(let i=0;i<count;i++){if(abort)throw Error('cancelled');if(err)throw err;paint(a,performance.now()+i*1000/fps);const frame=new VideoFrame(a.c,{timestamp:Math.round(i*1e6/fps),duration:Math.round(1e6/fps)});enc.encode(frame,{keyFrame:i%48===0});frame.close();if(enc.encodeQueueSize>=6)await enc.flush();progress('H.264 '+(i+1)+' / '+count,(i+1)/count*98);next+=1000/fps;await wait(Math.max(0,next-performance.now()));}await enc.flush();if(err)throw err;writer.finalize();save(new Blob([target.buffer],{type:'video/mp4'}),'foxfx-'+api().s.effect+'.mp4');}finally{enc.close();}}
+async function mp4(){if(busy)return;busy=true;abort=false;try{progress('Preparing MP4',0);if(!await recordMP4())await encodeMP4();}catch(e){console.error('MP4:',e);message('MP4 not available: '+String(e.message).slice(0,60)+'; use WebM');}finally{busy=false;$('progressPanel').hidden=true;}}
+window.FoxExport={gif,mp4};})();
+
+</script><script type="module">
+/* FoxFX interactive GLB input. Three.js imported on demand from pinned MIT CDN. */
+(()=>{'use strict';let Three,Loader,Orbit,renderer,scene,camera,controls,model,mixer,clock,id=0;let active=false,file=null;
+const $=id=>document.getElementById(id),tip=text=>{const el=$('toast');el.textContent=text;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3600)};
+async function dependencies(){if(Three)return;const [t,l,o]=await Promise.all([import('three'),import('three/addons/loaders/GLTFLoader.js'),import('three/addons/controls/OrbitControls.js')]);Three=t;Loader=l.GLTFLoader;Orbit=o.OrbitControls;}
+function stop(){active=false;cancelAnimationFrame(id);if(controls)controls.dispose();if(model){model.traverse(o=>{o.geometry?.dispose?.();for(const m of [o.material].flat().filter(Boolean)){m.map?.dispose?.();m.normalMap?.dispose?.();m.dispose?.()}})}if(renderer){renderer.dispose();renderer.forceContextLoss?.();}renderer=null;model=null;controls=null;scene=null;}
+async function loadFile(next){if(!/\.glb$/i.test(next.name))return;if(next.size>70*1024*1024){tip('Maximum GLB size 70MB');return;}stop();file=next;tip('Loading GLB and Three.js…');try{await dependencies();const array=await next.arrayBuffer();if(next!==file)return;
+ const result=await new Loader().parseAsync(array,'');scene=new Three.Scene();scene.background=new Three.Color('#141924');scene.add(new Three.HemisphereLight(0xccdcff,0x202533,3));const a=new Three.DirectionalLight(0xffedd6,3);a.position.set(4,7,6);scene.add(a);const b=new Three.DirectionalLight(0x7f9cff,2);b.position.set(-6,2,-4);scene.add(b);
+ model=result.scene;scene.add(model);const bounds=new Three.Box3().setFromObject(model),size=bounds.getSize(new Three.Vector3()),center=bounds.getCenter(new Three.Vector3());model.position.sub(center);const d=Math.max(.1,size.x,size.y,size.z);
+ camera=new Three.PerspectiveCamera(42,1.5,d/1000,d*100);camera.position.set(d*1.25,d*.7,d*2.3);camera.lookAt(0,0,0);const c=document.createElement('canvas');c.width=900;c.height=600;renderer=new Three.WebGLRenderer({canvas:c,antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});renderer.setPixelRatio(1);renderer.setSize(900,600,false);renderer.outputColorSpace=Three.SRGBColorSpace;
+ controls=new Orbit(camera,$('outputCanvas'));controls.enableDamping=true;controls.enablePan=false;controls.minDistance=d*.6;controls.maxDistance=d*10;clock=new Three.Clock();mixer=result.animations?.length?new Three.AnimationMixer(model):null;if(mixer)for(const clip of result.animations)mixer.clipAction(clip).play();renderer.render(scene,camera);
+ active=true;window.FoxAPI.setExternalCanvas(c,next.name);tip('GLB loaded · drag to orbit · pinch to zoom');function loop(){if(!active)return;id=requestAnimationFrame(loop);mixer?.update(Math.min(.06,clock.getDelta()));controls?.update();renderer.render(scene,camera);window.FoxAPI.markDirty()}loop();
+ }catch(e){console.error('GLB load:',e);stop();tip('Unable to load GLB: '+String(e.message||e).slice(0,80));}}
+function download(html){const blob=new Blob([html],{type:'text/html'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='foxfx-three-scene.html';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),20000);tip('3D HTML exported');}
+async function exportScene(){try{let asset;if(active&&file){const bytes=new Uint8Array(await file.arrayBuffer());let str='';for(let i=0;i<bytes.length;i+=32768)str+=String.fromCharCode(...bytes.subarray(i,i+32768));asset={glb:btoa(str)}}else{const canvas=window.FoxAPI.getCanvas();window.FoxAPI.renderAt(performance.now());asset={image:canvas.toDataURL('image/png'),ratio:canvas.width/canvas.height}};
+ const encoded=JSON.stringify(asset).replace(/</g,'\\u003c');const html=`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FoxFX · 3D Scene</title><style>body{margin:0;background:#111725;color:white;font:13px monospace}#viewer{width:100vw;height:100vh;touch-action:none}#info{position:fixed;top:12px;left:12px}</style><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}<\/script></head><body><div id="viewer"></div><div id="info">FoxFX 3D · drag to orbit · online Three.js</div><script type="module">import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {OrbitControls} from 'three/addons/controls/OrbitControls.js';const payload=${encoded};let scene=new T.Scene();scene.background=new T.Color('#151925');const camera=new T.PerspectiveCamera(42,innerWidth/innerHeight,.01,2000),renderer=new T.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);document.getElementById('viewer').append(renderer.domElement);scene.add(new T.HemisphereLight(0xdde6ff,0x303040,3));let light=new T.DirectionalLight(0xffffff,3);light.position.set(3,7,5);scene.add(light);let obj;if(payload.glb){let bytes=Uint8Array.from(atob(payload.glb),c=>c.charCodeAt(0));let result=await new GLTFLoader().parseAsync(bytes.buffer,'');obj=result.scene;}else{let tex=await new T.TextureLoader().loadAsync(payload.image);tex.colorSpace=T.SRGBColorSpace;obj=new T.Mesh(new T.PlaneGeometry(3,3/payload.ratio),new T.MeshBasicMaterial({map:tex,side:T.DoubleSide}));}scene.add(obj);let bounds=new T.Box3().setFromObject(obj),d=Math.max(.1,...bounds.getSize(new T.Vector3()).toArray());obj.position.sub(bounds.getCenter(new T.Vector3()));camera.near=d/1000;camera.far=d*100;camera.position.set(d*1.5,d,d*2.2);camera.lookAt(0,0,0);camera.updateProjectionMatrix();let orbit=new OrbitControls(camera,renderer.domElement);orbit.enableDamping=true;(function loop(){requestAnimationFrame(loop);orbit.update();renderer.render(scene,camera)})();onresize=()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)};<\/script></body></html>`;
+ download(html);
+ }catch(e){console.error(e);tip('Three.js export failed');}}
+window.Fox3D={loadFile,stop,exportScene,get active(){return active}};
+})();
+
+</script>
+</body></html>
