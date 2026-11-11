@@ -1,7 +1,7 @@
 {
-  "name": "FoxFX Studio — графические эффекты",
+  "name": "FoxFX Studio 5.0",
   "short_name": "FoxFX",
-  "description": "15 ретро-эффектов для фото и видео в браузере",
+  "description": "GPU effects, photo, video and 3D editor",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
