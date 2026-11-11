@@ -1,0 +1,18 @@
+{
+  "name": "FoxFX Studio — графические эффекты",
+  "short_name": "FoxFX",
+  "description": "15 ретро-эффектов для фото и видео в браузере",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
