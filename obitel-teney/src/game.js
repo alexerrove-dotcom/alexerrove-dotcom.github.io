@@ -188,11 +188,49 @@ function makeFloor(initial=false){
  const key=pick(7,5);objects.push({type:'keyItem',x:key.x+.5,y:key.y+.5,used:false,id:1});
  objects.push({type:'keyItem',x:vcx+1.5,y:vcy+.5,used:false,id:2});
  const candidates=cells.filter(c=>c.d>5&&!reserved.some(o=>Math.hypot(o.x-c.x,o.y-c.y)<2));
- function place(type,n,sep=3){const used=[];for(let i=0,tries=0;i<n&&tries<1000;tries++){
-  const c=candidates[(rng()*candidates.length)|0];if(!c||used.some(o=>Math.hypot(o.x-c.x,o.y-c.y)<sep)||objects.some(o=>Math.hypot(o.x-c.x-.5,o.y-c.y-.5)<(type==='lamp'?.7:1.12)))continue;
-  if(['wardrobe','confessional','altar','barrel'].includes(type)){const exits=[[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy])=>world[c.y+dy]?.[c.x+dx]===0).length;if(exits<3)continue}
-  objects.push({type,x:c.x+.5,y:c.y+.5,used:false,hp:type==='barrel'?65:0});used.push(c);i++
- }}
+ // Safe placement: furniture is wall-aligned, never blocks the route to keys, seals, exit or crypt door.
+ const blockingFurniture=new Set(['barrel','wardrobe','confessional','altar']);
+ const goalTiles=[{x:out.x,y:out.y},{x:key.x,y:key.y},...objectives.slice(1).map(o=>({x:Math.floor(o.x),y:Math.floor(o.y)}))];
+ const centerTiles=Array.from({length:MAPSIZE},(_,y)=>Array.from({length:MAPSIZE},(_,x)=>world[y][x]===0));
+ const doorOutside=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>({x:vaultDoor.gx+dx,y:vaultDoor.gy+dy})).find(c=>centerTiles[c.y]?.[c.x]&&Math.hypot(c.x-vcx,c.y-vcy)>2.2);
+ if(doorOutside)goalTiles.push(doorOutside);
+ function passableWithFurniture(candidate){
+  const blocked=new Set(objects.filter(o=>blockingFurniture.has(o.type)&&!o.used).map(o=>Math.floor(o.x)+','+Math.floor(o.y)));
+  if(candidate)blocked.add(candidate.x+','+candidate.y);
+  const queue=[[2,2]],seen=new Set(['2,2']);
+  for(let k=0;k<queue.length;k++){
+   const [x,y]=queue[k];for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+    const nx=x+dx,ny=y+dy,id=nx+','+ny;
+    if(!centerTiles[ny]?.[nx]||seen.has(id)||blocked.has(id))continue;
+    seen.add(id);queue.push([nx,ny]);
+   }
+  }
+  return goalTiles.every(c=>seen.has(c.x+','+c.y));
+ }
+ function goodPropTile(c,type){
+  if(!c||c.d<5||Math.hypot(c.x-2,c.y-2)<5)return false;
+  if(reserved.some(o=>Math.hypot(o.x-c.x,o.y-c.y)<(type==='candles'?2.2:3.0)))return false;
+  if(objects.some(o=>Math.hypot(o.x-c.x-.5,o.y-c.y-.5)<(blockingFurniture.has(type)?1.75:1.1)))return false;
+  if(enemies.some(e=>Math.hypot(e.x-c.x-.5,e.y-c.y-.5)<1.05))return false;
+  const side=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>({dx,dy,empty:centerTiles[c.y+dy]?.[c.x+dx]}));
+  const exits=side.filter(v=>v.empty).length;
+  if(blockingFurniture.has(type)){
+   if(exits!==3||!passableWithFurniture(c))return false;
+  }else if(type==='candles'||type==='lamp'||type==='note'){
+   if(exits<2||exits===4)return false;
+  }
+  return true;
+ }
+ function place(type,n,sep=3){
+  const available=[...candidates].sort(()=>rng()-.5),used=[];
+  for(const c of available){
+   if(used.length>=n)break;
+   if(used.some(o=>Math.hypot(o.x-c.x,o.y-c.y)<sep)||!goodPropTile(c,type))continue;
+   const side=[[1,0],[-1,0],[0,1],[0,-1]].find(([dx,dy])=>!centerTiles[c.y+dy]?.[c.x+dx]);
+   const off=blockingFurniture.has(type)?.11:(['candles','lamp','note'].includes(type)?.22:0);
+   objects.push({type,x:c.x+.5+(side?.[0]||0)*off,y:c.y+.5+(side?.[1]||0)*off,used:false,hp:type==='barrel'?65:0});used.push(c);
+  }
+ }
  place('ammoItem',9+Math.min(5,floorNo),3);place('medItem',5,4);place('batteryItem',7,3);place('barrel',8,4);place('lamp',15,2);place('wardrobe',5,5);place('confessional',3,6);place('altar',4,5);place('candles',13,2);place('note',2,8);
  function placeEnemy(type,x,y,grace=0){if(isWall(x,y))return;enemies.push({x,y,type,hp:({ghost:68,cultist:93,wraith:100,demon:175})[type]*(difficulty==='hard'?1.25:difficulty==='easy'?.78:1),alive:true,speed:({ghost:1.03,cultist:.78,wraith:1.1,demon:.68})[type],alert:false,lastSeen:0,attack:rand(.7,1.7),path:[],pathTimer:0,stun:0,walk:rand(0,10),flash:0,attackAnim:0,deathAnim:0,spawnGrace:grace})}
  if(floorNo===1){placeEnemy('ghost',4.78,2.4,10);placeEnemy('cultist',4.35,3.18,13);placeEnemy('wraith',1.55,4.15,15)}
@@ -325,18 +363,18 @@ function drawSprites(){
    case'cultist':sprite=art.cultist;yScale=.82;xScale=.61;ghost=true;z=.14+Math.sin(t*1.9+o.y)*.075;break;
    case'core':sprite=art.core;yScale=.95;xScale=.81;break;
    case'exit':sprite=art.exit;yScale=1.67;xScale=1.3;break;
-   case'barrel':sprite=art.barrel;yScale=.82;xScale=.70;break;
-   case'lamp':sprite=art.lamp;yScale=.35;xScale=.33;z=.80;break;
+   case'barrel':sprite=art.barrel;yScale=0.7;xScale=0.57;break;
+   case'lamp':sprite=art.lamp;yScale=0.29;xScale=0.24;z=.80;break;
    case'ammoItem':sprite=art.ammoItem;yScale=.45;xScale=.47;break;
    case'medItem':sprite=art.medItem;yScale=.45;xScale=.49;break;
    case'batteryItem':sprite=art.batteryItem;yScale=.45;xScale=.40;break;
    case'waterOrb':sprite=art.flightWater;yScale=.46;xScale=.34;z=o.z;break;
    case'keyItem':sprite=art.keyItem;yScale=.43;xScale=.42;z=.17+Math.sin(t*2+o.x)*.08;break;
-   case'wardrobe':sprite=art.wardrobe;yScale=1.35;xScale=.94;break;
-   case'confessional':sprite=art.confessional;yScale=1.55;xScale=1;break;
-   case'altar':sprite=art.altar;yScale=.92;xScale=1.12;break;
-   case'candles':sprite=art.candles;yScale=.69;xScale=.58;break;
-   case'note':sprite=art.note;yScale=.42;xScale=.45;z=.19;break;
+   case'wardrobe':sprite=art.wardrobe;yScale=1.14;xScale=0.69;break;
+   case'confessional':sprite=art.confessional;yScale=1.25;xScale=0.73;break;
+   case'altar':sprite=art.altar;yScale=0.76;xScale=0.82;break;
+   case'candles':sprite=art.candles;yScale=0.34;xScale=0.3;break;
+   case'note':sprite=art.note;yScale=0.28;xScale=0.31;z=.19;break;
    case'ashes':sprite=art.ashes;yScale=.27;xScale=.82;z=.04;break;
    default:continue
   }
@@ -364,6 +402,7 @@ function drawSprites(){
   if(o.type==='core'||o.type==='exit')brightness=Math.max(.7,brightness);
   if(o.type==='lamp'||o.type==='waterOrb'||o.type==='candles'||o.type==='keyItem')brightness=.95;
   if(o.type==='ashes')brightness=Math.max(0,1-(t-o.born)/2.2)*.58;
+  if(['wardrobe','confessional','altar'].includes(o.type))brightness=Math.max(brightness,.48);
   if(ghost||o.type==='core'||o.type==='waterOrb'||o.type==='lamp'||o.type==='exit'){
    let color=o.type==='wraith'?'173,99,228':o.type==='core'||o.type==='lamp'||o.type==='exit'?'243,187,112':'112,203,255';
    if(o.type==='demon')color='154,224,248';
