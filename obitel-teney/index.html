@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#080b0e">
+<title>ОБИТЕЛЬ ТЕНЕЙ v0.6 — Бесконечные подземелья</title>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<canvas id="game" aria-label="Игровое поле"></canvas><div id="grain"></div>
+<div id="hud">
+ <div id="topLeft"><div id="smallTitle">✠ ОБИТЕЛЬ ТЕНЕЙ / ПОСЛЕДНЯЯ НОЧЬ</div><div class="hudRow"><span style="color:#ff8177">✚</span><span id="healthNum">100</span><div class="meter"><div class="fill" id="healthBar"></div></div></div><div class="hudRow"><span style="color:#80bfaa">ϟ</span><span id="staminaNum">100</span><div class="meter"><div class="fill" id="staminaBar"></div></div></div><div id="flashHint" class="hudLabel">ФОНАРЬ ◉ 100%</div><div id="floorStat">ЭТАЖ 1 · Кельи тишины</div><div id="keyStat">⚿ КЛЮЧИ: 0</div></div>
+ <div id="hudCenter">ПЕЧАТИ <b id="coreCount">0 / 3</b><div id="missionSmall">ОЧИСТИТЕ ТРИ ПРОКЛЯТЫЕ ПЕЧАТИ</div></div>
+ <div id="topRight"><div id="options"><button class="iconBtn" id="muteBtn" title="Звук">♫</button><button class="iconBtn" id="fullscreenBtn" title="Полный экран">⛶</button><button class="iconBtn" id="pauseBtn" title="Пауза">Ⅱ</button></div><canvas id="radar" width="110" height="110"></canvas></div>
+ <div id="bottomLeft"><div><div id="ammo">9 <small>/ 54</small></div><div id="ammoName">КРЕСТ • ВОДА ДЛЯ ИЗГНАНИЯ</div></div></div>
+ <div id="crosshair"></div><div id="hitMark">×</div><div id="signal"></div><div id="toast"></div>
+</div>
+<div id="touchControls"><div id="lookZone"></div><div id="stick"><div id="knob"></div></div><div id="actions"><button class="action" id="mapBtn">КАРТА</button><button class="action" id="flash">СВЕТ</button><button class="action" id="sprint">БЕГ</button><button class="action" id="reload">ВОДА</button><button class="action" id="use">ДЕЙСТВ.</button><button class="action" id="fire">КРЕСТ</button></div></div>
+<div id="rotateNotice" role="note"><div class="rotateGlyph">▯</div><h2>ПОВЕРНИТЕ ТЕЛЕФОН</h2><p>«Обитель теней» создана для горизонтального экрана. Поверните телефон и нажмите кнопку полного экрана.</p><button id="rotateFullscreen">⛶ ОТКРЫТЬ НА ВЕСЬ ЭКРАН</button></div>
+<div id="menu" class="screen"><img id="menuFigure" class="menuFigure" alt="" aria-hidden="true"><div class="panel"><div class="eyebrow">✠ АББАТСТВО / ТРИНАДЦАТАЯ ПОЛНОЧЬ</div><h1 class="heroTitle">ОБИТЕЛЬ<br><span>ТЕНЕЙ</span></h1><div class="subtitle">БЕСКОНЕЧНАЯ ЭКСПЕДИЦИЯ В МИР ДУХОВ</div><p class="description">В подземельях заброшенного аббатства распахнулась дверь в иной мир. Вы — последний экзорцист, пришедший закрыть её. <strong>Очищайте печати, ищите два ключа, отпирайте тайные комнаты и спускайтесь этаж за этажом без конца.</strong> Крест отпугивает духов, а флаконы святой воды взрываются ослепляющим светом.</p><div class="dividerLine"></div><div class="controlsHelp" id="menuControls">ПК: WASD — ходьба · мышь — обзор + вверх/вниз · I/K или PgUp/PgDn — вверх/вниз · 1/2 — сменить оружие · Shift — бег · R — бросок воды · E — действие · F — фонарь · Tab — карта · Esc — пауза</div><div id="mainMenuActions">
+<button class="cta" id="startBtn">НОВАЯ ИГРА</button>
+<button class="secondary" id="onlineBtn">ОНЛАЙН · ИГРАТЬ С ЛЮДЬМИ</button>
+<button class="secondary" id="continueBtn" disabled>ПРОДОЛЖИТЬ</button>
+<button class="secondary" id="menuSettingsBtn">НАСТРОЙКИ</button>
+<button class="secondary" id="menuHelpBtn">КАК ИГРАТЬ</button>
+<button class="secondary" id="bestiaryBtn">БЕСТИАРИЙ</button>
+<button class="secondary" id="menuJournalBtn">ДНЕВНИК</button>
+</div>
+<button class="secondary" id="menuFullscreen">⛶ ПОЛНЫЙ ЭКРАН</button><div class="meta">ПСЕВДО-3D · АНИМИРОВАННЫЕ ПРИЗРАКИ · АЛЬБОМНЫЙ РЕЖИМ · ОФЛАЙН</div></div></div>
+<div id="onlineScreen" class="screen hidden"><div class="panel" style="max-width:520px"><div class="eyebrow">✠ ОНЛАЙН · РЕАЛЬНЫЕ ИГРОКИ</div><h2 style="margin:5px 0 14px">КОМНАТА ДУХОВ</h2><p class="description">Один игрок создаёт комнату за экзорциста. До трёх друзей присоединяются за живых призраков. Комната работает, пока открыт браузер хозяина.</p><label class="netLabel">КОД КОМНАТЫ<input id="netCode" maxlength="6" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase"></label><label class="netLabel">ИГРАТЬ ЗА<select id="netCreature"><option value="ghost">Монастырский дух</option><option value="wraith">Теневой призрак</option><option value="cultist">Призрачная монахиня</option><option value="demon">Полтергейст</option></select></label><div class="netButtons"><button class="cta" id="netHost">СОЗДАТЬ КОМНАТУ</button><button class="secondary" id="netJoin">ПРИСОЕДИНИТЬСЯ</button></div><button class="secondary" id="netCopy">КОПИРОВАТЬ ССЫЛКУ</button><p id="netStatus" class="netStatus">Создайте комнату или введите код друга.</p><p class="netNote">Прототип P2P: используется бесплатный внешний сервис соединения браузеров. Возможны проблемы в некоторых сетях, без публичного поиска матчей.</p><button class="secondary" id="netClose">НАЗАД</button></div></div><div id="netBanner" aria-live="polite"></div>
+<div id="bestiaryScreen" class="screen hidden"><div class="panel" style="width:min(890px,96vw);max-height:94dvh;overflow-y:auto"><div class="eyebrow">✠ ОБИТАТЕЛИ ПОДЗЕМНОЙ ОБИТЕЛИ</div><h2 style="font-size:23px;letter-spacing:2px;margin:0 0 14px">БЕСТИАРИЙ</h2><div class="bestiaryGrid"><div class="beast"><img id="beast_ghost" alt="Монастырский дух"><b>МОНАСТЫРСКИЙ ДУХ</b><small>Тихо парит и преследует жертву</small></div><div class="beast"><img id="beast_cultist" alt="Призрачная монахиня"><b>ПРИЗРАЧНАЯ МОНАХИНЯ</b><small>Подкрадывается молча и бьёт в упор</small></div><div class="beast"><img id="beast_wraith" alt="Теневой призрак"><b>ТЕНЕВОЙ ПРИЗРАК</b><small>Быстрый и скользит сквозь тьму</small></div><div class="beast"><img id="beast_demon" alt="ПОЛТЕРГЕЙСТ"><b>ПОЛТЕРГЕЙСТ</b><small>Сильный дух, швыряет энергией и хаосом</small></div></div><button class="cta" id="bestiaryBack">НАЗАД В МЕНЮ</button></div></div>
+<div id="pauseScreen" class="screen hidden"><div class="panel"><div class="eyebrow">✠ РИТУАЛ ПРИОСТАНОВЛЕН</div><h2 class="heroTitle" style="font-size:38px">ПАУЗА</h2><p class="description">Во тьме до сих пор слышны чужие шаги.</p><button class="cta" id="resumeBtn">ПРОДОЛЖИТЬ</button><button class="secondary" id="restartPauseBtn">НОВАЯ ИГРА</button><button class="secondary" id="pauseJournalBtn">ДНЕВНИК</button><button class="secondary" id="returnMenuBtn">В ГЛАВНОЕ МЕНЮ</button>
+ <div id="controlSettings">
+  <label>ЧУВСТВИТЕЛЬНОСТЬ ОБЗОРА <span id="lookValue">100%</span><input type="range" id="lookSensitivity" min="50" max="190" value="100" step="10"></label>
+  <label>СКОРОСТЬ СТИКА <span id="stickValue">100%</span><input type="range" id="stickSensitivity" min="70" max="150" value="100" step="10"></label>
+  <label class="toggleSetting"><input type="checkbox" id="invertView"> Инвертировать обзор по вертикали</label>
+  <label class="toggleSetting"><input type="checkbox" id="leftHanded"> Управление для левши</label>
+ </div>
+ <button class="secondary" id="pauseFullscreen">⛶ ПОЛНЫЙ ЭКРАН</button><div class="meta">Esc — вернуться к игре</div></div></div>
+<div id="settingsScreen" class="screen subScreen hidden"><div class="panel">
+ <div class="eyebrow">✠ СИСТЕМА ЭКЗОРЦИСТА</div><h2>НАСТРОЙКИ</h2>
+ <div id="settingsGrid">
+  <label>СЛОЖНОСТЬ<select id="difficultySelect"><option value="easy">Исследователь</option><option value="normal" selected>Обычная</option><option value="hard">Кошмар</option></select></label>
+  <label>ОБЗОР <input id="menuLook" type="range" min="50" max="190" value="100" step="10"></label>
+  <label>ДЖОЙСТИК <input id="menuStick" type="range" min="70" max="150" value="100" step="10"></label>
+  <label class="inline"><input id="menuInvert" type="checkbox"> Инверсия Y</label>
+  <label class="inline"><input id="menuLeft" type="checkbox"> Для левши</label>
+ </div><p>Сложность применяется к новой игре, параметры управления сохраняются автоматически.</p>
+ <button class="cta" id="settingsBack">ГОТОВО</button>
+</div></div>
+<div id="helpScreen" class="screen subScreen hidden"><div class="panel">
+ <div class="eyebrow">✠ КАК ВЫЖИТЬ В ОБИТЕЛИ</div><h2>РУКОВОДСТВО</h2>
+ <p><b>Цель:</b> исследуйте бесконечно создаваемые этажи. Найдите ключ к запертой крипте, очистите 3 печати, возьмите второй ключ из крипты и откройте лестницу на следующий этаж.</p>
+ <p><b>Скрытность:</b> подойдите к деревянному шкафу или исповедальне и нажмите Е / ДЕЙСТВ. Духи перестанут вас преследовать. Повторно нажмите для выхода. Из укрытия атаковать нельзя.</p>
+ <p><b>Бой:</b> крест изгоняет духов без ограничений, святая вода — метательная граната с уроном по площади, пополняется в тайниках.</p>
+ <p><b>ПК:</b> WASD, мышь, Shift — бег, E — взаимодействие, G/R — граната, F — свет, Tab — карта, J — дневник, Esc — пауза.</p>
+ <p><b>Телефон:</b> левый стик, обзор свайпом справа, кнопки КРЕСТ, ВОДА, ДЕЙСТВ., СВЕТ, БЕГ и КАРТА. Поверните экран горизонтально.</p>
+ <button class="cta" id="helpBack">НАЗАД</button>
+</div></div>
+<div id="journalScreen" class="screen subScreen hidden"><div class="panel">
+ <div class="eyebrow">✠ СВИДЕТЕЛЬСТВА ИЗ ПОДЗЕМЕЛЬЯ</div><h2>ДНЕВНИК</h2>
+ <div id="journalContent">Дневник ещё пуст.</div><button class="cta" id="journalBack">НАЗАД</button>
+</div></div>
+<div id="resultScreen" class="screen hidden"><div class="panel"><div class="eyebrow" id="resultEyebrow">✠ РИТУАЛ ПРЕРВАН</div><h2 class="heroTitle" id="resultTitle" style="font-size:40px">КОНЕЦ</h2><p id="resultText" class="description"></p><div id="resultStats" class="resultStats"></div><button class="cta" id="restartBtn">ПОПРОБОВАТЬ СНОВА →</button></div></div>
+<div id="mapScreen" class="screen hidden"><div class="panel" id="mapPanel"><div class="eyebrow">✠ СТАРЫЙ ПЛАН АББАТСТВА</div><h2 style="margin:0;letter-spacing:3px;font-size:20px">КАРТА ПОДЗЕМЕЛЬЯ</h2><canvas id="bigmap" width="400" height="400"></canvas><div id="mapLegend">▲ ВЫ &nbsp; ◆ ПЕЧАТИ &nbsp; ▣ ЛЕСТНИЦА &nbsp; ⚿ КЛЮЧ<br>Оранжевая клетка — запертая дверь · Синие — укрытия</div><button class="cta" id="closeMapBtn">ВЕРНУТЬСЯ</button></div></div>
+<img id="asset_cross" src="assets/cross.webp" alt="" hidden loading="eager">
+<img id="asset_holyWater" src="assets/holyWater.webp" alt="" hidden loading="eager">
+<img id="asset_demon" src="assets/demon.webp" alt="" hidden loading="eager">
+<img id="asset_ghost" src="assets/ghost.webp" alt="" hidden loading="eager">
+<img id="asset_wraith" src="assets/wraith.webp" alt="" hidden loading="eager">
+<img id="asset_cultist" src="assets/cultist.webp" alt="" hidden loading="eager">
+<img id="anim_ghost" src="assets/ghost_anim.webp" alt="" hidden loading="eager">
+<img id="anim_cultist" src="assets/cultist_anim.webp" alt="" hidden loading="eager">
+<img id="anim_wraith" src="assets/wraith_anim.webp" alt="" hidden loading="eager">
+<img id="anim_demon" src="assets/demon_anim.webp" alt="" hidden loading="eager">
+<img id="asset_flightWater" src="assets/holy_water_flight.webp" alt="" hidden loading="eager">
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js" defer></script>
+<script src="src/game.js" defer></script>
+</body>
+</html>
