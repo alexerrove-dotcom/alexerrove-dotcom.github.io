@@ -43,7 +43,8 @@ function sample(track, phase) {
 }
 
 function firstPerson(ctx, role, sprite, player, time, width, height, alternate) {
- if(!sprite?.complete||!sprite.naturalWidth)return;
+ const sourceWidth=sprite?.naturalWidth||sprite?.width,sourceHeight=sprite?.naturalHeight||sprite?.height;
+ if(!sourceWidth||!sourceHeight)return;
  const move=Math.min(1,(player.weaponMotion||0)/2.7);
  const step=player.walkTime*2, spec=attacks[role];
  const phase=player.crossEffect>0?Math.min(1,1-player.crossEffect/spec.duration):0;
@@ -53,13 +54,12 @@ function firstPerson(ctx, role, sprite, player, time, width, height, alternate) 
  const throwPose=pulse(player.throwAnim,.65,.42);
  const spectral=['ghost','wraith','cultist','demon'].includes(role);
  const size=Math.min(width*.57,height*(spectral ? .78 : .82));
- const spriteHeight=size*sprite.naturalHeight/sprite.naturalWidth;
+ const spriteHeight=size*sourceHeight/sourceWidth;
  const advance=reach+power*powerReach;
  const rise=lift+power*powerLift;
  const swing=Math.sin(step)*move;
  const idle=Math.sin(time*2.25)*height*.004;
  const scale=zoom+(powerZoom-1)*power+throwPose*.06;
- const grip=player.flash?.98:.84;
  const baseline=height+spriteHeight*(spectral?.25:.26);
  const draw=(side, amount)=>{
   const x=width*.5+side*(width*.34-(advance*amount+throwPose*.16)*size)+swing*size*.026;
@@ -69,20 +69,31 @@ function firstPerson(ctx, role, sprite, player, time, width, height, alternate) 
   ctx.scale(side*scale,scale);
   ctx.rotate(roll*amount+power*powerRoll+throwPose*.38+swing*.025);
   if(spectral)ctx.globalAlpha=player.abilityPhase>0?.46:.94;
-  else ctx.filter=`brightness(${grip})`;
   ctx.drawImage(sprite,-size*.73,-spriteHeight*.87,size,spriteHeight);
   ctx.restore();
  };
  if(spectral&&(role==='ghost'||role==='demon'))draw(-1,role==='demon'?.91:.68);
  draw(1,1);
+ if(role==='hunter'&&phase>0&&phase<.32){
+  const intensity=(1-phase/.32)**1.4,x=width*.605,y=height*.70,r=Math.min(width,height)*.13;
+  ctx.save();ctx.globalAlpha=intensity*.81;ctx.fillStyle='#f5ab64';
+  ctx.beginPath();
+  for(let i=0;i<12;i++){
+   const angle=i*Math.PI/6,reach=i%2?r*.31:r*(i%3===0?1:.64);
+   const px=x+Math.cos(angle)*reach,py=y+Math.sin(angle)*reach;
+   if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.closePath();ctx.fill();ctx.globalAlpha=intensity;ctx.fillStyle='#fff2d6';
+  ctx.beginPath();ctx.ellipse(x,y,r*.24,r*.13,-.4,0,Math.PI*2);ctx.fill();ctx.restore();
+ }
  const energy=phase>0?Math.max(0,1-Math.abs(phase-(role==='hunter'?.17:.5))*3):0;
  if(energy||power||alternate&&throwPose){
   const [r,g,b]=spec.light;
-  const glow=ctx.createRadialGradient(width*.52,height*.65,0,width*.52,height*.65,height*.36);
+  const glow=ctx.createRadialGradient(width*.52,height*.65,0,width*.52,height*.65,height*.29);
   glow.addColorStop(0,`rgba(${r},${g},${b},${energy*.14+power*.13+throwPose*.09})`);
   glow.addColorStop(1,`rgba(${r},${g},${b},0)`);
   ctx.fillStyle=glow;
-  ctx.fillRect(0,0,width,height);
+  ctx.fillRect(width*.52-height*.29,height*.65-height*.29,height*.58,height*.58);
  }
 }
 
