@@ -53,31 +53,35 @@ function firstPerson(ctx, role, sprite, player, time, width, height, alternate) 
  const [powerReach,powerLift,powerRoll,powerZoom]=abilityPose[role];
  const throwPose=pulse(player.throwAnim,.65,.42);
  const spectral=['ghost','wraith','cultist','demon'].includes(role);
- const size=Math.min(width*(role==='hunter'?.43:.45),height*(spectral?.59:role==='hunter'?.68:.65));
+ const size=Math.min(width*(role==='hunter'?.38:.45),height*(spectral?.59:role==='hunter'?.64:.65));
  const spriteHeight=size*sourceHeight/sourceWidth;
  const advance=reach+power*powerReach;
  const rise=lift+power*powerLift;
  const swing=Math.sin(step)*move;
  const idle=Math.sin(time*2.25)*height*.004;
  const scale=zoom+(powerZoom-1)*power+throwPose*.06;
- const baseline=height+spriteHeight*(spectral?.12:role==='hunter'?.04:.13);
+ const baseline=height+spriteHeight*(spectral?.12:.13);
  let muzzle=null;
  const draw=(side, amount)=>{
-  const anchor=role==='hunter'?.27:spectral?.29:.30;
-  const x=width*.5+side*(width*anchor-(advance*amount+throwPose*.16)*size)+swing*size*.02;
-  const y=baseline-(rise*amount+throwPose*.48)*spriteHeight+idle+Math.sin(step+side*.6)*move*height*.019;
+  const hunter=role==='hunter';
+  const uv=hunter?[.039,.034]:role==='priest'?[.46,.15]:role==='medic'?[.39,.23]:[.44,.23];
+  const ax=(uv[0]-.73)*size,ay=(uv[1]-.87)*spriteHeight;
+  const restAngle=hunter?Math.atan2(-height*.16,-width*.09)-Math.atan2(-.151*sourceHeight/sourceWidth,-.191):0;
+  const anchor=spectral?.29:.30;
+  const baseX=hunter?width*.59-(ax*Math.cos(restAngle)-ay*Math.sin(restAngle)):width*.5+side*width*anchor;
+  const baseY=hunter?height*.66-(ax*Math.sin(restAngle)+ay*Math.cos(restAngle)):baseline;
+  const x=baseX-side*(advance*amount+throwPose*.16)*size+swing*size*.02;
+  const y=baseY-(rise*amount+throwPose*.48)*spriteHeight+idle+Math.sin(step+side*.6)*move*height*.019;
+  const angle=restAngle+roll*amount+power*powerRoll+throwPose*.38+swing*.02;
   ctx.save();
   ctx.translate(x,y);
   ctx.scale(side*scale,scale);
-  const angle=roll*amount+power*powerRoll+throwPose*.38+swing*.02;
   ctx.rotate(angle);
   if(spectral)ctx.globalAlpha=player.abilityPhase>0?.46:.94;
   ctx.drawImage(sprite,-size*.73,-spriteHeight*.87,size,spriteHeight);
   ctx.restore();
   if(side===1){
    // UV anchors are measured on the artwork, then transformed with the same recoil pose.
-   const uv=role==='hunter'?[.039,.034]:role==='priest'?[.46,.15]:role==='medic'?[.39,.23]:[.44,.23];
-   const ax=(uv[0]-.73)*size,ay=(uv[1]-.87)*spriteHeight;
    muzzle={x:x+(ax*Math.cos(angle)-ay*Math.sin(angle))*scale,
     y:y+(ax*Math.sin(angle)+ay*Math.cos(angle))*scale};
   }
