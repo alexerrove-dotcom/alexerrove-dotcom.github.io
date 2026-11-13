@@ -16,7 +16,7 @@ function safeStore(key, data){try{localStorage.setItem(key,JSON.stringify(data))
 function safeRead(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch(err){return null}}
 function persistOptions(){safeStore(OPTIONS_KEY,{...settings,difficulty})}
 function setContinueButton(){let btn=$('#continueBtn');if(btn){let saved=safeRead(SAVE_KEY);btn.disabled=!saved;btn.textContent=saved?'ПРОДОЛЖИТЬ — ЭТАЖ '+saved.floorNo:'ПРОДОЛЖИТЬ — НЕТ СОХРАНЕНИЯ'}}
-function saveCheckpoint(){if(!player||battle)return;safeStore(SAVE_KEY,{runSeed,floorNo,health:Math.round(player.health),grenades:player.grenades,kills:player.kills,shots:player.shots,difficulty,foundLore});setContinueButton()}
+function saveCheckpoint(){if(!player||battle||match)return;safeStore(SAVE_KEY,{runSeed,floorNo,health:Math.round(player.health),grenades:player.grenades,kills:player.kills,shots:player.shots,difficulty,foundLore});setContinueButton()}
 
 const spiritAnimations={};let spiritEmitTime=0;
 function rng(){noiseSeed=(Math.imul(noiseSeed,1664525)+1013904223)>>>0;return noiseSeed/4294967296}function rand(a,b){return a+rng()*(b-a)}function clamp(n,a,b){return Math.max(a,Math.min(b,n))}function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}function normAng(a){return Math.atan2(Math.sin(a),Math.cos(a))}
@@ -147,10 +147,10 @@ function makeBot(x,y,type,team,role='priest'){return {x,y,type,team,role,hp:type
 function botLive(b){return !!b&&b.alive!==false&&(b===player?b.health>0:b.hp>0)}
 function botNearest(x,y,targets){let nearest=null,md=1e20;for(const o of targets){if(!botLive(o)||(o.abilityPhase||0)>0)continue;let d=Math.hypot(x-o.x,y-o.y);if(d<md){nearest=o;md=d}}return nearest}
 function botHurt(e,damage){if(!botLive(e))return;if((e.abilityPhase||0)>0)damage*=.25;if((e.abilityShield||0)>0)damage*=.35;if(e===player){player.health=Math.max(0,player.health-damage);player.hurt=.45;if(player.health<=0)endGame(false);return}e.hp=Math.max(0,e.hp-damage);e.flash=.3;e.stun=.18;if(e.hp<=0){if(e===player){endGame(false);return}e.alive=false;e.deathAnim=.94;spawnHoly(e.x,e.y,22,e.type==='exorcist'?'gold':'blue')}}
-function battleStart(){battleSide=$('#skirmishSide').value;battleCreature=$('#skirmishCreature').value;battleHuman=$('#skirmishHuman').value;humanClass=battleHuman;battleBots=$('#skirmishBots').checked;battleExCount=Number($('#skirmishExorcists').value);battleSpCount=Number($('#skirmishSpirits').value);netType=battleCreature;battle=true;if(netRole!=='solo')netCleanup();audioInit();createGame();if(IS_TOUCH&&innerWidth>innerHeight&&!document.fullscreenElement)immersiveFullscreen()}
+function battleStart(){battleSide=$('#skirmishSide').value;battleCreature=$('#skirmishCreature').value;battleHuman=$('#skirmishHuman').value;humanClass=battleHuman;battleBots=$('#skirmishBots').checked;battleExCount=Number($('#skirmishExorcists').value);battleSpCount=Number($('#skirmishSpirits').value);battle=true;audioInit();createGame();if(IS_TOUCH&&innerWidth>innerHeight&&!document.fullscreenElement)immersiveFullscreen()}
 
-function powerConfig(){if(netRole==='spirit'||(battle&&battleSide==='spirit'))return SPIRIT_ABILITY[netRole==='spirit'?netType:battleCreature]||SPIRIT_ABILITY.ghost;return HUMAN_ABILITY[humanClass]||HUMAN_ABILITY.priest}
-function powerUI(){const b=$('#ability'),hud=$('#abilityInfo');if(!b||!hud||!player)return;if(scene!=='play'){b.style.display='none';hud.style.display='none';return}const a=powerConfig(),cd=Math.max(0,player.abilityCd||0),ready=cd<.05;hud.style.display='block';hud.textContent=(netRole==='spirit'||(battle&&battleSide==='spirit')?'ДУХ':'ЧЕЛОВЕК')+' · '+a.name+(ready?' · ГОТОВО':' · '+Math.ceil(cd)+' С');hud.classList.toggle('ready',ready);b.style.display='grid';b.disabled=!ready;b.classList.toggle('cooling',!ready);b.textContent=ready?'✧\nУМЕНИЕ':'⌛\n'+Math.ceil(cd)+' С';b.title=a.name+' · Q'}
+function powerConfig(){if(match)return onlinePower(match.me);if(battle&&battleSide==='spirit')return SPIRIT_ABILITY[battleCreature]||SPIRIT_ABILITY.ghost;return HUMAN_ABILITY[humanClass]||HUMAN_ABILITY.priest}
+function powerUI(){const b=$('#ability'),hud=$('#abilityInfo');if(!b||!hud||!player)return;if(scene!=='play'){b.style.display='none';hud.style.display='none';return}const a=powerConfig(),cd=Math.max(0,player.abilityCd||0),ready=cd<.05&&player.health>0;hud.style.display='block';hud.textContent=((match?netSide(match.me)==='spirit':battle&&battleSide==='spirit')?'ДУХ':'ЧЕЛОВЕК')+' · '+a.name+(ready?' · ГОТОВО':' · '+Math.ceil(cd)+' С');hud.classList.toggle('ready',ready);b.style.display='grid';b.disabled=!ready;b.classList.toggle('cooling',!ready);b.textContent=ready?'✧\nУМЕНИЕ':'⌛\n'+Math.ceil(cd)+' С';b.title=a.name+' · Q'}
 function powerTick(dt){if(!player)return;player.abilityCd=Math.max(0,(player.abilityCd||0)-dt);player.abilityPhase=Math.max(0,(player.abilityPhase||0)-dt);player.abilityShield=Math.max(0,(player.abilityShield||0)-dt);powerUI()}
 function dashPower(e,a,len=3.15){for(let i=0;i<22;i++){const x=e.x+Math.cos(a)*len/22,y=e.y+Math.sin(a)*len/22;if(!canStand(x,y,.2))break;e.x=x;e.y=y}}
 function spiritPower(type,caster,targets,hurt){let x=caster.x,y=caster.y;
@@ -166,12 +166,12 @@ function humanPower(type,caster,spirits,hurt,allies){let x=caster.x,y=caster.y;
  for(const e of spirits){if(e.hp<=0||e.alive===false)continue;const d=Math.hypot(e.x-x,e.y-y);if(d>radius||!lineClear(x,y,e.x,e.y))continue;if(type==='hunter'&&Math.abs(normAng(Math.atan2(e.y-y,e.x-x)-(caster.a||0)))>.55)continue;hurt(e,Math.round((type==='hunter'?83:42)*(1-d/(radius*2.6))));e.stun=Math.max(e.stun||0,type==='hunter'?1.35:1.1)}spawnHoly(x,y,40,'gold')
 }
 function useAbility(){if(!player||scene!=='play'||player.abilityCd>.03||player.health<=0||player.hidden)return;
- if(netRole==='spirit'){netSend(netHostConn,{type:'ability'});player.abilityCd=SPIRIT_ABILITY[netType].cd;player.crossEffect=.3;spawnHoly(player.x,player.y,18,'violet');powerUI();return}
+ if(match){if(player.abilityCd<=.03&&match.me.stun===0)match.action++;return}
  if(battle&&battleSide==='spirit'){const t=SPIRIT_ABILITY[battleCreature];player.abilityCd=t.cd;const sp={get x(){return player.x},set x(v){player.x=v},get y(){return player.y},set y(v){player.y=v},a:player.a,hp:player.health,abilityPhase:0};spiritPower(battleCreature,sp,exorcistBots.filter(e=>e.team==='enemy'),(e,d)=>botHurt(e,d));player.health=sp.hp;player.abilityPhase=sp.abilityPhase||0;sfx('growl');showToast(t.name,1.2);powerUI();return}
  const t=HUMAN_ABILITY[humanClass]||HUMAN_ABILITY.priest;player.abilityCd=t.cd;
  const caster={x:player.x,y:player.y,a:player.a,hp:player.health,abilityShield:0};
  if(battle)humanPower(humanClass,caster,enemies,(e,d)=>botHurt(e,d),[caster,...exorcistBots]);
- else{humanPower(humanClass,caster,enemies,(e,d)=>{e.hp-=d;e.flash=.45;e.stun=Math.max(e.stun||0,1);if(e.hp<=0)banish(e)},[caster]);if(netRole==='host'&&['priest','hunter'].includes(humanClass))netDamageSpirits(player.x,player.y,humanClass==='hunter'?5.7:3.2,humanClass==='hunter'?84:45,humanClass==='hunter')}
+ else{humanPower(humanClass,caster,enemies,(e,d)=>{e.hp-=d;e.flash=.45;e.stun=Math.max(e.stun||0,1);if(e.hp<=0)banish(e)},[caster])}
  player.health=caster.hp;player.abilityShield=caster.abilityShield;player.holyGlow=Math.max(.34,player.holyGlow||0);sfx('holy');showToast(t.name,1.3);powerUI()
 }
 function botPowers(dt){if(!battle)return;const ghosts=battleSide==='spirit'?spiritAllyBots:enemies,human=exorcistBots;
@@ -206,7 +206,7 @@ function createGame(loadCheckpoint=false){
  const saved=loadCheckpoint===true?safeRead(SAVE_KEY):null;
  if(saved){floorNo=Math.max(1,saved.floorNo|0);runSeed=saved.runSeed>>>0;difficulty=saved.difficulty||'normal';foundLore=Array.isArray(saved.foundLore)?saved.foundLore:[]}
  else{floorNo=1;runSeed=(Math.random()*0xffffffff)>>>0;difficulty=$('#difficultySelect')?.value||'normal';foundLore=[]}
- const health=saved?clamp(saved.health,15,100):100,grenades=saved?clamp(saved.grenades,1,16):7;if(netRole!=='host'&&!battle)humanClass='priest';
+ const health=saved?clamp(saved.health,15,100):100,grenades=saved?clamp(saved.grenades,1,16):7;if(!battle)humanClass='priest';
  player={x:2.45,y:2.4,a:.1,health,stamina:100,battery:100,flash:true,grenades,keys:0,weapon:'cross',waterCd:0,crossEffect:0,throwAnim:0,holyGlow:0,cores:0,kills:saved?.kills||0,shots:saved?.shots||0,reload:0,fireCd:0,flashShot:0,hurt:0,bob:0,steps:0,moveSpeed:0,walkTime:0,started:performance.now(),hidden:false,hideSpot:null,hideFrom:null,abilityCd:0,abilityPhase:0,abilityShield:0};
  scene='play';$('#menu').classList.add('hidden');$('#resultScreen').classList.add('hidden');$('#pauseScreen').classList.add('hidden');$('#mapScreen').classList.add('hidden');$('#hud').style.display='block';$('#touchControls').classList.add('gameOn');
  makeFloor(true);last=performance.now();startAmbient();saveCheckpoint();powerUI();
@@ -321,7 +321,7 @@ function makeFloor(initial=false){
   const c=candidates[(rng()*candidates.length)|0];if(!c||c.d<7||used.some(o=>Math.hypot(c.x-o.x,c.y-o.y)<3)||objects.some(o=>['core','keyItem','wardrobe','confessional'].includes(o.type)&&Math.hypot(o.x-c.x-.5,o.y-c.y-.5)<2))continue;
   placeEnemy(['ghost','wraith','cultist','demon'][i%4],c.x+.5,c.y+.5,rand(3,11));used.push(c);i++
  }
- markVisit();$('#coreCount').textContent='0 / 3';$('#missionSmall').textContent=`ЭТАЖ ${floorNo} · ${floorFlavor.toUpperCase()}`;$('#floorStat').textContent='ЭТАЖ '+floorNo+' · '+floorFlavor;$('#signal').textContent='ИЩИТЕ КЛЮЧИ, УКРЫТИЯ И ПЕЧАТИ';updateHud();saveCheckpoint();netSyncWorld();showToast(initial?'ПЕРВЫЙ ЭТАЖ. ПЕРВАЯ ДВЕРЬ ЗАПЕРТА':'СПУСК: ЭТАЖ '+floorNo+' · '+floorFlavor,3.2);
+ markVisit();$('#coreCount').textContent='0 / 3';$('#missionSmall').textContent=`ЭТАЖ ${floorNo} · ${floorFlavor.toUpperCase()}`;$('#floorStat').textContent='ЭТАЖ '+floorNo+' · '+floorFlavor;$('#signal').textContent='ИЩИТЕ КЛЮЧИ, УКРЫТИЯ И ПЕЧАТИ';updateHud();saveCheckpoint();showToast(initial?'ПЕРВЫЙ ЭТАЖ. ПЕРВАЯ ДВЕРЬ ЗАПЕРТА':'СПУСК: ЭТАЖ '+floorNo+' · '+floorFlavor,3.2);
 }
 
 function markVisit(){let x=Math.floor(player.x),y=Math.floor(player.y);for(let j=-4;j<=4;j++)for(let i=-4;i<=4;i++)if(x+i>=0&&y+j>=0&&x+i<MAPSIZE&&y+j<MAPSIZE&&Math.hypot(i,j)<4.5)visited[y+j][x+i]=true}
@@ -333,18 +333,18 @@ function bPath(ex,ey,tx,ty){let sx=Math.floor(ex),sy=Math.floor(ey),gx=Math.floo
 let projectiles=[];
 function spawnHoly(x,y,n=24,hue='blue'){for(let i=0;i<n;i++){const a=rand(0,TAU),v=rand(.45,3.8);particles.push({x,y,z:rand(.05,.75),vx:Math.cos(a)*v,vy:Math.sin(a)*v,vz:rand(.05,2.6),life:rand(.35,.85),max:.85,size:rand(1.5,5),hue})}}
 function banish(e){if(!e.alive)return;e.alive=false;e.deathAnim=.94;e.attackAnim=0;player.kills++;sfx('banish');spawnHoly(e.x,e.y,35,e.type==='wraith'?'violet':'blue');objects.push({type:'ashes',x:e.x,y:e.y,born:t,used:false})}
-function useCross(){if(netRole==='spirit'){netSpiritAttack();return}if(battle&&battleSide==='spirit'){battleAttack();return}if(scene!=='play'||player.hidden||player.fireCd>0)return;player.weapon='cross';player.fireCd=.42;player.flashShot=.33;player.crossEffect=.34;player.shots++;sfx('holy');
+function useCross(){if(match){if(scene==='play'&&player.health>0)match.pulseUntil=performance.now()+150;return}if(battle&&battleSide==='spirit'){battleAttack();return}if(scene!=='play'||player.hidden||player.fireCd>0)return;player.weapon='cross';player.fireCd=.42;player.flashShot=.33;player.crossEffect=.34;player.shots++;sfx('holy');
  let count=0;for(const e of enemies){if(!e.alive)continue;const dx=e.x-player.x,dy=e.y-player.y,d=Math.hypot(dx,dy),err=Math.abs(normAng(Math.atan2(dy,dx)-player.a));if(d>4.8||err>Math.atan2(.5,d)+.18||!lineClear(player.x,player.y,e.x,e.y))continue;
  const power=({ghost:51,wraith:43,cultist:36,demon:26})[e.type];e.hp-=power*(1-d/13);e.flash=.27;e.stun=.42;e.alert=true;e.lastSeen=t;e.attackAnim=0;let away=Math.max(0.1,Math.min(.32,(5-d)*.08));moveEntity(e,dx/d*away,dy/d*away,.2);spawnHoly(e.x,e.y,5,'gold');count++;if(e.hp<=0)banish(e)}
- if(netDamageSpirits(player.x,player.y,4.8,56,true))count++;if(count){$('#hitMark').style.opacity='1';hitUntil=t+.2;sfx('impact')}
+ if(count){$('#hitMark').style.opacity='1';hitUntil=t+.2;sfx('impact')}
  for(const o of objects)if(o.type==='barrel'&&!o.used){let d=dist(player,o),a=Math.abs(normAng(Math.atan2(o.y-player.y,o.x-player.x)-player.a));if(d<3&&a<.17&&lineClear(player.x,player.y,o.x,o.y)){o.hp-=18;if(o.hp<=0)explodeBarrel(o)}}
 }
-function throwWater(){if(netRole==='spirit'){netSpiritAttack();return}if(battle&&battleSide==='spirit'){battleAttack();return}if(scene!=='play'||player.hidden||player.waterCd>0)return;player.weapon='water';if(player.grenades<=0){showToast('СВЯТАЯ ВОДА ЗАКОНЧИЛАСЬ — ИЩИТЕ ФЛАКОНЫ',1.8);player.waterCd=.35;sfx('empty');return}
+function throwWater(){if(match)return;if(battle&&battleSide==='spirit'){battleAttack();return}if(scene!=='play'||player.hidden||player.waterCd>0)return;player.weapon='water';if(player.grenades<=0){showToast('СВЯТАЯ ВОДА ЗАКОНЧИЛАСЬ — ИЩИТЕ ФЛАКОНЫ',1.8);player.waterCd=.35;sfx('empty');return}
  player.grenades--;player.waterCd=.85;player.throwAnim=.65;player.shots++;sfx('waterThrow');const a=player.a;
  projectiles.push({x:player.x+Math.cos(a)*.40,y:player.y+Math.sin(a)*.40,z:.42,vx:Math.cos(a)*5.8,vy:Math.sin(a)*5.8,vz:1.15,age:0,spin:0,trail:0});
  for(const e of enemies)if(e.alive&&dist(e,player)<9){e.alert=true;e.lastSeen=t}
  updateHud()}
-function waterBurst(p){netDamageSpirits(p.x,p.y,3.15,190,false);sfx('waterBlast');player.holyGlow=.55;spawnHoly(p.x,p.y,74,'blue');const radius=3.15;
+function waterBurst(p){sfx('waterBlast');player.holyGlow=.55;spawnHoly(p.x,p.y,74,'blue');const radius=3.15;
  for(let e of enemies)if(e.alive){let d=Math.hypot(e.x-p.x,e.y-p.y);if(d<radius&&(d<1.5||lineClear(p.x,p.y,e.x,e.y))){e.hp-=Math.round(175*(1-d/(radius+1.1)));e.flash=.5;e.stun=1.5;e.alert=true;e.lastSeen=t;const nx=(e.x-p.x)/(d||1),ny=(e.y-p.y)/(d||1);moveEntity(e,nx*.30,ny*.30,.2);if(e.hp<=0)banish(e)}}
  if(dist(player,p)<1.25){player.hurt=Math.max(player.hurt,.08)}
  for(let o of objects)if(o.type==='barrel'&&!o.used&&Math.hypot(o.x-p.x,o.y-p.y)<2){o.hp-=85;if(o.hp<=0)explodeBarrel(o)}
@@ -362,7 +362,7 @@ function battleSpiritUpdate(dt){powerTick(dt);t+=dt;player.fireCd=Math.max(0,pla
  if(len>.1){moveEntity(player,(Math.cos(player.a)*f-Math.sin(player.a)*side)*speed*dt,(Math.sin(player.a)*f+Math.cos(player.a)*side)*speed*dt,.19);player.walkTime+=dt*7}player.bob=len>.1?Math.sin(player.walkTime*2)*1.8:player.bob*.85;markVisit();
  if(touch.fire||key.Space||key.ControlLeft)battleAttack();battleBotsUpdate(dt);updateHud();
 }
-function update(dt){if(scene!=='play')return;if(netRole==='spirit'){netUpdateSpirit(dt);return}if(battle&&battleSide==='spirit'){battleSpiritUpdate(dt);return}powerTick(dt);t+=dt;player.fireCd=Math.max(0,player.fireCd-dt);player.reload=Math.max(0,player.reload-dt);player.flashShot=Math.max(0,player.flashShot-dt);player.hurt=Math.max(0,player.hurt-dt);updateHoly(dt);
+function update(dt){if(scene!=='play')return;if(battle&&battleSide==='spirit'){battleSpiritUpdate(dt);return}powerTick(dt);t+=dt;player.fireCd=Math.max(0,player.fireCd-dt);player.reload=Math.max(0,player.reload-dt);player.flashShot=Math.max(0,player.flashShot-dt);player.hurt=Math.max(0,player.hurt-dt);updateHoly(dt);
  if(touch.fire||key.Space||key.ControlLeft)useCross();
  touch.forward+=(touch.forwardTarget-touch.forward)*Math.min(1,dt*17);
  touch.strafe+=(touch.strafeTarget-touch.strafe)*Math.min(1,dt*17);
@@ -385,7 +385,7 @@ function update(dt){if(scene!=='play')return;if(netRole==='spirit'){netUpdateSpi
  if(!player.hidden&&d<.86&&e.attack<=0&&e.spawnGrace<=0){e.attack=rand(1.05,1.6);e.attackAnim=.45;player.health=Math.max(0,player.health-({ghost:11,cultist:14,wraith:17,demon:22})[e.type]*((player.abilityShield||0)>0?.35:1));player.hurt=.55;sfx('hurt');showToast('КОНТАКТ! ОТСТУПАЙТЕ!',.75);if(player.health<=0){endGame(false);return}}
  }
  
- netUpdateHost(dt);updateHud()}
+ updateHud()}
 let reloadQueued=false;
 function nearestInteract(){
  if(player?.hidden)return player.hideSpot;
@@ -395,7 +395,7 @@ function nearestInteract(){
  return near;
 }
 function interact(){
- if(netRole==='spirit'){netSpiritAttack();return}if(battle&&battleSide==='spirit'){battleAttack();return}
+ if(match)return;if(battle&&battleSide==='spirit'){battleAttack();return}
  if(scene!=='play')return;
  if(player.hidden){player.x=player.hideFrom.x;player.y=player.hideFrom.y;player.hidden=false;player.hideSpot=null;player.hideFrom=null;sfx('switch');showToast('ВЫ ПОКИНУЛИ УКРЫТИЕ',1.2);return}
  const o=nearestInteract();if(!o){showToast('ПОДОЙДИТЕ БЛИЖЕ К ОБЪЕКТУ',1.4);return}
@@ -406,7 +406,7 @@ function interact(){
  }
  if(o.type==='lockedDoor'){
   if(player.keys<=0){showToast('ЗАПЕРТО. НАЙДИТЕ ЛАТУННЫЙ КЛЮЧ',2);sfx('deny');return}
-  player.keys--;world[o.gy][o.gx]=0;o.used=true;if(netRole==='host')for(const conn of netPeers.values())netSend(conn,{type:'mapChange',gx:o.gx,gy:o.gy,value:0});sfx('core');spawnHoly(o.x,o.y,27,'gold');showToast('ДВЕРЬ ОТКРЫТА. ВПЕРЕДИ ТАЙНА',2.6);updateHud();return
+  player.keys--;world[o.gy][o.gx]=0;o.used=true;sfx('core');spawnHoly(o.x,o.y,27,'gold');showToast('ДВЕРЬ ОТКРЫТА. ВПЕРЕДИ ТАЙНА',2.6);updateHud();return
  }
  if(o.type==='core'){
   o.used=true;player.cores++;sfx('core');spawnHoly(o.x,o.y,55,'gold');$('#coreCount').textContent=player.cores+' / 3';showToast('ПЕЧАТЬ '+o.id+' ОЧИЩЕНА — '+player.cores+'/3',2.8);
@@ -420,14 +420,14 @@ function interact(){
  }
 }
 
-function toggleFlash(){if(scene!=='play')return;if(!player.flash&&player.battery<1){showToast('НЕТ ЗАРЯДА',1);return}player.flash=!player.flash;sfx('switch')}
+function toggleFlash(){if(scene!=='play'||(match&&netSide(match.me)==='spirit'))return;if(!player.flash&&player.battery<1){showToast('НЕТ ЗАРЯДА',1);return}player.flash=!player.flash;sfx('switch')}
 function reload(){throwWater()}
 function finishReload(){}
 function shoot(){useCross()}
 function explodeBarrel(barrel){barrel.used=true;sfx('explosion');player.flashShot=.2;for(let e of enemies)if(e.alive&&dist(e,barrel)<2.9){e.hp-=120;e.alert=true;e.lastSeen=t;e.flash=.6;if(e.hp<=0)banish(e)}if(dist(player,barrel)<2.2){player.health=Math.max(0,player.health-28);player.hurt=.65;if(player.health<=0)endGame(false)}showToast('ПРОКЛЯТЫЙ СОСУД РАЗРУШЕН!',1.8);spawnHoly(barrel.x,barrel.y,40,'ember')}
 function showToast(message,seconds=2){$('#toast').textContent=message;$('#toast').classList.add('show');toastUntil=t+seconds}
 function updateHud(){if(!player)return;$('#healthNum').textContent=Math.ceil(player.health);$('#healthBar').style.width=player.health+'%';$('#staminaNum').textContent=Math.ceil(player.stamina);$('#staminaBar').style.width=player.stamina+'%';$('#ammo').innerHTML='✠ <small>× '+player.grenades+' 💧</small>';$('#ammoName').textContent=battle&&battleSide==='spirit'?'ДУХ · МИСТИЧЕСКАЯ АТАКА':(player.hidden?'В УКРЫТИИ · ':'')+(player.weapon==='water'?'СВЯТАЯ ВОДА · ГРАНАТА':'КРЕСТ · ИЗГНАНИЕ');$('#keyStat').textContent=battle?'СХВАТКА':'⚿ КЛЮЧИ: '+player.keys;$('#floorStat').textContent=battle?'АРЕНА · '+floorFlavor:'ЭТАЖ '+floorNo+' · '+floorFlavor;$('#flashHint').textContent='СВЕТ '+(player.flash?'◉':'○')+' '+Math.floor(player.battery)+'%';$('#flashHint').style.color=player.battery<20?'#d17869':'#d1baa1';if(t>toastUntil)$('#toast').classList.remove('show');if(t>hitUntil)$('#hitMark').style.opacity='0'}
-function endGame(win){if(netRole==='host'){for(const conn of netPeers.values())netSend(conn,{type:'end',winner:win?'exorcist':'spirits'});}scene=win?'won':'dead';$('#abilityInfo').style.display='none';$('#ability').style.display='none';stopAmbient();$('#resultEyebrow').textContent=win?'✠ ТЬМА ОТСТУПИЛА':'✠ СВЕТ ПОГАС';$('#resultTitle').innerHTML=win?'ВЫ <span>ВЫЖИЛИ</span>':'СИГНАЛ <span>ПОТЕРЯН</span>';$('#resultText').textContent=battle?(win?'Ваша команда выиграла схватку!':'Ваша команда проиграла схватку. Попробуйте ещё раз.'):(win?'Вы очистили три печати и закрыли разлом. Но во мраке кто-то всё ещё шепчет ваше имя.':'Экзорцист погиб. Духи остаются в обители, а древний разлом ещё открыт.');let seconds=Math.floor((performance.now()-player.started)/1000),mm=Math.floor(seconds/60),ss=('0'+seconds%60).slice(-2);$('#resultStats').innerHTML=`Печати: <b>${player.cores} / 3</b>　|　Устранено: <b>${player.kills}</b><br>Время: <b>${mm}:${ss}</b>　|　Применений: <b>${player.shots}</b>`;$('#resultScreen').classList.remove('hidden');$('#hud').style.display='none';$('#touchControls').classList.remove('gameOn');if(document.pointerLockElement)document.exitPointerLock();sfx(win?'win':'death')}
+function endGame(win){scene=win?'won':'dead';$('#abilityInfo').style.display='none';$('#ability').style.display='none';stopAmbient();$('#resultEyebrow').textContent=win?'✠ ТЬМА ОТСТУПИЛА':'✠ СВЕТ ПОГАС';$('#resultTitle').innerHTML=win?'ВЫ <span>ВЫЖИЛИ</span>':'СИГНАЛ <span>ПОТЕРЯН</span>';$('#resultText').textContent=battle?(win?'Ваша команда выиграла схватку!':'Ваша команда проиграла схватку. Попробуйте ещё раз.'):(win?'Вы очистили три печати и закрыли разлом. Но во мраке кто-то всё ещё шепчет ваше имя.':'Экзорцист погиб. Духи остаются в обители, а древний разлом ещё открыт.');let seconds=Math.floor((performance.now()-player.started)/1000),mm=Math.floor(seconds/60),ss=('0'+seconds%60).slice(-2);$('#resultStats').innerHTML=`Печати: <b>${player.cores} / 3</b>　|　Устранено: <b>${player.kills}</b><br>Время: <b>${mm}:${ss}</b>　|　Применений: <b>${player.shots}</b>`;$('#resultScreen').classList.remove('hidden');$('#hud').style.display='none';$('#touchControls').classList.remove('gameOn');if(document.pointerLockElement)document.exitPointerLock();sfx(win?'win':'death')}
 function togglePause(force){if(scene==='play'){scene='paused';$('#pauseScreen').classList.remove('hidden');if(document.pointerLockElement)document.exitPointerLock();stopAmbient()}else if(scene==='paused'&&!force){scene='play';last=performance.now();$('#pauseScreen').classList.add('hidden');startAmbient()}}
 function drawBase(){let data=buffer.data,dirX=Math.cos(player.a),dirY=Math.sin(player.a),planeX=-dirY*TAN,planeY=dirX*TAN,horizon=H*.51+lookPitch+player.bob,fw=64,fd=floorTex.getContext('2d').getImageData(0,0,64,64).data,cd=ceilTex.getContext('2d').getImageData(0,0,64,64).data;
  for(let yy=0;yy<H;yy+=2){let floor=yy>horizon,off=Math.abs(yy-horizon),rowDist=clamp((floor?.5:.5)*proj/Math.max(1,off),.3,80),xstep=2/W,worldX=player.x+rowDist*(dirX-planeX),worldY=player.y+rowDist*(dirY-planeY),wxStep=rowDist*2*planeX*xstep,wyStep=rowDist*2*planeY*xstep,texture=floor?fd:cd;
@@ -440,12 +440,12 @@ function drawWalls(){let dirX=Math.cos(player.a),dirY=Math.sin(player.a),planeX=
  for(let x=0;x<W;x+=step){let cameraX=2*x/W-1,rayX=dirX+planeX*cameraX,rayY=dirY+planeY*cameraX,hit=castRay(rayX,rayY),d=hit.d,wallHeight=proj/d,top=Math.round(horizon-wallHeight*.5),width=Math.min(step,W-x);for(let j=0;j<width;j++)zBuffer[x+j]=d;
  if(d>MAXRAY)continue;let locked=world[hit.my]?.[hit.mx]===2,wall=locked?texWall[4]:(()=>{const hash=Math.abs(hit.mx*13+hit.my*7+Math.floor(hit.mx/2)+floorNo*3);return texWall[hash%7<4?hash%4:5+(hash+floorNo)%4]})(),texX=clamp((hit.wallX*63)|0,0,63),fade=clamp((d-2)/19,0,.85),ambient=hit.side?.18:.07,beam=player.flash?Math.max(0,1-Math.abs(cameraX)*1.65)*clamp(1-d/19,0,.72):0,shade=clamp(.72-ambient+fade*.55-beam*.68,.03,.90);ctx.drawImage(wall,texX,0,1,64,x,top,width,wallHeight);ctx.fillStyle=`rgba(2,7,9,${shade})`;ctx.fillRect(x,top,width,wallHeight);if(hit.side===0&&hit.mx%7===0&&d<8){ctx.fillStyle=`rgba(112,32,28,${.14*clamp(1-d/8,0,1)})`;ctx.fillRect(x,top,width,wallHeight)}}}
 function drawSprites(){
- let list=[];netAddEntitiesToSprites(list);for(const e of exorcistBots)if(botLive(e))list.push({x:e.x,y:e.y,type:'exorcist',enemy:e});for(const e of spiritAllyBots)if(botLive(e)||e.deathAnim>0)list.push({x:e.x,y:e.y,type:e.type,enemy:e});for(const e of enemies)if((e.alive||e.deathAnim>0)&&!(battle&&battleSide==='exorcist'&&e.abilityPhase>0))list.push({x:e.x,y:e.y,type:e.type,enemy:e});
+ let list=[];onlineSprites(list);for(const e of exorcistBots)if(botLive(e))list.push({x:e.x,y:e.y,type:'exorcist',enemy:e});for(const e of spiritAllyBots)if(botLive(e)||e.deathAnim>0)list.push({x:e.x,y:e.y,type:e.type,enemy:e});for(const e of enemies)if((e.alive||e.deathAnim>0)&&!(battle&&battleSide==='exorcist'&&e.abilityPhase>0))list.push({x:e.x,y:e.y,type:e.type,enemy:e});
  for(const o of objects)if(!o.used)list.push(o);for(const p of projectiles)list.push({x:p.x,y:p.y,z:p.z,type:'waterOrb',age:p.age});
  list.sort((a,b)=>dist(player,b)-dist(player,a));let cs=Math.cos(player.a),sn=Math.sin(player.a),horizon=H*.51+lookPitch+player.bob;
  for(let o of list){let dx=o.x-player.x,dy=o.y-player.y,depth=dx*cs+dy*sn,lateral=-dx*sn+dy*cs;if(depth<=.12||depth>MAXRAY)continue;
   let sprite,xScale=1,yScale=1,z=0,ghost=false;switch(o.type){
-   case'exorcist':sprite=art.exorcist;yScale=1.02;xScale=.62;break;
+   case'exorcist':sprite=art[o.enemy?.role]||art.exorcist;yScale=1.02;xScale=.62;break;
    case'ghost':sprite=art.ghost;yScale=.83;xScale=.63;ghost=true;z=.16+Math.sin(t*2.3+o.x)*.115;break;
    case'wraith':sprite=art.wraith;yScale=.89;xScale=.65;ghost=true;z=.17+Math.sin(t*2.8+o.y)*.10;break;
    case'demon':sprite=art.demon;yScale=.91;xScale=.73;ghost=true;z=.18+Math.sin(t*2.1+o.x)*.105;break;
@@ -540,7 +540,30 @@ function drawSprites(){
 
 function drawParticles(){const cs=Math.cos(player.a),sn=Math.sin(player.a),horizon=H*.51+lookPitch+player.bob;ctx.save();for(const p of particles){let dx=p.x-player.x,dy=p.y-player.y,d=dx*cs+dy*sn,l=-dx*sn+dy*cs;if(d<=.15||d>13)continue;let sx=W*.5+l/d*proj,sy=horizon+(.5-p.z)/d*proj;let z=proj/d*p.size*.017;if(zBuffer[Math.floor(sx)]<d-.14)continue;ctx.globalAlpha=clamp(p.life/(p.max||.85),0,1)*.8;ctx.fillStyle=p.hue==='ember'?'#ff944d':p.hue==='gold'?'#ffe2a1':p.hue==='violet'?'#c890ff':'#8aebff';ctx.beginPath();ctx.arc(sx,sy,Math.min(12,Math.max(1,z)),0,TAU);ctx.fill()}ctx.restore()}
 
-function drawGun(){if(netRole==='spirit'||(battle&&battleSide==='spirit')){netDrawHands();return}
+function drawOnlineTool(){
+ const role=match.me.character;
+ const sway=Math.sin(player.walkTime*2)*Math.min(1,player.moveSpeed)*2;
+ const strike=Math.sin((player.crossEffect||0)*9)*8;
+ const size=Math.min(W,H);
+ ctx.save();ctx.translate(W*.62+sway,H+strike);ctx.scale(size/150,size/150);
+ const shape=(points,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...points[0]);for(const point of points.slice(1))ctx.lineTo(...point);ctx.closePath();ctx.fill()};
+ if(role==='guardian'){
+  shape([[-42,-56],[37,-69],[53,-22],[25,12],[-28,10]],'#252c32');
+  shape([[-37,-51],[33,-63],[46,-22],[21,8],[-24,7]],'#617277');
+  ctx.fillStyle='#d7c390';ctx.fillRect(1,-46,5,37);ctx.fillRect(-10,-34,27,4);
+ }else if(role==='hunter'){
+  shape([[21,3],[-37,-55],[-46,-72],[-39,-77],[42,-15],[56,6]],'#222a2b');
+  shape([[31,-4],[-29,-59],[-35,-73],[-31,-74],[49,-15]],'#8c7962');
+  shape([[11,-4],[-6,-27],[5,-34],[29,-13],[32,8]],'#473429');
+ }else{
+  shape([[-26,5],[-28,-36],[-19,-50],[4,-52],[17,-38],[19,4]],'#4c4d47');
+  shape([[-22,-33],[-15,-45],[4,-46],[13,-34],[11,-14],[-18,-13]],'#82c4b1');
+  ctx.fillStyle='#f5e5d2';ctx.fillRect(-7,-41,4,20);ctx.fillRect(-15,-33,20,4);
+ }
+ ctx.restore();
+}
+function drawGun(){if(match?netSide(match.me)==='spirit':battle&&battleSide==='spirit'){netDrawHands();return}
+ if(match&&match.me.character!=='priest'){drawOnlineTool();return}
  const walking=Math.min(1,player.moveSpeed/3.5),stride=Math.sin(player.walkTime*2)*walking;
  const breathing=Math.sin(t*1.8),striking=player.crossEffect>0?Math.sin((.34-player.crossEffect)/.34*Math.PI):0;
  const throwing=player.throwAnim>0?Math.sin((.65-player.throwAnim)/.65*Math.PI):0;
@@ -579,7 +602,7 @@ function render(){if(!player)return;ctx.save();if(player.hurt>0)ctx.translate(ra
 function drawRadar(){const w=110,h=110;rctx.fillStyle='#061012';rctx.fillRect(0,0,w,h);let scale=12,r=4.5,cx=w/2,cy=h/2,px=Math.floor(player.x),py=Math.floor(player.y);for(let yy=-5;yy<=5;yy++)for(let xx=-5;xx<=5;xx++){let gx=px+xx,gy=py+yy;if(gx<0||gy<0||gx>=MAPSIZE||gy>=MAPSIZE||!visited[gy][gx])continue;rctx.fillStyle=world[gy][gx]?'#1c3334':'#445653';rctx.fillRect(cx+xx*scale-scale/2,cy+yy*scale-scale/2,scale-1,scale-1)}for(let o of objects)if(!o.used&&['core','exit','keyItem','wardrobe','confessional'].includes(o.type)){let dx=(o.x-player.x),dy=(o.y-player.y);if(Math.abs(dx)>5||Math.abs(dy)>5)continue;rctx.fillStyle=o.type==='core'?'#a8eebd':o.type==='keyItem'?'#f1c16b':o.type==='wardrobe'||o.type==='confessional'?'#72929e':'#f16b5b';rctx.fillRect(cx+dx*scale-3,cy+dy*scale-3,6,6)}rctx.save();rctx.translate(cx,cy);rctx.rotate(player.a+Math.PI/2);rctx.fillStyle='#edf4d7';rctx.beginPath();rctx.moveTo(0,-8);rctx.lineTo(6,6);rctx.lineTo(0,3);rctx.lineTo(-6,6);rctx.fill();rctx.restore();rctx.strokeStyle='#52756a';rctx.strokeRect(.5,.5,w-1,h-1);rctx.fillStyle='#86aea3';rctx.font='8px monospace';rctx.fillText('RDR //13',5,10)}
 function drawBigmap(){const s=bigmap.width/MAPSIZE;bctx.fillStyle='#061012';bctx.fillRect(0,0,400,400);for(let y=0;y<MAPSIZE;y++)for(let x=0;x<MAPSIZE;x++){bctx.fillStyle=visited[y][x]?(world[y][x]?'#0b1719':'#465850'):(world[y][x]?'#03090a':'#142223');bctx.fillRect(x*s,y*s,s-.7,s-.7)}for(let o of objects)if(!o.used&&['core','exit','keyItem','wardrobe','confessional'].includes(o.type)){let x=o.x*s,y=o.y*s;bctx.fillStyle=o.type==='core'?'#a8edbb':o.type==='keyItem'?'#edca7e':o.type==='wardrobe'||o.type==='confessional'?'#7e9fae':'#fc6b59';bctx.fillRect(x-4,y-4,8,8)}if(vaultDoor&&!vaultDoor.used){bctx.fillStyle='#d98564';bctx.fillRect(vaultDoor.x*s-4,vaultDoor.y*s-4,8,8)}bctx.save();bctx.translate(player.x*s,player.y*s);bctx.rotate(player.a+Math.PI/2);bctx.fillStyle='white';bctx.beginPath();bctx.moveTo(0,-8);bctx.lineTo(6,6);bctx.lineTo(-6,6);bctx.fill();bctx.restore()}
 function openMap(){if(scene!=='play')return;pauseFromMap=true;scene='map';drawBigmap();$('#mapScreen').classList.remove('hidden');if(document.pointerLockElement)document.exitPointerLock();stopAmbient()}function closeMap(){if(scene!=='map')return;scene='play';pauseFromMap=false;last=performance.now();$('#mapScreen').classList.add('hidden');startAmbient()}
-function frame(now){let dt=clamp((now-last)/1000,0,.05);last=now;if(scene==='play'){update(dt);if(scene==='play')render()}requestAnimationFrame(frame)}
+function frame(now){let dt=clamp((now-last)/1000,0,.05);last=now;if(match&&!match.result)onlineFrame(dt);else if(scene==='play')update(dt);if(scene==='play')render();requestAnimationFrame(frame)}
 // Procedural sound: no external assets or libraries.
 let audio=null,master=null,drone=[],ambNoise=null,ambFilter=null,ambientOn=false;function audioInit(){if(audio)return;try{audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=settings.muted?0:.35;master.connect(audio.destination)}catch(e){audio=null}}
 function sndTone(freq,kind='sine',dur=.1,vol=.1,slide=0){if(!audio||settings.muted)return;const now=audio.currentTime,o=audio.createOscillator(),g=audio.createGain();o.type=kind;o.frequency.setValueAtTime(freq,now);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(18,freq+slide),now+dur);g.gain.setValueAtTime(vol,now);g.gain.exponentialRampToValueAtTime(.0001,now+dur);o.connect(g);g.connect(master);o.start(now);o.stop(now+dur+.01)}
@@ -634,213 +657,389 @@ function closeOverlay(){
  $(overlayFrom==='pause'?'#pauseScreen':'#menu').classList.remove('hidden');
 }
 function returnToMenu(){
- if(scene==='play'&&netRole!=='spirit')saveCheckpoint();if(netRole!=='solo')netCleanup();if(document.pointerLockElement)document.exitPointerLock();
+ if(match){online.reset();showOnlineLobby();$('#onlineScreen').classList.add('hidden');}
+ else if(scene==='play')saveCheckpoint();if(document.pointerLockElement)document.exitPointerLock();
  scene='menu';battle=false;humanClass='priest';$('#abilityInfo').style.display='none';$('#ability').style.display='none';stopAmbient();$('#hud').style.display='none';$('#touchControls').classList.remove('gameOn');
  for(const id of ['#pauseScreen','#mapScreen','#resultScreen','#settingsScreen','#helpScreen','#journalScreen','#skirmishScreen'])$(id).classList.add('hidden');
- $('#menu').classList.remove('hidden');$('#fire').textContent='КРЕСТ';$('#reload').textContent='ВОДА';$('#use').textContent='ДЕЙСТВ.';$('#hudCenter').style.display='';setContinueButton();
+ $('#menu').classList.remove('hidden');$('#restartBtn').hidden=false;$('#fire').textContent='КРЕСТ';$('#reload').textContent='ВОДА';$('#use').textContent='ДЕЙСТВ.';$('#hudCenter').style.display='';setContinueButton();
 }
 
-// Обитель теней: P2P комнаты (хост = экзорцист, гости = управляемые людьми духи).
-// Сигналинг PeerJS Cloud; браузер хоста вычисляет коллизии и урон.
-let netRole='solo',netPeer=null,netHostConn=null,netRoom='',netType='ghost',netPeers=new Map(),netSpirits=new Map(),netOthers=[],netLastSend=0,netLastSnapshot=0,netAttackQueued=false,netHostAvatar=null,netLastInput={},netLastStage=0;
-const NET_VERSION=1,NET_TYPES=['ghost','wraith','cultist','demon'];
-function netText(value){const el=$('#netStatus');if(el)el.textContent=value}
-function netRoomCode(){const alphabet='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=new Uint8Array(6);crypto.getRandomValues(r);return Array.from(r,v=>alphabet[v%alphabet.length]).join('')}
-function netOpen(){const s=$('#onlineScreen');if(!s)return;$('#menu').classList.add('hidden');s.classList.remove('hidden');$('#netCode').value=new URLSearchParams(location.search).get('room')?.replace(/[^A-Z0-9]/gi,'').slice(0,6).toUpperCase()||'';netText('Создайте комнату за экзорциста или присоединитесь за духа.');}
-function netClose(){const s=$('#onlineScreen');if(s)s.classList.add('hidden');if(scene==='menu'){if(netRole!=='solo')netCleanup();$('#menu').classList.remove('hidden')}}
-function netSetBanner(message){const el=$('#netBanner');if(!el)return;el.textContent=message;el.style.display=message?'block':'none'}
-function netShareLink(code){const u=new URL(location.href);u.searchParams.set('room',code);u.hash='';return u.href}
-function netCleanup(){
- if(netHostConn){try{netHostConn.close()}catch(e){} netHostConn=null}
- for(const c of netPeers.values())try{c.close()}catch(e){};
- netPeers.clear();netSpirits.clear();netOthers=[];
- if(netPeer){try{netPeer.destroy()}catch(e){}netPeer=null}
- netRole='solo';netRoom='';netAttackQueued=false;netHostAvatar=null;netSetBanner('');
-}
-function netCreateRoom(){
- if(!window.Peer){netText('Нужен интернет для загрузки PeerJS. Проверьте подключение к сети.');return}
- netCleanup();netRole='host';netRoom=netRoomCode();$('#netCode').value=netRoom;
- humanClass=HUMAN_ROLES.includes($('#netHuman').value)?$('#netHuman').value:'priest';netText('Подключаем комнату к сети…');
- try{netPeer=new Peer('obitel-pvp-v1-'+netRoom,{debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}})}catch(e){netCleanup();netText('Не удалось создать комнату: '+e.message);return}
- netPeer.on('open',()=>{
-  audioInit();createGame(false);netClose();netSetBanner('КОМНАТА '+netRoom+' · ВЫ ЭКЗОРЦИСТ · ДУХОВ: 0/3');
-  netText('Комната активна. Код: '+netRoom);netUpdateLobby();
- });
- netPeer.on('connection',conn=>{
-  if(netRole!=='host'){conn.close();return}
-  conn.on('open',()=>{
-   if(netPeers.size>=3){conn.send({type:'deny',message:'Комната заполнена (3 духа).'});conn.close();return}
-   const types=NET_TYPES;
-   const ghost={id:conn.peer,type:'ghost',x:3.15+netPeers.size*.3,y:3.2+netPeers.size*.28,a:0,hp:100,alive:true,attackCool:0,deathTimer:0,abilityCd:0,abilityPhase:0,attackPending:false,motion:0,fx:0,flash:0,attackAnim:0,walk:0,alert:true,spawnGrace:0,lastPacket:0};
-   netPeers.set(conn.peer,conn);netSpirits.set(conn.peer,ghost);
-   conn.on('data',data=>netReceiveHost(conn,data));conn.on('close',()=>netRemoveGuest(conn.peer));conn.on('error',()=>netRemoveGuest(conn.peer));
-   netSendWorld(conn);netUpdateLobby();
-  });
- });
- netPeer.on('error',err=>{netText('Ошибка сети: '+(err?.message||'недоступен сигналинг'));if(scene==='menu')netSetBanner('')});
- netPeer.on('disconnected',()=>netSetBanner('Сигналинг недоступен. Подключённые духи могут продолжать игру.'));
-}
-function netRemoveGuest(id){netPeers.delete(id);netSpirits.delete(id);netUpdateLobby()}
-function netUpdateLobby(){if(netRole!=='host')return;netSetBanner('КОМНАТА '+netRoom+' · ВЫ ЭКЗОРЦИСТ · ДУХОВ: '+netPeers.size+'/3')}
-function netJoinRoom(){
- if(!window.Peer){netText('Для сетевой игры нужен интернет. Библиотека PeerJS не загрузилась.');return}
- const code=($('#netCode').value||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
- if(!/^[A-Z0-9]{6}$/.test(code)){netText('Введите шестизначный код комнаты.');return}
- netCleanup();netRole='spirit';netRoom=code;netType=$('#netCreature').value;
- netText('Ищем комнату '+code+'…');
- try{netPeer=new Peer(undefined,{debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]}})}catch(e){netCleanup();netText('Невозможно подключиться: '+e.message);return}
- netPeer.on('open',()=>{
-  const conn=netPeer.connect('obitel-pvp-v1-'+code,{reliable:false,serialization:'json'});netHostConn=conn;
-  conn.on('open',()=>{netText('Подключено. Ждём загрузку лабиринта…');conn.send({type:'hello',creature:netType,version:NET_VERSION})});
-  conn.on('data',netReceiveSpirit);
-  conn.on('close',()=>netSpiritDisconnected());conn.on('error',()=>netSpiritDisconnected());
- });
- netPeer.on('error',err=>netText('Не удалось войти: '+(err?.message||'комната не найдена')));
-}
-function netSpiritDisconnected(){if(netRole!=='spirit')return;netSetBanner('СВЯЗЬ С ЭКЗОРЦИСТОМ ПОТЕРЯНА');if(scene==='play'){netText('Хозяин комнаты вышел. Вернитесь в главное меню.');togglePause(true)}else netText('Хозяин комнаты не отвечает.')}
-function netSend(conn,data){try{if(conn?.open)conn.send(data)}catch(e){/* connection dropped */}}
-function netSendWorld(conn){
- if(!world||!player)return;
- netSend(conn,{type:'init',version:NET_VERSION,floorNo,world,objects:objects.filter(o=>o.type!=='ashes').map(o=>({type:o.type,x:o.x,y:o.y,id:o.id||0,used:!!o.used})),host:{x:player.x,y:player.y,a:player.a,hp:player.health,hidden:player.hidden},self:netSpirits.get(conn.peer)?{...netSpirits.get(conn.peer)}:null});
-}
-function netReceiveHost(conn,msg){
- if(!msg||typeof msg!=='object'||typeof msg.type!=='string')return;
- const sp=netSpirits.get(conn.peer);if(!sp)return;
- if(msg.type==='hello'){if(msg.version!==NET_VERSION){netSend(conn,{type:'deny',message:'Версии игры несовместимы.'});conn.close();return}
-  sp.type=NET_TYPES.includes(msg.creature)?msg.creature:'ghost';netSendWorld(conn);return}
- if(msg.type==='ability'){netHostSpiritAbility(sp);return}
- if(msg.type==='input'){
-  // Browser host is authoritative. Never accept client positions, health or damage.
-  if(performance.now()-sp.lastPacket<20)return;
-  sp.lastPacket=performance.now();sp.forward=clamp(Number(msg.f)||0,-1,1);sp.strafe=clamp(Number(msg.s)||0,-1,1);sp.a=Number.isFinite(msg.a)?normAng(msg.a):sp.a;
-  if(msg.attack===true)sp.attackPending=true;
- }
-}
-function netReceiveSpirit(msg){
- if(!msg||typeof msg!=='object')return;
- if(msg.type==='deny'){const text=msg.message||'Вход запрещён';netCleanup();netText(text);return}
- if(msg.type==='init'){
-  if(msg.version!==NET_VERSION||!Array.isArray(msg.world)||msg.world.length!==MAPSIZE){netText('Неверные данные уровня');return}
-  world=msg.world.map(row=>Array.isArray(row)&&row.length===MAPSIZE?row.map(n=>n===0?0:1):Array(MAPSIZE).fill(1));
-  objects=(Array.isArray(msg.objects)?msg.objects:[]).slice(0,250).filter(o=>o&&Number.isFinite(o.x)&&Number.isFinite(o.y)&&typeof o.type==='string').map(o=>({...o}));
-  enemies=[];projectiles=[];particles=[];floorNo=msg.floorNo||1;netLastStage=floorNo;visited=Array.from({length:MAPSIZE},()=>Array(MAPSIZE).fill(true));
-  const self=msg.self||{x:3,y:3,a:0};netHostAvatar=msg.host||null;
-  player={x:self.x,y:self.y,a:self.a||0,health:100,stamina:100,battery:100,flash:true,grenades:0,keys:0,weapon:'cross',waterCd:0,crossEffect:0,throwAnim:0,holyGlow:0,cores:0,kills:0,shots:0,reload:0,fireCd:0,flashShot:0,hurt:0,bob:0,steps:0,moveSpeed:0,walkTime:0,started:performance.now(),hidden:false,abilityCd:0,abilityShield:0,abilityPhase:0};
-  scene='play';$('#onlineScreen').classList.add('hidden');$('#menu').classList.add('hidden');$('#pauseScreen').classList.add('hidden');$('#hud').style.display='block';$('#touchControls').classList.add('gameOn');
-  $('#fire').textContent='ПУГАТЬ';$('#reload').textContent='ВОЙ';$('#use').textContent='ВОЙ';
-  netSetBanner('ВЫ ПРИЗРАК · '+netRoleName(netType)+' · НАЙДИТЕ ЭКЗОРЦИСТА');powerUI();last=performance.now();startAmbient();audioInit();
-  if(IS_TOUCH&&innerWidth>innerHeight&&!document.fullscreenElement)immersiveFullscreen();
- }
- if(msg.type==='abilityConfirmed'&&netRole==='spirit'&&player){player.abilityCd=Math.max(0,Number(msg.cd)||0);player.health=Math.max(0,Number(msg.hp)||player.health);if(Number.isFinite(msg.x))player.x=msg.x;if(Number.isFinite(msg.y))player.y=msg.y;powerUI();return}
- if(msg.type==='mapChange'&&world?.[msg.gy]&&Number.isInteger(msg.gx)&&Number.isInteger(msg.gy)&&msg.gx>=0&&msg.gx<MAPSIZE&&msg.gy>=0&&msg.gy<MAPSIZE){world[msg.gy][msg.gx]=msg.value===0?0:1;return}
- if(msg.type==='end'&&netRole==='spirit'){netSetBanner('МАТЧ ЗАВЕРШЁН: '+(msg.winner==='spirits'?'ДУХИ ПОБЕДИЛИ':'ЭКЗОРЦИСТ ПОБЕДИЛ'));$('#signal').textContent='ХОЗЯИН КОМНАТЫ ЗАВЕРШИЛ ИГРУ';return}
- if(msg.type==='state'&&netRole==='spirit'&&player){
-  if(msg.self){player.abilityCd=Math.max(0,Number(msg.self.abilityCd)||0);player.abilityPhase=Math.max(0,Number(msg.self.abilityPhase)||0);player.health=msg.self.hp;player.x+=(msg.self.x-player.x)*.25;player.y+=(msg.self.y-player.y)*.25; if(msg.self.hp<=0){player.x=msg.self.x;player.y=msg.self.y}}
-  netHostAvatar=msg.host;
-  netOthers=Array.isArray(msg.others)?msg.others.slice(0,3):[];
-  if(player.health<=0)netSetBanner('ВЫ ИЗГНАНЫ! ВОЗРОЖДЕНИЕ ЧЕРЕЗ НЕСКОЛЬКО СЕКУНД');
-  else netSetBanner('ВЫ '+netRoleName(netType).toUpperCase()+' · ЭКЗОРЦИСТ: '+Math.ceil(msg.host?.hp||0)+' HP');
- }
-}
-function netRoleName(k){return {ghost:'монастырский дух',cultist:'призрачная монахиня',wraith:'теневой дух',demon:'полтергейст'}[k]||'дух'}
-function netHostSpiritAbility(sp){if(netRole!=='host'||!sp||sp.hp<=0||sp.abilityCd>0||scene!=='play')return;const type=SPIRIT_ABILITY[sp.type]?sp.type:'ghost';sp.abilityCd=SPIRIT_ABILITY[type].cd;
- if(type==='ghost'){sp.abilityPhase=3.4;spawnHoly(sp.x,sp.y,22,'violet')}
- if(type==='wraith'){dashPower(sp,sp.a||0);spawnHoly(sp.x,sp.y,30,'violet')}
- const d=Math.hypot(player.x-sp.x,player.y-sp.y);if(!player.hidden&&lineClear(sp.x,sp.y,player.x,player.y)){
-  if(type==='cultist'&&d<2.8){player.health=Math.max(0,player.health-32);sp.hp=Math.min(100,sp.hp+22);player.hurt=.4}
-  if(type==='demon'&&d<3.1){player.health=Math.max(0,player.health-30);moveEntity(player,(player.x-sp.x)/(d||1)*.4,(player.y-sp.y)/(d||1)*.4,.19);player.hurt=.4}
-  if(player.health<=0)endGame(false)
- }if(type==='demon')spawnHoly(sp.x,sp.y,45,'ember');
- for(const [id,conn] of netPeers)if(netSpirits.get(id)===sp)netSend(conn,{type:'abilityConfirmed',cd:sp.abilityCd,hp:sp.hp,x:sp.x,y:sp.y})
-}
+// Online skirmishes use the same renderer and powers as the local game.
+// The room owner advances the simulation independently of the pause and map screens.
+const onlineClasses = window.ObitelOnline.classes;
+let match = null, online;
+const netSide = actor => onlineClasses[actor.character].side;
+const onlinePower = actor => (netSide(actor) === 'hunt' ? HUMAN_ABILITY : SPIRIT_ABILITY)[actor.character];
+const emptyInput = () => ({ f:0, s:0, a:0, attack:false, action:0 });
 
-function netUpdateHost(dt){
- if(netRole!=='host'||!player||scene!=='play')return;
- for(const sp of netSpirits.values()){
-  sp.abilityCd=Math.max(0,(sp.abilityCd||0)-dt);sp.abilityPhase=Math.max(0,(sp.abilityPhase||0)-dt);sp.attackCool=Math.max(0,sp.attackCool-dt);sp.fx=Math.max(0,sp.fx-dt);sp.flash=Math.max(0,sp.flash-dt);sp.attackAnim=Math.max(0,sp.attackAnim-dt);
-  if(sp.hp<=0){sp.deathTimer-=dt;if(sp.deathTimer<=0){sp.hp=100;sp.abilityCd=0;sp.abilityPhase=0;sp.x=2.5+Math.random()*.6;sp.y=3+Math.random()*.5;sp.attackCool=2}continue}
-  let f=sp.forward||0,s=sp.strafe||0,len=Math.hypot(f,s);if(len>1){f/=len;s/=len}
-  const speed=sp.type==='wraith'?3.0:sp.type==='demon'?2.35:2.6;
-  moveEntity(sp,(Math.cos(sp.a)*f-Math.sin(sp.a)*s)*speed*dt,(Math.sin(sp.a)*f+Math.cos(sp.a)*s)*speed*dt,.2);
-  if(len>.1)sp.walk+=dt*6;
-  if(sp.attackPending){sp.attackPending=false;
-   if(sp.attackCool===0){sp.attackCool=1.35;sp.attackAnim=.45;
-    if(!player.hidden&&Math.hypot(player.x-sp.x,player.y-sp.y)<1.28&&lineClear(sp.x,sp.y,player.x,player.y)){
-     player.health=Math.max(0,player.health-(sp.type==='demon'?22:sp.type==='wraith'?15:13)*((player.abilityShield||0)>0?.35:1));player.hurt=.52;showToast('ПРИЗРАК АТАКУЕТ! '+Math.ceil(player.health)+' HP',1.2);sfx('hurt');if(player.health<=0){netSetBanner('ЭКЗОРЦИСТ ПОГИБ · ДУХИ ПОБЕДИЛИ');endGame(false)}}
-   }
+function onlineArena() {
+ const map = Array.from({length:MAPSIZE}, () => Array(MAPSIZE).fill(1));
+ for (let y=1; y<=15; y++) for (let x=1; x<=19; x++) map[y][x] = 0;
+ for (const x of [5,9,11,15]) {
+  for (const [top,bottom] of [[1,3],[6,7],[9,10],[13,15]]) {
+   for (let y=top; y<=bottom; y++) map[y][x] = 1;
   }
  }
- netLastSnapshot+=dt;
- if(netLastSnapshot>=.09){netLastSnapshot=0;
-  for(const [id,c] of netPeers){const mine=netSpirits.get(id);if(!mine)continue;netSend(c,{type:'state',floorNo,host:{x:player.x,y:player.y,a:player.a,hp:player.health,hidden:player.hidden},self:{x:mine.x,y:mine.y,hp:mine.hp,type:mine.type,abilityCd:mine.abilityCd||0,abilityPhase:mine.abilityPhase||0},others:[...netSpirits.values()].filter(e=>e.id!==id).map(e=>({x:e.x,y:e.y,hp:e.hp,type:e.type,alive:e.hp>0,attackAnim:e.attackAnim,walk:e.walk,abilityPhase:e.abilityPhase||0}))})}
+ for (const y of [5,11]) {
+  for (const x of [3,7,13,17]) map[y][x] = map[y][x+1] = 1;
+ }
+ return map;
+}
+function onlineActor(member, slot) {
+ const hunter = onlineClasses[member.character].side === 'hunt';
+ const x = hunter ? 2.5 : 17.5, y = [4.5,6.7,8.9,12.5][slot], a = hunter ? 0 : Math.PI;
+ return { ...member, x, y, a, hp:100, kills:0, shots:0, walk:0, fireCd:0, abilityCd:0, abilityPhase:0,
+  abilityShield:0, stun:0, flash:0, input:{ ...emptyInput(), a }, usedAction:0, lastInput:0 };
+}
+function showOnlineLobby() {
+ if (document.pointerLockElement) document.exitPointerLock();
+ match = null;
+ scene = 'menu'; battle = false; stopAmbient();
+ for (const id of ['menu','pauseScreen','mapScreen','resultScreen','journalScreen']) $('#'+id).classList.add('hidden');
+ $('#onlineScreen').classList.remove('hidden');
+ $('#hud').style.display = 'none';
+ $('#touchControls').classList.remove('gameOn');
+ $('#abilityInfo').style.display = 'none';
+ $('#netBanner').style.display = 'none';
+ $('#restartPauseBtn').hidden = false;
+ $('#pauseJournalBtn').hidden = false;
+ $('#restartBtn').textContent = 'ПОВТОРИТЬ';
+ $('#restartBtn').hidden = false;
+ $('#netResultLeave').hidden = true;
+ $('#sprint').style.display = '';
+ $('#reload').style.display = '';
+ $('#use').style.display = '';
+ $('#flash').style.display = '';
+}
+function startOnline(message, id, host) {
+ const slots = { hunt:0, spirit:0 };
+ const actors = new Map(message.players.map(member => [member.id, onlineActor(member, slots[netSide(member)]++)]));
+ const me = actors.get(id);
+ if (!me) return;
+ match = { host, id, me, actors, remaining:240, action:0, lastSend:0, latest:null, result:null, tick:performance.now(), deadline:performance.now()+240000 };
+ world = onlineArena();
+ objects = [];
+ for (const x of [2.5,8.5,11.5,17.5]) for (const y of [2.1,13.9]) objects.push({type:'lamp',x,y});
+ for (const x of [7.5,12.5]) for (const y of [3.5,12.5]) objects.push({type:'candles',x,y});
+ enemies=[]; projectiles=[]; particles=[]; exorcistBots=[]; spiritAllyBots=[]; vaultDoor=null;
+ visited = world.map(row => row.map(() => true));
+ floorNo=1; floorFlavor='Зал исповедей'; t=0; lookPitch=0;
+ player = { ...me, health:100, stamina:100, battery:100, flash:true, grenades:0, keys:0, hidden:false,
+  weapon:'cross', waterCd:0, crossEffect:0, throwAnim:0, holyGlow:0, cores:0, reload:0, flashShot:0,
+  hurt:0, bob:0, steps:0, moveSpeed:0, walkTime:0, started:performance.now() };
+ Object.assign(touch, { forward:0, strafe:0, forwardTarget:0, strafeTarget:0, fire:false, sprint:false });
+ for (const code in key) key[code]=false;
+ scene='play'; last=performance.now();
+ for (const id of ['onlineScreen','menu','pauseScreen','mapScreen','resultScreen']) $('#'+id).classList.add('hidden');
+ $('#hud').style.display='block'; $('#touchControls').classList.add('gameOn');
+ $('#fire').textContent='АТАКА'; $('#sprint').style.display='none'; $('#reload').style.display='none'; $('#use').style.display='none';
+ $('#flash').style.display=netSide(me)==='hunt'?'':'none';
+ $('#restartPauseBtn').hidden=true; $('#pauseJournalBtn').hidden=true;
+ $('#missionSmall').textContent='ОНЛАЙН · ВЫ '+(netSide(me)==='hunt'?'ЗА ОХОТНИКОВ':'ЗА ДУХОВ');
+ $('#netBanner').classList.add('netMatchBanner');
+ audioInit(); startAmbient(); onlineHud();
+}
+function onlineHud() {
+ const state = match;
+ const alive = side => [...state.actors.values()].filter(actor => netSide(actor) === side && actor.hp > 0).length;
+ const seconds = Math.max(0, Math.ceil(state.remaining));
+ $('#coreCount').textContent = Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');
+ $('#signal').textContent = state.me.hp > 0 ? 'ОХОТНИКИ '+alive('hunt')+' · ДУХИ '+alive('spirit') : 'ВЫ ВЫБЫЛИ · МОЖНО ОСМАТРИВАТЬСЯ ДО КОНЦА МАТЧА';
+ const banner=$('#netBanner');
+ const label = onlineClasses[state.me.character].name+' · '+onlineClasses[state.me.character].attack;
+ if (banner.textContent !== label) banner.textContent=label;
+ banner.style.display='block';
+ updateHud();
+ $('#ammo').textContent=''; $('#ammoName').textContent=onlineClasses[state.me.character].attack.toUpperCase();
+ $('#keyStat').textContent='ОНЛАЙН 4 × 4'; $('#floorStat').textContent='АРЕНА · '+floorFlavor;
+ powerUI();
+}
+function onlineApplyInput(id, message) {
+ const actor = match?.actors.get(id);
+ if (!match?.host || match.result || !actor || actor.hp <= 0) return;
+ const now = performance.now();
+ if (now - actor.lastInput < 18 || ![message.f,message.s,message.a].every(Number.isFinite)) return;
+ const validAction = Number.isSafeInteger(message.action) && message.action >= actor.usedAction && message.action < 1000000;
+ actor.input = { f:clamp(message.f,-1,1), s:clamp(message.s,-1,1), a:normAng(message.a),
+  attack:message.attack === true, action:validAction ? message.action : actor.usedAction };
+ actor.lastInput = now;
+}
+function onlineMove(actor, input, dt, character) {
+ const f = input.f, s = input.s, scale = onlineClasses[character].speed * dt / Math.max(1,Math.hypot(f,s));
+ moveEntity(actor,(Math.cos(input.a)*f-Math.sin(input.a)*s)*scale,(Math.sin(input.a)*f+Math.cos(input.a)*s)*scale,.19);
+}
+function onlineHurt(actor, amount, attacker) {
+ if (actor.hp <= 0) return;
+ actor.hp = Math.max(0,actor.hp-amount*(actor.abilityShield>0?.35:1)*(actor.abilityPhase>0?.3:1));
+ actor.flash = .28;
+ if (actor.hp <= 0) {
+  attacker.kills++;
+  onlineEmit({ type:'effect', kind:'death', id:actor.id, x:actor.x, y:actor.y, color:onlineClasses[actor.character].color });
  }
 }
-function netUpdateSpirit(dt){
- powerTick(dt);if(netRole!=='spirit'||!player)return;
- t+=dt;player.hurt=Math.max(0,player.hurt-dt);
- touch.forward+=(touch.forwardTarget-touch.forward)*Math.min(1,dt*17);touch.strafe+=(touch.strafeTarget-touch.strafe)*Math.min(1,dt*17);
- let f=(key.KeyW||key.ArrowUp?1:0)-(key.KeyS||key.ArrowDown?1:0)+touch.forward;
- let s=(key.KeyD?1:0)-(key.KeyA?1:0)+touch.strafe;
- if(key.ArrowLeft)player.a-=dt*1.8;if(key.ArrowRight)player.a+=dt*1.8;
- let len=Math.hypot(f,s);if(len>1){f/=len;s/=len}
- if(player.health>0){let speed=netType==='wraith'?3.0:netType==='demon'?2.35:2.6;
-  moveEntity(player,(Math.cos(player.a)*f-Math.sin(player.a)*s)*speed*dt,(Math.sin(player.a)*f+Math.cos(player.a)*s)*speed*dt,.2);
-  if(len>.1)player.walkTime+=dt*6;
-  if(touch.fire||key.Space||key.ControlLeft)netAttackQueued=true;
+function onlineEmit(message) {
+ onlineEffect(message);
+ online.broadcast(message);
+}
+function onlineEffect(message) {
+ if (!match || match.result) return;
+ const actor=match.actors.get(message.id);
+ if (message.kind === 'attack') {
+  if (actor) actor.anim=.33;
+  if (message.id === match.id) {
+   player.crossEffect=.33;
+   sfx(netSide(match.me)==='hunt'?'holy':'growl');
+   if (message.hit) { $('#hitMark').style.opacity='1'; hitUntil=t+.2; }
+  }
+  if (message.beam) {
+   for (let i=1; i<=8; i++) {
+    const f=i/8;
+    spawnHoly(message.x+(message.tx-message.x)*f,message.y+(message.ty-message.y)*f,1, message.color);
+   }
+  }
+ } else if (message.kind === 'power') {
+  if (message.id === match.id) {
+   player.holyGlow=.4;
+   showToast(onlinePower(match.me).name,1.3);
+   sfx(netSide(match.me)==='hunt'?'holy':'growl');
+  }
+ } else if (message.kind === 'death' && message.id === match.id) {
+  sfx('death');
  }
- player.bob=len>.1?Math.sin(player.walkTime*2)*2:0;
- netLastSend+=dt;if(netHostConn?.open&&(netLastSend>.065||netAttackQueued)){netLastSend=0;netSend(netHostConn,{type:'input',f:player.health>0?f:0,s:player.health>0?s:0,a:player.a,attack:netAttackQueued});netAttackQueued=false}
- $('#healthNum').textContent=Math.ceil(player.health);$('#healthBar').style.width=player.health+'%';$('#ammo').textContent='☽';$('#ammoName').textContent='ПРИЗРАК · НАПУГАЙ ЭКЗОРЦИСТА';$('#floorStat').textContent='ЭТАЖ '+floorNo;$('#keyStat').textContent='СЕТЕВОЙ РЕЖИМ';$('#flashHint').textContent='МИСТИЧЕСКАЯ СУЩНОСТЬ';$('#hudCenter').style.display='none';$('#signal').textContent='ПРИБЛИЗЬТЕСЬ И АТАКУЙТЕ ЭКЗОРЦИСТА';
+ spawnHoly(message.tx ?? message.x, message.ty ?? message.y, message.kind==='attack'?10:30, message.color);
 }
-function netSpiritAttack(){if(netRole!=='spirit'||scene!=='play')return;netAttackQueued=true;player.crossEffect=.3;sfx('growl')}
-function netDamageSpirits(x,y,radius,damage,isCone=false){
- if(netRole!=='host')return false;let hit=false;
- for(const sp of netSpirits.values()){
-  if(sp.hp<=0)continue;
-  const d=Math.hypot(sp.x-x,sp.y-y),err=isCone?Math.abs(normAng(Math.atan2(sp.y-y,sp.x-x)-player.a)):0;
-  if(d>radius||(isCone&&err>Math.atan2(.5,d)+.18)||!lineClear(x,y,sp.x,sp.y))continue;
-  sp.hp=Math.max(0,sp.hp-Math.round(damage*(1-d/(radius+1.7))*((sp.abilityPhase||0)>0?.25:1)));sp.flash=.33;hit=true;spawnHoly(sp.x,sp.y,9,'gold');
-  if(sp.hp===0){sp.deathTimer=5;spawnHoly(sp.x,sp.y,30,'blue');showToast('ИЗГНАН ДУХ ИГРОКА',1.4)}
+function onlineAttack(actor, opponents) {
+ const config=onlineClasses[actor.character];
+ actor.fireCd=config.interval; actor.shots++; actor.abilityPhase=0;
+ const hits=opponents.filter(other => {
+  const d=dist(actor,other);
+  return d<=config.range && Math.abs(normAng(Math.atan2(other.y-actor.y,other.x-actor.x)-actor.a))<=config.arc+Math.atan2(.23,d)
+   && lineClear(actor.x,actor.y,other.x,other.y);
+ }).sort((a,b)=>dist(actor,a)-dist(actor,b));
+ const targets=config.sweep?hits:hits.slice(0,1);
+ for (const other of targets) onlineHurt(other,config.damage,actor);
+ const distance=Math.min(config.range,castRayFrom(actor.x,actor.y,actor.a));
+ onlineEmit({type:'effect',kind:'attack',id:actor.id,x:actor.x,y:actor.y,
+  tx:targets[0]?.x ?? actor.x+Math.cos(actor.a)*distance,ty:targets[0]?.y ?? actor.y+Math.sin(actor.a)*distance,
+  beam:config.range>4,hit:targets.length>0,color:config.color});
+}
+function castRayFrom(x,y,a) {
+ let d=.18;
+ while (d<10 && !isWall(x+Math.cos(a)*d,y+Math.sin(a)*d)) d+=.12;
+ return Math.max(.1,d-.12);
+}
+function onlineSnapshot() {
+ const { actors, remaining } = match;
+ return { type:'state', remaining, players:[...actors.values()].map(actor => ({
+  id:actor.id, character:actor.character, x:actor.x, y:actor.y, a:actor.a, hp:actor.hp, kills:actor.kills,
+  shots:actor.shots, walk:actor.walk, stun:actor.stun, abilityCd:actor.abilityCd, abilityPhase:actor.abilityPhase,
+  abilityShield:actor.abilityShield, flash:actor.flash
+ })) };
+}
+function onlineState(message) {
+ if (!match || match.result) return;
+ match.remaining=message.remaining;
+ for (const [id] of match.actors) if (!message.players.some(actor=>actor.id===id)) match.actors.delete(id);
+ for (const fresh of message.players) {
+  const actor=match.actors.get(fresh.id);
+  if (!actor) continue;
+  if (fresh.id===match.id) {
+   if (fresh.hp<actor.hp) { player.hurt=.45; if (fresh.hp>0) sfx('hurt'); }
+   match.latest=fresh;
+  }
+  Object.assign(actor,fresh);
  }
- return hit
 }
-function netSyncWorld(){if(netRole!=='host')return;for(const [id,conn] of netPeers){const sp=netSpirits.get(id);if(sp){sp.x=3+Math.random()*.5;sp.y=3.1+Math.random()*.5;sp.hp=100}netSendWorld(conn)}}
-function netAddEntitiesToSprites(list){
- if(netRole==='host')for(const sp of netSpirits.values())if(sp.hp>0&&!(sp.abilityPhase>0))list.push({x:sp.x,y:sp.y,type:sp.type,enemy:{...sp,alive:true,walk:sp.walk||0,attackAnim:sp.attackAnim||0,alert:true,spawnGrace:0,flash:sp.flash||0}});
- if(netRole==='spirit'){
-  if(netHostAvatar&&!netHostAvatar.hidden)list.push({x:netHostAvatar.x,y:netHostAvatar.y,type:'exorcist'});
-  for(const sp of netOthers)if(sp.hp>0&&!(sp.abilityPhase>0))list.push({x:sp.x,y:sp.y,type:sp.type,enemy:{...sp,alive:true,walk:sp.walk||0,attackAnim:sp.attackAnim||0,alert:true,spawnGrace:0,flash:0}})
+function onlineFinish(message) {
+ if (!match || match.result) return;
+ match.result=message;
+ const won=message.winner===netSide(match.me);
+ scene=won?'won':'dead';
+ stopAmbient();
+ $('#netBanner').style.display='none'; $('#hud').style.display='none';
+ $('#abilityInfo').style.display='none'; $('#touchControls').classList.remove('gameOn');
+ for (const id of ['mapScreen','pauseScreen','journalScreen']) $('#'+id).classList.add('hidden');
+ $('#resultEyebrow').textContent='✠ ОНЛАЙН 4 × 4';
+ $('#resultTitle').textContent=message.winner==='draw'?'НИЧЬЯ':message.winner==='hunt'?'ОХОТНИКИ ПОБЕДИЛИ':'ДУХИ ПОБЕДИЛИ';
+ $('#resultText').textContent=message.winner==='draw'?'Время вышло. Силы команд равны.':won?'Ваша команда победила.':'Ваша команда проиграла.';
+ $('#resultStats').textContent='Устранено: '+match.me.kills+' · Атак: '+match.me.shots;
+ $('#restartBtn').textContent='В ЛОББИ'; $('#restartBtn').hidden=!match.host;
+ $('#netResultLeave').hidden=false;
+ $('#resultScreen').classList.remove('hidden');
+ if(document.pointerLockElement) document.exitPointerLock();
+ if(message.winner!=='draw')sfx(won?'win':'death');
+}
+function onlineTick() {
+ if (!match?.host || match.result) return;
+ const now=performance.now(), dt=clamp((now-match.tick)/1000,0,.12);
+ match.tick=now;
+ match.remaining=(match.deadline-now)/1000;
+ const actors=[...match.actors.values()];
+ for (const actor of actors) {
+  for (const timer of ['fireCd','abilityCd','abilityPhase','abilityShield','flash','stun']) actor[timer]=Math.max(0,actor[timer]-dt);
+  if (actor.hp<=0 || now-actor.lastInput>350) continue;
+  const input=actor.input;
+  actor.a=input.a;
+  if (actor.stun<=0) {
+   onlineMove(actor,input,dt,actor.character);
+   if (Math.abs(input.f)+Math.abs(input.s)>.1) actor.walk+=dt*8;
+  }
+  const opponents=actors.filter(other=>other.hp>0 && netSide(other)!==netSide(actor));
+  if (actor.stun<=0 && input.attack && actor.fireCd===0) onlineAttack(actor,opponents);
+  if (input.action!==actor.usedAction) {
+   actor.usedAction=input.action;
+   if (actor.stun>0 || actor.abilityCd>0) continue;
+   actor.abilityCd=onlinePower(actor).cd;
+   const hurt=(other,amount)=>onlineHurt(other,amount,actor);
+   if (netSide(actor)==='hunt') humanPower(actor.character,actor,opponents,hurt,actors.filter(other=>netSide(other)==='hunt'));
+   else spiritPower(actor.character,actor,opponents,hurt);
+   onlineEmit({ type:'effect',kind:'power',id:actor.id,x:actor.x,y:actor.y,color:onlineClasses[actor.character].color });
+  }
+ }
+ const survivors=side=>actors.filter(actor=>netSide(actor)===side && actor.hp>0);
+ const hunters=survivors('hunt'), spirits=survivors('spirit');
+ const score=team=>team.reduce((sum,actor)=>sum+actor.hp,0);
+ if (match.remaining<=0 || !hunters.length || !spirits.length) {
+  const winner=hunters.length!==spirits.length?(hunters.length>spirits.length?'hunt':'spirit'):
+   score(hunters)===score(spirits)?'draw':score(hunters)>score(spirits)?'hunt':'spirit';
+  const result={ type:'finish', winner };
+  online.broadcast(onlineSnapshot()); online.broadcast(result); onlineFinish(result);
+  return;
+ }
+ if (now-match.lastSend>=75) { match.lastSend=now; online.broadcast(onlineSnapshot()); }
+}
+function onlineFrame(dt) {
+ const active=scene==='play' && !document.hidden && match.me.hp>0;
+ const me=match.me;
+ if (scene==='play') {
+  if (key.ArrowLeft) player.a-=dt*1.8;
+  if (key.ArrowRight) player.a+=dt*1.8;
+ }
+ if (active) {
+  touch.forward+=(touch.forwardTarget-touch.forward)*Math.min(1,dt*17);
+  touch.strafe+=(touch.strafeTarget-touch.strafe)*Math.min(1,dt*17);
+ }
+ const input={ f:active?(key.KeyW||key.ArrowUp?1:0)-(key.KeyS||key.ArrowDown?1:0)+touch.forward:0,
+  s:active?(key.KeyD?1:0)-(key.KeyA?1:0)+touch.strafe:0, a:player.a,
+  attack:active&&(touch.fire||key.Space||key.ControlLeft||performance.now()<match.pulseUntil)===true,
+  action:match.action };
+ const now=performance.now();
+ if (match.host) onlineApplyInput(match.id,input);
+ else if (now-match.lastInput>=45 || !match.lastInput) {
+  match.lastInput=now;
+  online.sendInput(input);
+ }
+ if (active && me.stun<=0 && !match.host) onlineMove(player,input,dt,me.character);
+ if (match.host) {
+  if (player.health>me.hp) { player.hurt=.45; if (me.hp>0) sfx('hurt'); }
+  player.x=me.x; player.y=me.y;
+ } else if (match.latest) {
+  const error=dist(player,me);
+  if (error>.36) {
+   const blend=error>1.4?1:Math.min(1,dt*9);
+   player.x+=(me.x-player.x)*blend; player.y+=(me.y-player.y)*blend;
+  }
+ }
+ player.health=me.hp;
+ player.abilityCd=me.abilityCd; player.abilityShield=me.abilityShield; player.abilityPhase=me.abilityPhase;
+ player.moveSpeed=Math.abs(input.f)+Math.abs(input.s)>.1?onlineClasses[me.character].speed:0;
+ if (player.moveSpeed) player.walkTime+=dt*7;
+ player.bob=player.moveSpeed?Math.sin(player.walkTime*2)*1.8:player.bob*.85;
+ player.hurt=Math.max(0,player.hurt-dt);
+ t+=dt;
+ updateHoly(dt);
+ for (const actor of match.actors.values()) {
+  actor.anim=Math.max(0,(actor.anim||0)-dt);
+  if (actor.id===match.id) continue;
+  actor.drawX=actor.drawX===undefined?actor.x:actor.drawX+(actor.x-actor.drawX)*Math.min(1,dt*14);
+  actor.drawY=actor.drawY===undefined?actor.y:actor.drawY+(actor.y-actor.drawY)*Math.min(1,dt*14);
+ }
+ if (scene==='play') onlineHud();
+}
+function onlineSprites(list) {
+ if (!match) return;
+ for (const actor of match.actors.values()) {
+  if (actor.id===match.id || actor.hp<=0 || (actor.abilityPhase>0 && netSide(actor)!==netSide(match.me))) continue;
+  const type=netSide(actor)==='hunt'?'exorcist':actor.character;
+  list.push({ x:actor.drawX??actor.x,y:actor.drawY??actor.y,type,
+   enemy:{ type,role:actor.character,alive:true,walk:actor.walk,flash:actor.flash,attackAnim:actor.anim } });
  }
 }
-function netDrawHands(){
- // Translucent shadow fingers at the screen edges, rather than a cross visible to a ghost.
- ctx.save();ctx.globalAlpha=.42;ctx.fillStyle=netType==='wraith'?'#b18adf':'#92c9d5';const wave=Math.sin(t*3)*5;
- for(const side of [-1,1]){let x=W*.5+side*W*.42;ctx.beginPath();ctx.ellipse(x,H*.89+wave,Math.min(110,W*.12),Math.min(65,H*.12),side*.25,0,TAU);ctx.fill()}ctx.restore();
+function netDrawHands() {
+ const spirit = match ? match.me.character : battleCreature;
+ const colors={ ghost:'#92c9d5',wraith:'#b18adf',cultist:'#c1a8ea',demon:'#db997f' };
+ const wave=Math.sin(t*3)*5-(player.crossEffect||0)*44;
+ ctx.save();
+ ctx.globalAlpha=.42;
+ ctx.fillStyle=colors[spirit];
+ for(const side of [-1,1]){
+  const x=W*.5+side*W*.42;
+  ctx.beginPath(); ctx.ellipse(x,H*.89+wave,Math.min(110,W*.12),Math.min(65,H*.12),side*.25,0,TAU); ctx.fill();
+ }
+ ctx.restore();
 }
-function netMakeExorcist(){
- art.exorcist=pixelTexture(96,144,g=>{g.fillStyle='#171415';g.beginPath();g.moveTo(36,27);g.lineTo(24,58);g.lineTo(10,137);g.lineTo(87,137);g.lineTo(75,58);g.lineTo(62,27);g.closePath();g.fill();g.fillStyle='#726354';g.fillRect(38,20,22,27);g.fillStyle='#c0a995';g.fillRect(40,26,18,17);g.fillStyle='#3d2928';g.fillRect(33,45,33,8);g.fillStyle='#493a35';g.fillRect(22,60,54,69);g.fillStyle='#907b64';g.fillRect(46,66,8,38);g.fillRect(36,82,26,6);g.fillStyle='#f6d897';g.fillRect(46,66,5,26);g.fillRect(38,79,21,5);g.fillStyle='#201e20';g.fillRect(18,92,18,35);g.fillRect(65,94,16,32);g.strokeStyle='#fff0af';g.lineWidth=2;g.strokeRect(46,66,5,26)})
+function netMakeExorcist() {
+ const palettes={
+  priest:['#231a20','#6a433e','#edc087'],
+  hunter:['#172627','#425b54','#cfb683'],
+  medic:['#3b3431','#8a7d6b','#dc9c90'],
+  guardian:['#20252d','#536675','#b9d0db']
+ };
+ for (const [id,[coat,trim,metal]] of Object.entries(palettes)) {
+  art[id]=pixelTexture(96,144,g=>{
+   const shape=(points,color)=>{
+    g.fillStyle=color;g.beginPath();g.moveTo(...points[0]);
+    for(const point of points.slice(1))g.lineTo(...point);
+    g.closePath();g.fill();
+   };
+   shape([[35,29],[23,56],[10,138],[86,138],[73,55],[61,29]],coat);
+   shape([[32,22],[43,12],[57,13],[66,26],[63,47],[36,47]],trim);
+   g.fillStyle='#c5ac94';g.fillRect(40,25,17,16);
+   shape([[27,49],[40,46],[47,107],[29,128],[21,110]],trim);
+   shape([[56,46],[68,49],[75,110],[64,128],[50,106]],trim);
+   g.fillStyle=metal;
+   if(id==='guardian') {
+    shape([[30,67],[68,67],[65,99],[49,117],[34,101]],metal);
+    shape([[35,72],[63,72],[60,96],[49,108],[39,97]],trim);
+    g.fillStyle=metal;g.fillRect(46,78,5,22);g.fillRect(39,84,19,5);
+   } else if(id==='hunter') {
+    shape([[27,104],[34,93],[76,55],[83,61],[61,82],[59,91],[46,96],[34,109]],metal);
+    g.fillRect(29,23,39,5);
+   } else if(id==='medic') {
+    g.fillRect(31,77,33,29);g.fillStyle='#7c403f';g.fillRect(45,82,6,18);g.fillRect(39,88,18,6);
+   } else {
+    g.fillRect(46,57,6,40);g.fillRect(34,68,30,6);
+   }
+  });
+ }
+ art.exorcist=art.priest;
 }
-function netWireUI(){
- $('#onlineBtn').onclick=netOpen;$('#netClose').onclick=netClose;
- $('#netHost').onclick=netCreateRoom;$('#netJoin').onclick=netJoinRoom;
- $('#netCopy').onclick=()=>{const code=$('#netCode').value||netRoom;if(code&&navigator.clipboard?.writeText){navigator.clipboard.writeText(netShareLink(code)).then(()=>netText('Ссылка на комнату скопирована.')).catch(()=>netText('Не удалось скопировать ссылку.'))}else netText('Скопируйте код комнаты вручную.')} ;
- const r=new URLSearchParams(location.search).get('room');if(r){$('#netCode').value=r.toUpperCase().slice(0,6);netText('Нажмите «Присоединиться», чтобы войти за духа.');}
+function netWireUI() {
+ online=window.ObitelOnline.create({
+  portrait:id=>art[id]?.toDataURL ? art[id].toDataURL() : art[id].src,
+  showLobby:showOnlineLobby, closeLobby:()=>{ $('#onlineScreen').classList.add('hidden'); $('#menu').classList.remove('hidden'); },
+  start:startOnline, input:onlineApplyInput, state:onlineState, effect:onlineEffect, finish:onlineFinish,
+  drop:id=>match?.actors.delete(id)
+ });
+ $('#onlineBtn').onclick=online.open;
+ if (new URLSearchParams(location.search).has('room')) online.open();
+ setInterval(onlineTick,33);
 }
 
 function initInputs(){
  netWireUI();
  const start=()=>{
-  battle=false;if(netRole!=='solo')netCleanup();audioInit();createGame();
+  battle=false;audioInit();createGame();
   if(IS_TOUCH&&innerWidth>innerHeight&&!document.fullscreenElement)immersiveFullscreen();
  };
- $('#startBtn').onclick=start;$('#restartBtn').onclick=()=>battle?battleStart():start();$('#restartPauseBtn').onclick=()=>battle?battleStart():start();
+ $('#startBtn').onclick=start;$('#restartBtn').onclick=()=>match?online.backToLobby():battle?battleStart():start();$('#restartPauseBtn').onclick=()=>battle?battleStart():start();
  $('#continueBtn').onclick=()=>{if(safeRead(SAVE_KEY)){audioInit();createGame(true);if(IS_TOUCH&&innerWidth>innerHeight&&!document.fullscreenElement)immersiveFullscreen()}};
  $('#skirmishBtn').onclick=()=>openOverlay('#skirmishScreen');$('#skirmishBack').onclick=closeOverlay;$('#skirmishStart').onclick=battleStart;
  $('#menuSettingsBtn').onclick=()=>openOverlay('#settingsScreen');
  $('#menuHelpBtn').onclick=()=>openOverlay('#helpScreen');
  $('#menuJournalBtn').onclick=()=>openOverlay('#journalScreen');
  $('#pauseJournalBtn').onclick=()=>openOverlay('#journalScreen');
- $('#returnMenuBtn').onclick=returnToMenu;
+ $('#returnMenuBtn').onclick=returnToMenu;$('#netResultLeave').onclick=returnToMenu;
  for(const id of ['#settingsBack','#helpBack','#journalBack'])$(id).onclick=closeOverlay;
  for(const id of ['#menuLook','#menuStick','#menuInvert','#menuLeft'])$(id).addEventListener('input',()=>{
   $('#lookSensitivity').value=$('#menuLook').value;$('#stickSensitivity').value=$('#menuStick').value;
@@ -865,20 +1064,21 @@ function initInputs(){
  updateInputSettings();
  window.addEventListener('keydown',e=>{
   let k=e.code;
+  if(!$('#onlineScreen').classList.contains('hidden'))return;
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','PageUp','PageDown','Tab'].includes(k))e.preventDefault();
   if(!key[k]){
-   if(k==='Digit1'&&player)player.weapon='cross';if(k==='Digit2'&&player)player.weapon='water';
+   if(k==='Digit1'&&player&&!match)player.weapon='cross';if(k==='Digit2'&&player&&!match)player.weapon='water';
    if(k==='KeyQ')useAbility();if(k==='KeyE')interact();if(k==='KeyG'||k==='KeyR')throwWater();if(k==='KeyF')toggleFlash();
    if(k==='Tab'){if(scene==='play')openMap();else if(scene==='map')closeMap()}
    if(k==='Escape'){if(!$('#settingsScreen').classList.contains('hidden')||!$('#helpScreen').classList.contains('hidden')||!$('#journalScreen').classList.contains('hidden')||!$('#skirmishScreen').classList.contains('hidden'))closeOverlay();else if(scene==='map')closeMap();else if(scene==='play'||scene==='paused')togglePause()}
-   if(k==='KeyM'&&scene==='play')openMap();if(k==='KeyJ'&&(scene==='play'||scene==='paused')){if(scene==='play')togglePause();openOverlay('#journalScreen')}
+   if(k==='KeyM'&&scene==='play')openMap();if(k==='KeyJ'&&!match&&(scene==='play'||scene==='paused')){if(scene==='play')togglePause();openOverlay('#journalScreen')}
    if(k==='Enter'&&e.altKey)toggleFullscreen();
   }
   key[k]=true;
  });
  window.addEventListener('keyup',e=>key[e.code]=false);
- window.addEventListener('blur',()=>{for(let k in key)key[k]=false;touch.fire=false;touch.sprint=false;touch.forwardTarget=0;touch.strafeTarget=0;if(scene==='play')togglePause(true)});
- document.addEventListener('visibilitychange',()=>{if(document.hidden&&scene==='play')togglePause(true)});
+ window.addEventListener('blur',()=>{for(let k in key)key[k]=false;touch.fire=false;touch.sprint=false;touch.forwardTarget=0;touch.strafeTarget=0;if(scene==='play'&&!match)togglePause(true)});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden&&scene==='play'&&!match)togglePause(true)});
  canvas.addEventListener('click',()=>{if(IS_TOUCH||scene!=='play')return;if(document.pointerLockElement!==canvas)canvas.requestPointerLock?.()});
  canvas.addEventListener('mousedown',e=>{if(!IS_TOUCH&&scene==='play'&&document.pointerLockElement===canvas){if(e.button===0)(player.weapon==='water'?throwWater():useCross());else if(e.button===2)throwWater()}});
  window.addEventListener('mousemove',e=>{

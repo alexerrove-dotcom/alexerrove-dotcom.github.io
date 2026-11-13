@@ -1,62 +1,137 @@
-/* Obitel Teney: ephemeral public matchmaking via Yjs-compatible pub/sub relays, v0.8 */
-(()=>{'use strict';
-const $=id=>document.getElementById(id), TOPIC='obitel-teney-public-rooms-v08', TTL=22000;
-const RELAYS=['wss://signaling.yjs.dev','wss://y-webrtc-eu.fly.dev'];
-let sockets=[],rooms=new Map(),lastSent=0,lastCode='',started=false;
-const code=v=>/^[A-HJ-NP-Z2-9]{6}$/.test(String(v||'').toUpperCase())?String(v).toUpperCase():'';
-const clean=v=>String(v||'').replace(/[<>\x00-\x1f]/g,'').trim().slice(0,28);
-const status=v=>{if($('lobbyConnection'))$('lobbyConnection').textContent=v};
-const send=data=>{for(const ws of sockets){if(ws.readyState!==WebSocket.OPEN)continue;try{ws.send(JSON.stringify({type:'publish',topic:TOPIC,data}))}catch(e){}}};
-const refresh=()=>send({v:8,kind:'request'});
-function host(){const b=$('netBanner');return b&&b.style.display!=='none'&&/ВЫ ЭКЗОРЦИСТ/.test(b.textContent||'')&&code($('netCode')?.value)}
-function sync(){
- const live=host(),current=live?code($('netCode').value):'',pub=!!$('lobbyPublic')?.checked;
- if(lastCode&&(!current||!pub||current!==lastCode))send({v:8,kind:'closed',code:lastCode});
- lastCode=live&&pub?current:'';
- if(lastCode&&Date.now()-lastSent>3800){lastSent=Date.now();const m=($('netBanner')?.textContent||'').match(/ДУХОВ:\s*(\d)\/3/);
- send({v:8,kind:'room',code:lastCode,name:clean($('lobbyName')?.value)||'Заброшенное аббатство',players:Math.min(4,1+Number(m?.[1]||0)),max:4,floor:Math.max(1,Math.min(9999,Number(($('floorStat')?.textContent||'').match(/\d+/)?.[0]||1))),ts:Date.now()});}
-}
-function render(){
- const box=$('lobbyList');if(!box)return;
- for(const [id,r] of rooms)if(Date.now()-r.seen>TTL)rooms.delete(id);
- box.replaceChildren();
- const active=[...rooms.values()].sort((a,b)=>(a.players>=4)-(b.players>=4)||b.seen-a.seen).slice(0,25);
- if(!active.length){const p=document.createElement('p');p.className='lobbyEmpty';p.textContent='Пока нет открытых комнат. Создайте свою или обновите список.';box.append(p)}
- for(const r of active){
-  const row=document.createElement('div'),info=document.createElement('div'),name=document.createElement('b'),details=document.createElement('small'),join=document.createElement('button');
-  row.className='lobbyRoom';info.className='lobbyRoomInfo';join.className='lobbyJoin';
-  name.textContent=r.name;details.textContent=r.code+' · '+r.players+'/4 игроков · этаж '+r.floor;
-  info.append(name,details);join.disabled=r.players>=4||lastCode===r.code;join.textContent=lastCode===r.code?'ВАША':r.players>=4?'ЗАНЯТО':'ВОЙТИ';
-  join.addEventListener('click',()=>{if(!code(r.code))return;$('netCode').value=r.code;$('netJoin').click()});row.append(info,join);box.append(row);
+/* Room announcements only. Private room codes and match traffic stay on PeerJS. */
+window.ObitelDirectory = function ({ onRooms, onStatus }) {
+ const topic = 'obitel-teney/1-1/rooms';
+ const urls = ['wss://broker.emqx.io:8084/mqtt', 'wss://test.mosquitto.org:8081/mqtt'];
+ const encoder = new TextEncoder(), decoder = new TextDecoder();
+ const entries = new Map(), links = new Map();
+ let room = null, started = false, sequence = 0;
+ const empty = new Uint8Array(0);
+ const encode = value => Array.from(encoder.encode(value));
+ const string = value => {
+  const bytes = encode(value);
+  return [bytes.length >> 8, bytes.length & 255, ...bytes];
+ };
+ function packet(header, body = []) {
+  const length = [];
+  let n = body.length;
+  do {
+   const next = n % 128;
+   n = Math.floor(n / 128);
+   length.push(next | (n ? 128 : 0));
+  } while (n);
+  return Uint8Array.from([header, ...length, ...body]);
  }
-}
-function receive(e){
- let packet;try{packet=JSON.parse(e.data)}catch{return}
- if(packet.type==='ping'){try{e.target.send(JSON.stringify({type:'pong'}))}catch{}return}
- if(packet.type!=='publish'||packet.topic!==TOPIC||!packet.data||packet.data.v!==8)return;
- const d=packet.data;
- if(d.kind==='request'){if(lastCode){lastSent=0;sync()}return}
- const id=code(d.code);if(!id)return;
- if(d.kind==='closed'){rooms.delete(id);render();return}
- if(d.kind!=='room'||typeof d.name!=='string'||d.max!==4||!Number.isFinite(d.players)||d.players<1||d.players>4||!Number.isFinite(d.floor)||d.floor<1||d.floor>9999)return;
- rooms.set(id,{code:id,name:clean(d.name)||'Безымянная комната',players:d.players,floor:Math.floor(d.floor),seen:Date.now()});render();
-}
-function socket(url){
- let ws;try{ws=new WebSocket(url)}catch{return}
- sockets.push(ws);
- ws.addEventListener('open',()=>{ws.send(JSON.stringify({type:'subscribe',topics:[TOPIC]}));status('Каталог подключён');refresh();lastSent=0;sync()});
- ws.addEventListener('message',receive);
- ws.addEventListener('error',()=>status('Каталог временно недоступен. Вход по коду остаётся доступным.'));
- ws.addEventListener('close',()=>{sockets=sockets.filter(x=>x!==ws);status(sockets.some(x=>x.readyState===1)?'Каталог подключён':'Каталог временно недоступен');if(!document.hidden)setTimeout(()=>socket(url),8500)});
-}
-function start(){
- if(started)return;started=true;
- for(const url of RELAYS)socket(url);
- setInterval(()=>{sync();render()},2300);
- $('lobbyRefresh')?.addEventListener('click',()=>{refresh();render();status('Обновляем публичные комнаты…')});
- for(const id of ['lobbyPublic','lobbyName'])$(id)?.addEventListener('input',()=>{lastSent=0;sync()});
- $('onlineBtn')?.addEventListener('click',()=>{render();refresh()});
- document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastSent=0;sync();refresh()}});
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
-})();
+ function send(link, bytes) {
+  if (link.ws.readyState === WebSocket.OPEN) link.ws.send(bytes);
+ }
+ function publish(value, link) {
+  const bytes = packet(0x30, [...string(topic), ...encode(JSON.stringify(value))]);
+  for (const current of link ? [link] : links.values()) {
+   if (current.ready) send(current, bytes);
+  }
+ }
+ function status() {
+  onStatus([...links.values()].some(link => link.ready));
+ }
+ function draw() {
+  const now = Date.now();
+  for (const [code, entry] of entries) if (entry.expires <= now) entries.delete(code);
+  onRooms([...entries.values()].map(entry => entry.room).filter(Boolean)
+   .sort((a, b) => a.name.localeCompare(b.name)).slice(0, 50));
+ }
+ function receive(link, value) {
+  if (!value || typeof value !== 'object') return;
+  if (value.type === 'list') {
+   if (room && Date.now() - link.lastReply > 900) {
+    link.lastReply = Date.now();
+    publish({ type: 'room', ...room }, link);
+   }
+   return;
+  }
+  if (!/^[A-HJ-NP-Z2-9]{6}$/.test(value.code) || !Number.isSafeInteger(value.seq)) return;
+  const previous = entries.get(value.code);
+  if (previous && (previous.seq > value.seq || previous.seq === value.seq && !previous.room)) return;
+  if (value.type === 'close') {
+   if (entries.size >= 300 && !previous) return;
+   entries.set(value.code, { seq: value.seq, expires: Date.now() + 26000 });
+  } else if (value.type === 'room' && typeof value.name === 'string'
+   && ['hunt', 'spirit'].every(side => Number.isInteger(value[side]) && value[side] >= 0 && value[side] <= 4)
+   && value.hunt + value.spirit > 0) {
+   if (entries.size >= 300 && !previous) return;
+   const listed = { code: value.code, name: value.name.trim().slice(0, 28) || 'Аббатство', hunt: value.hunt, spirit: value.spirit };
+   entries.set(value.code, { seq: value.seq, room: listed, expires: Date.now() + 20000 });
+  } else return;
+  draw();
+ }
+ function parse(link, chunk) {
+  const bytes = new Uint8Array(link.pending.length + chunk.byteLength);
+  bytes.set(link.pending);
+  bytes.set(new Uint8Array(chunk), link.pending.length);
+  let offset = 0;
+  while (offset < bytes.length) {
+   let end = offset + 1, length = 0, multiplier = 1, next;
+   do {
+    if (end === bytes.length) { link.pending = bytes.slice(offset); return; }
+    next = bytes[end++];
+    length += (next & 127) * multiplier;
+    multiplier *= 128;
+    if (length > 65536 || multiplier > 268435456) { link.ws.close(); return; }
+   } while (next & 128);
+   if (bytes.length < end + length) { link.pending = bytes.slice(offset); return; }
+   const type = bytes[offset] >> 4;
+   if (type === 2 && length === 2 && bytes[end + 1] === 0) {
+    send(link, packet(0x82, [0, 1, ...string(topic), 0]));
+   } else if (type === 9 && length === 3 && bytes[end + 2] === 0) {
+    link.ready = true;
+    status();
+    publish({ type: 'list' }, link);
+    if (room) publish({ type: 'room', ...room }, link);
+   } else if (type === 3 && length >= 2 && length < 1024) {
+    const topicLength = bytes[end] * 256 + bytes[end + 1];
+    if (topicLength + 2 < length && decoder.decode(bytes.subarray(end + 2, end + 2 + topicLength)) === topic) {
+     try { receive(link, JSON.parse(decoder.decode(bytes.subarray(end + 2 + topicLength, end + length)))); } catch {}
+    }
+   }
+   offset = end + length;
+  }
+  link.pending = empty;
+ }
+ function connect(url) {
+  const ws = new WebSocket(url, 'mqtt');
+  const link = { ws, ready: false, pending:empty, lastReply: 0 };
+  links.set(url, link);
+  ws.binaryType = 'arraybuffer';
+  const deadline = setTimeout(() => { if (!link.ready) ws.close(); }, 7000);
+  ws.addEventListener('open', () => {
+   const id = 'obitel-' + crypto.getRandomValues(new Uint32Array(2)).join('-');
+   send(link, packet(0x10, [...string('MQTT'), 4, 2, 0, 30, ...string(id)]));
+  });
+  ws.addEventListener('message', event => parse(link, event.data));
+  ws.addEventListener('close', () => {
+   clearTimeout(deadline);
+   links.delete(url);
+   status();
+   setTimeout(() => connect(url), 4000 + Math.random() * 2500);
+  });
+ }
+ function refresh() { publish({ type: 'list' }); draw(); }
+ return {
+  start() {
+   if (started) { refresh(); return; }
+   started = true;
+   urls.forEach(connect);
+   setInterval(() => {
+    for (const link of links.values()) if (link.ready) send(link, packet(0xc0));
+    if (room) publish({ type: 'room', ...room });
+    draw();
+   }, 5500);
+  },
+  refresh,
+  advertise(next) {
+   sequence = Math.max(Date.now(), sequence + 1);
+   if (room && (!next || next.code !== room.code)) publish({ type: 'close', code: room.code, seq: sequence });
+   room = next ? { ...next, seq: sequence } : null;
+   if (room) publish({ type: 'room', ...room });
+  }
+ };
+};

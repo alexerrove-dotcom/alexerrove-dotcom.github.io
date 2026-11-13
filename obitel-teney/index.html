@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#080b0e">
-<title>ОБИТЕЛЬ ТЕНЕЙ v1.0 — Способности людей и духов</title>
+<title>ОБИТЕЛЬ ТЕНЕЙ v1.1 — Онлайн 4 на 4</title>
 <link rel="stylesheet" href="src/style.css">
-<link rel="stylesheet" href="src/lobby.css">
+<link rel="stylesheet" href="src/lobby.css?v=11">
 </head>
 <body>
 <canvas id="game" aria-label="Игровое поле"></canvas><div id="grain"></div>
@@ -31,15 +31,46 @@
 </div>
 <button class="secondary" id="menuFullscreen">⛶ ПОЛНЫЙ ЭКРАН</button><div class="meta">ПСЕВДО-3D · АНИМИРОВАННЫЕ ПРИЗРАКИ · АЛЬБОМНЫЙ РЕЖИМ · ОФЛАЙН</div></div></div>
 <div id="skirmishScreen" class="screen hidden"><div class="panel" style="width:min(580px,95vw);max-height:94dvh;overflow-y:auto"><div class="eyebrow">✠ СХВАТКА · ИГРА С БОТАМИ</div><h2 style="margin:5px 0 14px">4 ЭКЗОРЦИСТА × 4 ДУХА</h2><p class="description">Выберите сторону и количество участников. Играть можно за любого из четырёх духов или за экзорциста. Боты сражаются за обе команды.</p><label class="netLabel">КОМАНДА<select id="skirmishSide"><option value="exorcist">Экзорцисты</option><option value="spirit">Духи</option></select></label><label class="netLabel">КЛАСС ЧЕЛОВЕКА<select id="skirmishHuman"><option value="priest">Священник — круг очищения</option><option value="hunter">Охотник — световая вспышка</option><option value="medic">Лекарь — исцеление</option><option value="guardian">Страж — купол</option></select></label><label class="netLabel">МОДЕЛЬ ДУХА<select id="skirmishCreature"><option value="ghost">Монастырский дух</option><option value="wraith">Теневой призрак</option><option value="cultist">Призрачная монахиня</option><option value="demon">Полтергейст</option></select></label><div class="netButtons"><label class="netLabel" style="flex:1">ЭКЗОРЦИСТОВ<select id="skirmishExorcists"><option>1</option><option>2</option><option>3</option><option selected>4</option></select></label><label class="netLabel" style="flex:1">ДУХОВ<select id="skirmishSpirits"><option>1</option><option>2</option><option>3</option><option selected>4</option></select></label></div><label class="lobbyPublic"><input type="checkbox" id="skirmishBots" checked> Включить ботов (заполнить свободные места)</label><p class="netNote">Когда боты отключены, противник ИИ всё равно остаётся для тренировки. Пока это локальная схватка; сетевые комнаты работают отдельно.</p><div class="netButtons"><button class="cta" id="skirmishStart">НАЧАТЬ</button><button class="secondary" id="skirmishBack">НАЗАД</button></div></div></div>
-<div id="onlineScreen" class="screen hidden"><div class="panel" style="max-width:520px"><div class="eyebrow">✠ ОНЛАЙН · РЕАЛЬНЫЕ ИГРОКИ</div><h2 style="margin:5px 0 14px">КОМНАТА ДУХОВ</h2><p class="description">Один игрок создаёт комнату за экзорциста. До трёх друзей присоединяются за живых призраков. Комната работает, пока открыт браузер хозяина.</p><label class="netLabel">КОД КОМНАТЫ<input id="netCode" maxlength="6" placeholder="ABC123" autocomplete="off" style="text-transform:uppercase"></label><label class="netLabel">КЛАСС СОЗДАТЕЛЯ КОМНАТЫ<select id="netHuman"><option value="priest">Священник — круг очищения</option><option value="hunter">Охотник — световая вспышка</option><option value="medic">Лекарь — исцеление</option><option value="guardian">Страж — купол</option></select></label><label class="netLabel">ИГРАТЬ ЗА<select id="netCreature"><option value="ghost">Монастырский дух</option><option value="wraith">Теневой призрак</option><option value="cultist">Призрачная монахиня</option><option value="demon">Полтергейст</option></select></label><div class="netButtons"><button class="cta" id="netHost">СОЗДАТЬ КОМНАТУ</button><button class="secondary" id="netJoin">ПРИСОЕДИНИТЬСЯ</button></div><button class="secondary" id="netCopy">КОПИРОВАТЬ ССЫЛКУ</button><p id="netStatus" class="netStatus">Создайте комнату или введите код друга.</p><p class="netNote">Прототип P2P: используется бесплатный внешний сервис соединения браузеров. Возможны проблемы в некоторых сетях, с временным каталогом публичных комнат.</p><div id="publicLobbyPanel" aria-label="Список публичных комнат">
- <div class="lobbyHeading"><h3>ПУБЛИЧНЫЕ КОМНАТЫ</h3><button type="button" id="lobbyRefresh" class="secondary">ОБНОВИТЬ</button></div>
- <label class="lobbyPublic"><input type="checkbox" id="lobbyPublic" checked> Публиковать мою комнату в общем списке</label>
- <label class="lobbyPublic">НАЗВАНИЕ КОМНАТЫ <input id="lobbyName" maxlength="28" value="Заброшенное аббатство" autocomplete="off"></label>
- <p class="lobbyStatus" id="lobbyConnection">Подключение к каталогу комнат...</p>
- <div class="lobbyList" id="lobbyList"><p class="lobbyEmpty">Пока нет доступных комнат</p></div>
- <p class="lobbyFootnote">Публичные комнаты видны, пока их хозяева онлайн. Закрытые доступны только по коду. Каталог использует внешний бесплатный сервис и может быть временно недоступен.</p>
+<div id="onlineScreen" class="screen hidden">
+ <div class="panel onlinePanel">
+  <div class="eyebrow">ОБИТЕЛЬ ТЕНЕЙ</div>
+  <h2>Онлайн 4 × 4</h2>
+  <div id="netSetup">
+   <div class="netTeams" role="group" aria-label="Команда">
+    <button type="button" id="netHunt" aria-pressed="true">Охотники</button>
+    <button type="button" id="netSpirits" aria-pressed="false">Духи</button>
+   </div>
+   <div id="netClasses" class="netClasses" role="group" aria-label="Персонаж"></div>
+   <div class="netColumns">
+    <section>
+     <h3>Создать комнату</h3>
+     <label class="netLabel">Название <input id="lobbyName" maxlength="28" placeholder="Заброшенное аббатство" autocomplete="off"></label>
+     <label class="lobbyPublic"><input type="checkbox" id="lobbyPublic" checked> Публичная комната</label>
+     <button type="button" class="cta" id="netHost">Создать</button>
+    </section>
+    <section>
+     <h3>Войти по коду</h3>
+     <label class="netLabel">Код комнаты <input id="netCode" maxlength="6" placeholder="ABC234" autocomplete="off" autocapitalize="characters"></label>
+     <button type="button" class="secondary" id="netJoin">Войти</button>
+    </section>
+   </div>
+   <section id="publicLobbyPanel" aria-label="Публичные серверы">
+    <div class="lobbyHeading"><h3>Список серверов</h3><button type="button" id="lobbyRefresh" class="secondary">Обновить</button></div>
+    <p class="lobbyStatus" id="lobbyConnection" aria-live="polite">Подключаем каталог…</p>
+    <div class="lobbyList" id="lobbyList"></div>
+   </section>
+  </div>
+  <section id="netWaiting" hidden>
+   <div class="lobbyHeading"><h3 id="netRoomName"></h3><button type="button" class="secondary" id="netCopy">Копировать ссылку</button></div>
+   <p id="netRoomInfo"></p>
+   <div class="netRoster"><div><h3>Охотники <span id="netHuntCount"></span></h3><ul id="netHuntRoster"></ul></div><div><h3>Духи <span id="netSpiritCount"></span></h3><ul id="netSpiritRoster"></ul></div></div>
+   <div class="netButtons"><button type="button" class="cta" id="netStart">Начать матч</button><button type="button" class="secondary" id="netLeave">Покинуть комнату</button></div>
+  </section>
+  <p id="netStatus" class="netStatus" role="status"></p>
+  <button type="button" class="secondary" id="netClose">Назад</button>
+ </div>
 </div>
-<button class="secondary" id="netClose">НАЗАД</button></div></div><div id="netBanner" aria-live="polite"></div>
+<div id="netBanner" aria-live="off"></div>
 <div id="bestiaryScreen" class="screen hidden"><div class="panel" style="width:min(890px,96vw);max-height:94dvh;overflow-y:auto"><div class="eyebrow">✠ ОБИТАТЕЛИ ПОДЗЕМНОЙ ОБИТЕЛИ</div><h2 style="font-size:23px;letter-spacing:2px;margin:0 0 14px">БЕСТИАРИЙ</h2><div class="bestiaryGrid"><div class="beast"><img id="beast_ghost" alt="Монастырский дух"><b>МОНАСТЫРСКИЙ ДУХ</b><small>Тихо парит и преследует жертву</small></div><div class="beast"><img id="beast_cultist" alt="Призрачная монахиня"><b>ПРИЗРАЧНАЯ МОНАХИНЯ</b><small>Подкрадывается молча и бьёт в упор</small></div><div class="beast"><img id="beast_wraith" alt="Теневой призрак"><b>ТЕНЕВОЙ ПРИЗРАК</b><small>Быстрый и скользит сквозь тьму</small></div><div class="beast"><img id="beast_demon" alt="ПОЛТЕРГЕЙСТ"><b>ПОЛТЕРГЕЙСТ</b><small>Сильный дух, швыряет энергией и хаосом</small></div></div><button class="cta" id="bestiaryBack">НАЗАД В МЕНЮ</button></div></div>
 <div id="pauseScreen" class="screen hidden"><div class="panel"><div class="eyebrow">✠ РИТУАЛ ПРИОСТАНОВЛЕН</div><h2 class="heroTitle" style="font-size:38px">ПАУЗА</h2><p class="description">Во тьме до сих пор слышны чужие шаги.</p><button class="cta" id="resumeBtn">ПРОДОЛЖИТЬ</button><button class="secondary" id="restartPauseBtn">НОВАЯ ИГРА</button><button class="secondary" id="pauseJournalBtn">ДНЕВНИК</button><button class="secondary" id="returnMenuBtn">В ГЛАВНОЕ МЕНЮ</button>
  <div id="controlSettings">
@@ -73,7 +104,7 @@
  <div class="eyebrow">✠ СВИДЕТЕЛЬСТВА ИЗ ПОДЗЕМЕЛЬЯ</div><h2>ДНЕВНИК</h2>
  <div id="journalContent">Дневник ещё пуст.</div><button class="cta" id="journalBack">НАЗАД</button>
 </div></div>
-<div id="resultScreen" class="screen hidden"><div class="panel"><div class="eyebrow" id="resultEyebrow">✠ РИТУАЛ ПРЕРВАН</div><h2 class="heroTitle" id="resultTitle" style="font-size:40px">КОНЕЦ</h2><p id="resultText" class="description"></p><div id="resultStats" class="resultStats"></div><button class="cta" id="restartBtn">ПОПРОБОВАТЬ СНОВА →</button></div></div>
+<div id="resultScreen" class="screen hidden"><div class="panel"><div class="eyebrow" id="resultEyebrow">✠ РИТУАЛ ПРЕРВАН</div><h2 class="heroTitle" id="resultTitle" style="font-size:40px">КОНЕЦ</h2><p id="resultText" class="description"></p><div id="resultStats" class="resultStats"></div><button class="cta" id="restartBtn">ПОПРОБОВАТЬ СНОВА →</button><button class="secondary" id="netResultLeave" hidden>Покинуть комнату</button></div></div>
 <div id="mapScreen" class="screen hidden"><div class="panel" id="mapPanel"><div class="eyebrow">✠ СТАРЫЙ ПЛАН АББАТСТВА</div><h2 style="margin:0;letter-spacing:3px;font-size:20px">КАРТА ПОДЗЕМЕЛЬЯ</h2><canvas id="bigmap" width="400" height="400"></canvas><div id="mapLegend">▲ ВЫ &nbsp; ◆ ПЕЧАТИ &nbsp; ▣ ЛЕСТНИЦА &nbsp; ⚿ КЛЮЧ<br>Оранжевая клетка — запертая дверь · Синие — укрытия</div><button class="cta" id="closeMapBtn">ВЕРНУТЬСЯ</button></div></div>
 <img id="asset_cross" src="assets/cross.webp" alt="" hidden loading="eager">
 <img id="asset_holyWater" src="assets/holyWater.webp" alt="" hidden loading="eager">
@@ -87,7 +118,8 @@
 <img id="anim_demon" src="assets/demon_anim.webp" alt="" hidden loading="eager">
 <img id="asset_flightWater" src="assets/holy_water_flight.webp" alt="" hidden loading="eager">
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js" defer></script>
-<script src="src/game.js" defer></script>
-<script src="src/lobby.js" defer></script>
+<script src="src/lobby.js?v=11" defer></script>
+<script src="src/online.js?v=11" defer></script>
+<script src="src/game.js?v=11" defer></script>
 </body>
 </html>
