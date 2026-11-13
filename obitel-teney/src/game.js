@@ -145,7 +145,7 @@ function makeBot(x,y,type,team){return {x,y,type,team,hp:type==='exorcist'?100:(
 function botLive(b){return !!b&&b.alive!==false&&b.hp>0}
 function botNearest(x,y,targets){let nearest=null,md=1e20;for(const o of targets){if(!botLive(o))continue;let d=Math.hypot(x-o.x,y-o.y);if(d<md){nearest=o;md=d}}return nearest}
 function botHurt(e,damage){if(!botLive(e))return;e.hp=Math.max(0,e.hp-damage);e.flash=.3;e.stun=.18;if(e.hp<=0){if(e===player){endGame(false);return}e.alive=false;e.deathAnim=.94;spawnHoly(e.x,e.y,22,e.type==='exorcist'?'gold':'blue')}}
-function battleStart(){battleSide=$('#skirmishSide').value;battleCreature=$('#skirmishCreature').value;battleBots=$('#skirmishBots').checked;battleExCount=Number($('#skirmishExorcists').value);battleSpCount=Number($('#skirmishSpirits').value);battle=true;if(netRole!=='solo')netCleanup();audioInit();createGame();if(IS_TOUCH&&innerWidth>innerHeight&&!document.fullscreenElement)immersiveFullscreen()}
+function battleStart(){battleSide=$('#skirmishSide').value;battleCreature=$('#skirmishCreature').value;battleBots=$('#skirmishBots').checked;battleExCount=Number($('#skirmishExorcists').value);battleSpCount=Number($('#skirmishSpirits').value);netType=battleCreature;battle=true;if(netRole!=='solo')netCleanup();audioInit();createGame();if(IS_TOUCH&&innerWidth>innerHeight&&!document.fullscreenElement)immersiveFullscreen()}
 function battleAttack(){if(scene!=='play'||player.fireCd>0||player.health<=0)return;player.fireCd=.7;player.crossEffect=.30;sfx('growl');for(const e of exorcistBots.filter(e=>e.team==='enemy'&&botLive(e))){let d=Math.hypot(e.x-player.x,e.y-player.y);if(d<1.35&&Math.abs(normAng(Math.atan2(e.y-player.y,e.x-player.x)-player.a))<.95&&lineClear(player.x,player.y,e.x,e.y))botHurt(e,battleCreature==='demon'?32:22)}}
 function advanceBot(b,target,dt,range){let d=Math.hypot(target.x-b.x,target.y-b.y);b.a=Math.atan2(target.y-b.y,target.x-b.x);b.pathTimer-=dt;if(b.pathTimer<=0){b.pathTimer=.65;b.path=bPath(b.x,b.y,target.x,target.y)}let goal=b.path[0]||target;if(b.path.length&&Math.hypot(b.x-goal.x,b.y-goal.y)<.22){b.path.shift();goal=b.path[0]||target}if(d>range){let dx=goal.x-b.x,dy=goal.y-b.y,len=Math.hypot(dx,dy)||1;moveEntity(b,dx/len*b.speed*dt,dy/len*b.speed*dt,.18);b.walk+=dt*6}return d}
 function battleBotsUpdate(dt){
@@ -784,7 +784,7 @@ function initInputs(){
   battle=false;if(netRole!=='solo')netCleanup();audioInit();createGame();
   if(IS_TOUCH&&innerWidth>innerHeight&&!document.fullscreenElement)immersiveFullscreen();
  };
- $('#startBtn').onclick=start;$('#restartBtn').onclick=start;$('#restartPauseBtn').onclick=start;
+ $('#startBtn').onclick=start;$('#restartBtn').onclick=()=>battle?battleStart():start();$('#restartPauseBtn').onclick=()=>battle?battleStart():start();
  $('#continueBtn').onclick=()=>{if(safeRead(SAVE_KEY)){audioInit();createGame(true);if(IS_TOUCH&&innerWidth>innerHeight&&!document.fullscreenElement)immersiveFullscreen()}};
  $('#skirmishBtn').onclick=()=>openOverlay('#skirmishScreen');$('#skirmishBack').onclick=closeOverlay;$('#skirmishStart').onclick=battleStart;
  $('#menuSettingsBtn').onclick=()=>openOverlay('#settingsScreen');
