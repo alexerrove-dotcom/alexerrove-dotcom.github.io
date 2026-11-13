@@ -108,13 +108,14 @@ function body(role, actor, t) {
  const attack=actor.attackAnim>0?sample(attacks[role].keys,Math.min(1,Math.max(0,1-actor.attackAnim/.45))):[0,0,0,1];
  const [reach,lift,roll,zoom]=attack;
  const power=pulse(actor.powerAnim,.62);
+ const windup=actor.windup?1-actor.windup.left/actor.windup.duration:0;
  const falling=actor.alive?0:Math.max(0,1-actor.deathAnim/.94);
  return {
   x:Math.sin(step)*moving*.047+reach*.24+falling*.2,
-  crouch:idle*.011+Math.abs(Math.sin(step))*moving*.044+lift*.17+power*.06-falling*.65,
-  width:1+(zoom-1)*.62+power*.12+falling*.16,
+  crouch:idle*.011+Math.abs(Math.sin(step))*moving*.044+lift*.17+power*.06-windup*.12-falling*.65,
+  width:1+(zoom-1)*.62+power*.12+windup*.13+falling*.16,
   lower:Math.sin(step)*moving*.042,
-  lean:roll*.27+power*abilityPose[role][2]*.6+falling*.27
+  lean:roll*.27+power*abilityPose[role][2]*.6-windup*.095+falling*.27
  };
 }
 

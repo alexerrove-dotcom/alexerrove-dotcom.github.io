@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#080b0e">
-<title>ОБИТЕЛЬ ТЕНЕЙ v1.9 — Подземелья аббатства</title>
-<link rel="stylesheet" href="src/style.css?v=18">
+<title>ОБИТЕЛЬ ТЕНЕЙ v2.0 — Печати пробуждаются</title>
+<link rel="stylesheet" href="src/style.css?v=20">
 <link rel="stylesheet" href="src/lobby.css?v=14">
 <link rel="stylesheet" href="src/controls.css?v=14">
 <link rel="stylesheet" href="src/menu.css?v=16">
@@ -14,7 +14,7 @@
 <canvas id="game" aria-label="Игровое поле"></canvas>
 <div id="hud">
  <div id="topLeft"><div id="smallTitle">✠ ОБИТЕЛЬ ТЕНЕЙ / ПОСЛЕДНЯЯ НОЧЬ</div><div class="hudRow"><span style="color:#ff8177">✚</span><span id="healthNum">100</span><div class="meter"><div class="fill" id="healthBar"></div></div></div><div class="hudRow"><span style="color:#80bfaa">ϟ</span><span id="staminaNum">100</span><div class="meter"><div class="fill" id="staminaBar"></div></div></div><div id="flashHint" class="hudLabel">ФОНАРЬ ◉ 100%</div><div id="floorStat">ЭТАЖ 1 · Кельи тишины</div><div id="keyStat">⚿ КЛЮЧИ: 0</div></div>
- <div id="hudCenter">ПЕЧАТИ <b id="coreCount">0 / 3</b><div id="missionSmall">ОЧИСТИТЕ ТРИ ПРОКЛЯТЫЕ ПЕЧАТИ</div></div>
+ <div id="hudCenter">ПЕЧАТИ <b id="coreCount">0 / 3</b><div id="missionSmall">ОЧИСТИТЕ ТРИ ПРОКЛЯТЫЕ ПЕЧАТИ</div><div id="ritualStatus" role="status" aria-live="polite"></div></div>
  <div id="topRight"><div id="options"><button class="iconBtn" id="muteBtn" title="Звук">♫</button><button class="iconBtn" id="fullscreenBtn" title="Полный экран">⛶</button><button class="iconBtn" id="pauseBtn" title="Пауза">Ⅱ</button></div><canvas id="radar" width="110" height="110"></canvas></div>
  <div id="bottomLeft"><div><div id="ammo">9 <small>/ 54</small></div><div id="ammoName">КРЕСТ • ВОДА ДЛЯ ИЗГНАНИЯ</div></div></div>
  <div id="abilityInfo"></div><div id="crosshair"></div><div id="hitMark">×</div><div id="signal"></div><div id="toast"></div>
@@ -37,7 +37,7 @@
  <main class="menuShell">
   <header class="menuIntro">
    <h1>Обитель <span>теней</span></h1>
-   <p>Спустись в подземелья аббатства. Найди ключи, очисти три печати и открой путь на следующий этаж.</p>
+   <p>Из глубины аббатства доносится голос пропавшей сестры. Каждая печать, которую ты очищаешь, зовёт духов.</p>
   </header>
   <nav id="mainMenuActions" aria-label="Режим игры">
    <button class="menuMode menuExpedition" id="startBtn"><span aria-hidden="true">✠</span><span><strong>Новая экспедиция</strong><small>Одиночная игра</small></span></button>
@@ -144,6 +144,7 @@
 <div id="helpScreen" class="screen subScreen hidden"><div class="panel">
  <div class="eyebrow">✠ КАК ВЫЖИТЬ В ОБИТЕЛИ</div><h2>РУКОВОДСТВО</h2>
  <p><b>Цель:</b> исследуйте залы и соединяющие их проходы. Карта заполняется по мере исследования. Найдите ключ к запертой крипте, очистите 3 печати, возьмите второй ключ из крипты и откройте лестницу на следующий этаж.</p>
+ <p><b>Ритуал:</b> нажми E / ДЕЙСТВ. у печати и оставайся рядом до конца отсчёта. Духи слышат ритуал и бег. Если отойти, ритуал можно начать заново.</p>
  <p><b>Скрытность:</b> подойдите к деревянному шкафу или исповедальне и нажмите Е / ДЕЙСТВ. Духи перестанут вас преследовать. Повторно нажмите для выхода. Из укрытия атаковать нельзя.</p>
  <p><b>Бой:</b> крест изгоняет духов без ограничений, святая вода — метательная граната с уроном по площади, пополняется в тайниках.</p>
  <p><b>Умения:</b> Q или кнопка УМЕНИЕ — особое действие вашего класса с перезарядкой.</p><p><b>ПК:</b> WASD, мышь — обзор, ЛКМ / пробел — атака, 1 — крест, 2 — вода, Shift — бег, E — взаимодействие, G/R — граната, F — свет, Tab — карта, J — дневник, Esc — пауза.</p>
@@ -183,9 +184,9 @@
 <script src="src/relay.js?v=14" defer></script>
 <script src="src/characters.js?v=14" defer></script>
 <script src="src/online.js?v=14" defer></script>
-<script src="src/animation.js?v=19.1" defer></script>
+<script src="src/animation.js?v=20" defer></script>
 <script src="src/controls.js?v=14" defer></script>
-<script src="src/layout.js?v=19" defer></script>
-<script src="src/game.js?v=19" defer></script>
+<script src="src/layout.js?v=20" defer></script>
+<script src="src/game.js?v=20" defer></script>
 </body>
 </html>

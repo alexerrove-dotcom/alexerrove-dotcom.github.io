@@ -71,7 +71,9 @@ function generate(size,floor,random) {
  const exit=publicRooms.reduce((best,room)=>paths[room.y][room.x]>paths[best.y][best.x]?room:best);
  const others=publicRooms.filter(room=>room!==exit);
  const key=others.reduce((best,room)=>paths[room.y][room.x]<paths[best.y][best.x]?room:best);
- const seals=others.filter(room=>room!==key).slice(0,2);
+ const sealRooms=others.filter(room=>room!==key);
+ const nearSeal=sealRooms.reduce((best,room)=>paths[room.y][room.x]<paths[best.y][best.x]?room:best);
+ const seals=[nearSeal,sealRooms.find(room=>room!==nearSeal)];
  // Give wide halls fixed landmarks for navigation, with space around every route.
  const landmarks=others.filter(room=>!seals.includes(room)&&room!==key).map((room,i)=>({
   type:['altar','confessional','wardrobe'][i%3],

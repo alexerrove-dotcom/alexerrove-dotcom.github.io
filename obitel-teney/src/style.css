@@ -165,3 +165,8 @@ body.leftHanded #lookZone{left:0;right:38%}
 #crosshair:before{width:1px;height:16px;background:linear-gradient(#e5caa2 0 30%,transparent 30% 70%,#e5caa2 70%)}
 #crosshair:after{width:16px;height:1px}
 #hitMark{color:#fff0c7;text-shadow:0 0 5px #e88752}
+
+#ritualStatus{margin-top:5px;padding-top:5px;border-top:1px solid #bc89e37a;color:#f3cfff;letter-spacing:.11em;font-weight:700}
+#ritualStatus:empty{display:none}
+#toast{max-width:min(560px,86vw);white-space:normal;text-align:center;line-height:1.5}
+@media(max-height:480px) and (pointer:coarse){#ritualStatus{font-size:9px;margin-top:2px;padding-top:2px}}
