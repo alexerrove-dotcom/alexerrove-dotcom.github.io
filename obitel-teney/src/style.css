@@ -144,3 +144,10 @@ body.leftHanded #lookZone{left:0;right:38%}
 .netStatus{color:#9de9e9;font-size:12px;min-height:18px}
 .netNote{font-size:10px;color:#a49a8b;line-height:1.4}
 @media(max-height:450px){#onlineScreen .panel{padding:10px 16px}.netLabel{margin:4px 0}.netLabel input,.netLabel select{height:30px}.netButtons{margin:6px 0}#netBanner{top:37px}}
+
+/* v0.9 compact first-person hands and team menu */
+#skirmishScreen .netLabel{font-size:11px}
+#skirmishScreen select{width:100%;padding:10px;background:#13191c;color:#e8d7bb;border:1px solid #806d56}
+#skirmishScreen .netButtons{display:flex;gap:9px}
+#skirmishScreen .panel{overflow:auto}
+@media(max-height:410px){#skirmishScreen .description{font-size:10px;line-height:1.25}#skirmishScreen .netLabel{margin:4px 0}}
