@@ -57,8 +57,9 @@ function firstPerson(ctx, role, sprite, player, time, width, height, alternate) 
  const advance=reach+power*powerReach;
  const rise=lift+power*powerLift;
  const swing=Math.sin(step)*move;
- const idle=Math.sin(time*2.25)*height*.006;
+ const idle=Math.sin(time*2.25)*height*.004;
  const scale=zoom+(powerZoom-1)*power+throwPose*.06;
+ const grip=player.flash?.98:.84;
  const baseline=height+spriteHeight*(spectral?.25:.26);
  const draw=(side, amount)=>{
   const x=width*.5+side*(width*.34-(advance*amount+throwPose*.16)*size)+swing*size*.026;
@@ -68,6 +69,7 @@ function firstPerson(ctx, role, sprite, player, time, width, height, alternate) 
   ctx.scale(side*scale,scale);
   ctx.rotate(roll*amount+power*powerRoll+throwPose*.38+swing*.025);
   if(spectral)ctx.globalAlpha=player.abilityPhase>0?.46:.94;
+  else ctx.filter=`brightness(${grip})`;
   ctx.drawImage(sprite,-size*.73,-spriteHeight*.87,size,spriteHeight);
   ctx.restore();
  };
@@ -77,7 +79,7 @@ function firstPerson(ctx, role, sprite, player, time, width, height, alternate) 
  if(energy||power||alternate&&throwPose){
   const [r,g,b]=spec.light;
   const glow=ctx.createRadialGradient(width*.52,height*.65,0,width*.52,height*.65,height*.36);
-  glow.addColorStop(0,`rgba(${r},${g},${b},${energy*.23+power*.18+throwPose*.10})`);
+  glow.addColorStop(0,`rgba(${r},${g},${b},${energy*.14+power*.13+throwPose*.09})`);
   glow.addColorStop(1,`rgba(${r},${g},${b},0)`);
   ctx.fillStyle=glow;
   ctx.fillRect(0,0,width,height);

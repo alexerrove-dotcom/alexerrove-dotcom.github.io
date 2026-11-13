@@ -540,11 +540,38 @@ function resizeLighting(){
  light.putImageData(pixels,0,0);
 }
 
+function artReady(image){return image?.complete&&image.naturalWidth>0}
+function loadDetailArt(){
+ const surfaces=['floor','ceiling'];
+ function load(name,apply){
+  const img=new Image();
+  img.onload=()=>apply(img);
+  img.src='assets/'+name+'.webp';
+ }
+ for(const [index,name] of surfaces.entries())load('material_'+name,img=>{
+  const material=makeCanvas(128,128);
+  material.getContext('2d').drawImage(img,0,0,128,128);
+  if(!surfaceTextures)surfaceTextures=[readSurface(ceilTex),readSurface(floorTex)];
+  surfaceTextures[1-index]=readSurface(material);
+ });
+ for(const [index,name] of [[0,'ashlar'],[5,'carved']])load('material_'+name,img=>{
+  const start=index===0?0:5,end=index===0?4:9;
+  for(let i=start;i<end;i++){
+   const original=texWall[i],tile=makeCanvas(192,192),brush=tile.getContext('2d');
+   brush.drawImage(img,0,0,192,192);
+   brush.globalAlpha=i===0||i===5?.10:.29;
+   brush.drawImage(original,0,0,192,192);
+   texWall[i]=tile;
+  }
+ });
+ for(const name of ['exit','core','confessional','altar'])load('prop_'+name,img=>{art[name]=img});
+ for(const role of ['priest','hunter','medic','guardian'])load('back_'+role,img=>{art[role+'Back']=img});
+}
 function readSurface(texture){
- const data=texture.getContext('2d').getImageData(0,0,64,64).data;
+ const size=texture.width,data=texture.getContext('2d').getImageData(0,0,size,size).data;
  const average=[0,0,0];
- for(let i=0;i<data.length;i+=4)for(let c=0;c<3;c++)average[c]+=data[i+c]/4096;
- return {data,average};
+ for(let i=0;i<data.length;i+=4)for(let c=0;c<3;c++)average[c]+=data[i+c]/(size*size);
+ return {data,average,size,mask:size-1};
 }
 
 function drawBase(){
@@ -557,7 +584,7 @@ function drawBase(){
   const depth=Math.min(80,rayDepth);
   const fog=clamp(1-depth/27,.12,1);
   const detail=clamp((15-depth)/9,0,1),lod=1-detail;
-  const {data,average}=surfaceTextures[Number(isFloor)];
+  const {data,average,size,mask}=surfaceTextures[Number(isFloor)];
   const beamRow=beamY[sampleY];
   const base=isFloor?.32:.25, lamp=player.flash?.77*clamp(1-depth/19,0,1):0;
   const dx=depth*planeX*4/W,dy=depth*planeY*4/W;
@@ -565,10 +592,10 @@ function drawBase(){
   let worldY=player.y+depth*(dirY-planeY+planeY*2/W);
   for(let x=0;x<W;x+=2){
    const light=(base+lamp*beamFalloff(beamX[Math.min(W-1,x+1)]+beamRow))*fog;
-   const fx=worldX*64,fy=worldY*64,sx=Math.floor(fx),sy=Math.floor(fy);
+   const fx=worldX*size,fy=worldY*size,sx=Math.floor(fx),sy=Math.floor(fy);
    const u=fx-sx,v=fy-sy;
-   const a=((sy&63)*64+(sx&63))*4,b=((sy&63)*64+((sx+1)&63))*4;
-   const c=(((sy+1)&63)*64+(sx&63))*4,d=(((sy+1)&63)*64+((sx+1)&63))*4;
+   const a=((sy&mask)*size+(sx&mask))*4,b=((sy&mask)*size+((sx+1)&mask))*4;
+   const c=(((sy+1)&mask)*size+(sx&mask))*4,d=(((sy+1)&mask)*size+((sx+1)&mask))*4;
    const r=((data[a]+(data[b]-data[a])*u)*(1-v)+(data[c]+(data[d]-data[c])*u)*v)*detail+average[0]*lod;
    const g=((data[a+1]+(data[b+1]-data[a+1])*u)*(1-v)+(data[c+1]+(data[d+1]-data[c+1])*u)*v)*detail+average[1]*lod;
    const blue=((data[a+2]+(data[b+2]-data[a+2])*u)*(1-v)+(data[c+2]+(data[d+2]-data[c+2])*u)*v)*detail+average[2]*lod;
@@ -599,11 +626,12 @@ function drawWalls(){
   const height=proj/depth,top=Math.round(horizon-height*.5);
   const hash=Math.abs(hit.mx*13+hit.my*7+Math.floor(hit.mx/2)+floorNo*3);
   const wall=texWall[world[hit.my]?.[hit.mx]===2?4:hash%7<4?hash%4:5+(hash+floorNo)%4];
-  const tx=clamp(hit.wallX*64-.5,0,63),column=Math.floor(tx),blend=tx-column;
-  ctx.drawImage(wall,column,0,1,64,x,top,width,height);
+  const textureWidth=wall.width,tx=clamp(hit.wallX*textureWidth-.5,0,textureWidth-1);
+  const column=Math.floor(tx),blend=tx-column;
+  ctx.drawImage(wall,column,0,1,wall.height,x,top,width,height);
   if(blend>0){
    ctx.globalAlpha=blend;
-   ctx.drawImage(wall,column+1,0,1,64,x,top,width,height);
+   ctx.drawImage(wall,column+1,0,1,wall.height,x,top,width,height);
    ctx.globalAlpha=1;
   }
   shadeCtx.globalCompositeOperation='source-over';
@@ -619,13 +647,74 @@ function drawWalls(){
  shadeCtx.globalAlpha=1;
  ctx.drawImage(wallShade,0,0);
 }
+const frameBlend=makeCanvas(1,1),frameBrush=frameBlend.getContext('2d');
+const shadedArt=new WeakMap();
+function darkenSprite(brush,width,height,brightness){
+ if(brightness>=1)return;
+ brush.globalCompositeOperation='source-atop';
+ brush.fillStyle=`rgba(0,0,0,${1-brightness})`;
+ brush.fillRect(0,0,width,height);
+ brush.globalCompositeOperation='source-over';
+}
+function shadedSprite(sprite,brightness){
+ const level=Math.round(brightness*10)/10;
+ if(level>=1)return sprite;
+ let variants=shadedArt.get(sprite);
+ if(!variants){variants=new Map();shadedArt.set(sprite,variants)}
+ if(!variants.has(level)){
+  const tile=makeCanvas(sprite.width,sprite.height),brush=tile.getContext('2d');
+  brush.drawImage(sprite,0,0);
+  darkenSprite(brush,tile.width,tile.height,level);
+  variants.set(level,tile);
+ }
+ return variants.get(level);
+}
+function blendSpirit(sprite,frame,next,amount,brightness){
+ const width=sprite.naturalWidth/4,height=sprite.naturalHeight/4;
+ if(frameBlend.width!==width||frameBlend.height!==height){frameBlend.width=width;frameBlend.height=height}
+ frameBrush.clearRect(0,0,width,height);
+ frameBrush.globalCompositeOperation='source-over';
+ frameBrush.globalAlpha=1-amount;
+ frameBrush.drawImage(sprite,(frame%4)*width,Math.floor(frame/4)*height,width,height,0,0,width,height);
+ if(amount>0){
+  frameBrush.globalCompositeOperation='lighter';
+  frameBrush.globalAlpha=amount;
+  frameBrush.drawImage(sprite,(next%4)*width,Math.floor(next/4)*height,width,height,0,0,width,height);
+ }
+ frameBrush.globalAlpha=1;
+ frameBrush.globalCompositeOperation='source-over';
+ darkenSprite(frameBrush,width,height,brightness);
+ return frameBlend;
+}
+function clipAtWalls(x,y,radiusY,radiusX,depth){
+ ctx.beginPath();
+ const left=Math.max(0,Math.floor(x-radiusX)),right=Math.min(W,Math.ceil(x+radiusX));
+ for(let col=left;col<right;){
+  const begin=col;
+  while(col<right&&(zBuffer[col]??MAXRAY)+.12>=depth)col++;
+  if(col>begin)ctx.rect(begin,y-radiusY,col-begin,radiusY*2);
+  else col++;
+ }
+ ctx.clip();
+}
+
 function drawSprites(){
  let list=[];onlineSprites(list);for(const e of exorcistBots)if(botLive(e)||e.deathAnim>0)list.push({x:e.x,y:e.y,type:'exorcist',enemy:e});for(const e of spiritAllyBots)if(botLive(e)||e.deathAnim>0)list.push({x:e.x,y:e.y,type:e.type,enemy:e});for(const e of enemies)if((e.alive||e.deathAnim>0)&&!(battle&&battleSide==='exorcist'&&e.abilityPhase>0))list.push({x:e.x,y:e.y,type:e.type,enemy:e});
  for(const o of objects)if(!o.used)list.push(o);for(const p of projectiles)list.push({x:p.x,y:p.y,z:p.z,type:'waterOrb',age:p.age});
  list.sort((a,b)=>dist(player,b)-dist(player,a));let cs=Math.cos(player.a),sn=Math.sin(player.a),horizon=H*.51+lookPitch+player.bob;
  for(let o of list){let dx=o.x-player.x,dy=o.y-player.y,depth=dx*cs+dy*sn,lateral=-dx*sn+dy*cs;if(depth<=.12||depth>MAXRAY)continue;
   let sprite,xScale=1,yScale=1,z=0,ghost=false;switch(o.type){
-   case'exorcist':sprite=art[o.enemy?.role]||art.priest;yScale=1.02;xScale=.72;break;
+   case'exorcist':{
+    const role=o.enemy?.role||'priest',back=art[role+'Back'];
+    sprite=art[role];
+    if(artReady(back)&&Number.isFinite(o.enemy?.a)){
+     const facing=Math.cos(o.enemy.a-Math.atan2(-dy,-dx));
+     if(facing<0)sprite=back;
+     xScale=.73*(.71+.29*Math.abs(facing));
+    }else xScale=.73;
+    yScale=1.02;
+    break;
+   }
    case'ghost':sprite=art.ghost;yScale=.83;xScale=.63;ghost=true;z=.16+Math.sin(t*2.3+o.x)*.115;break;
    case'wraith':sprite=art.wraith;yScale=.89;xScale=.65;ghost=true;z=.17+Math.sin(t*2.8+o.y)*.10;break;
    case'demon':sprite=art.demon;yScale=.91;xScale=.73;ghost=true;z=.18+Math.sin(t*2.1+o.x)*.105;break;
@@ -647,7 +736,7 @@ function drawSprites(){
    case'ashes':sprite=art.ashes;yScale=.27;xScale=.82;z=.04;break;
    default:continue
   }
-  let anim=!!o.enemy&&spiritAnimations[o.type]&&spiritAnimations[o.type].complete&&spiritAnimations[o.type].naturalWidth;
+  const anim=!!o.enemy&&artReady(spiritAnimations[o.type]);
   if(anim)sprite=spiritAnimations[o.type];
   if(!sprite||!sprite.width||!sprite.height||sprite.complete===false)continue;
   let sx=W/2+(lateral/depth)*proj,bottom=horizon+((.5-z)/depth)*proj,sh=proj/depth*yScale,sw=proj/depth*xScale;
@@ -667,7 +756,9 @@ function drawSprites(){
   if(['ammoItem','medItem','batteryItem'].includes(o.type)){top+=Math.sin(t*2+o.x)*3;sw*=1+Math.sin(t*2+o.y)*.04}
   if(o.type==='waterOrb'){sw*=1+Math.sin(t*18+o.age*17)*.08;sh*=1+Math.sin(t*15+o.age*16)*.05}
   if(sx+sw/2<0||sx-sw/2>W||sh<.6)continue;
-  let brightness=clamp((player.flash?.69:.39)+Math.max(0,1-depth/14)*.38,.31,1);
+  const vertical=clamp(Math.round(top+sh*.5),0,H-1),horizontal=clamp(Math.round(sx),0,W-1);
+  const lamp=player.flash?beamFalloff(beamX[horizontal]+beamY[vertical])*clamp(1-depth/20,0,1):0;
+  let brightness=clamp(.57+Math.max(0,1-depth/18)*.31+lamp*.25,.53,1);
   if(e)brightness=Math.max(.69,brightness);
   if(o.type==='core'||o.type==='exit')brightness=Math.max(.7,brightness);
   if(o.type==='lamp'||o.type==='waterOrb'||o.type==='candles'||o.type==='keyItem')brightness=.95;
@@ -676,23 +767,22 @@ function drawSprites(){
   if(ghost||o.type==='core'||o.type==='waterOrb'||o.type==='lamp'||o.type==='exit'){
    let color=o.type==='wraith'?'173,99,228':o.type==='core'||o.type==='lamp'||o.type==='exit'?'243,187,112':'112,203,255';
    if(o.type==='demon')color='154,224,248';
-   let strength=clamp(.23+Math.sin(t*4.7+o.x)*.075,.06,.32)*brightness;
+   let strength=(.18+Math.sin(t*2.6+o.x)*.025)*brightness;
    ctx.save();ctx.globalAlpha=strength;let radius=sw*(o.type==='exit'?.88:1.35);
+   clipAtWalls(sx,top+sh*.40,radius,radius,depth);
    let g=ctx.createRadialGradient(sx,top+sh*.40,0,sx,top+sh*.40,radius);g.addColorStop(0,`rgba(${color},.80)`);g.addColorStop(.55,`rgba(${color},.13)`);g.addColorStop(1,`rgba(${color},0)`);ctx.fillStyle=g;ctx.fillRect(sx-radius,top-sh*.2,radius*2,sh*1.45);ctx.restore()
   }
-  let frameNo=0,frameW=sprite.width,frameH=sprite.height,frameX=0,frameY=0;
-  if(e&&anim){
-   if(e.attackAnim>0)frameNo=12+Math.min(3,Math.floor((1-e.attackAnim/.45)*4));
-   else if((e.motion??e.moving??(e.alert&&e.spawnGrace<=0 ? 1:0))>.12)frameNo=8+(Math.floor((t*8+e.walk*.3))%4);
-   else frameNo=(Math.floor((t*7+e.walk*.24))%8);
-   frameW=sprite.naturalWidth/4;frameH=sprite.naturalHeight/4;
-   frameX=(frameNo%4)*frameW;frameY=Math.floor(frameNo/4)*frameH;
-  }
-  let opacity=brightness;
-  if(ghost)opacity*=.79+.13*Math.sin(t*3+o.x);
-  if(e&&e.flash>0)opacity=Math.min(1,opacity+.18);
-  if(dying)opacity*=Math.pow(1-dying,1.05);
-  ctx.globalAlpha=clamp(opacity,0,1);
+  if(anim){
+   const movement=e.motion??e.moving??0;
+   const start=e.attackAnim>0?12:movement>.12?8:0;
+   const count=start===0?8:4;
+   const phase=start===12?clamp(1-e.attackAnim/.45,0,1)*3:(t*(start===8?8:6)+e.walk*.23)%count;
+   const frame=Math.floor(phase),next=start===12?Math.min(3,frame+1):(frame+1)%count;
+   sprite=blendSpirit(sprite,start+frame,start+next,phase-frame,Math.max(.45,brightness-.08));
+  }else if(o.type!=='waterOrb'&&o.type!=='ashes')sprite=shadedSprite(sprite,brightness);
+  const frameW=sprite.width,frameH=sprite.height;
+  const opacity=(ghost?.87:o.type==='ashes'?brightness:1)*Math.pow(1-dying,1.12);
+  ctx.globalAlpha=opacity;
   if(o.type==='waterOrb'){
    const centerCol=Math.max(0,Math.min(W-1,Math.floor(sx)));
    if(zBuffer[centerCol]===undefined||depth<=zBuffer[centerCol]+.08){
@@ -704,17 +794,17 @@ function drawSprites(){
    }
    ctx.globalAlpha=1;continue;
   }
-  let left=sx-sw/2,step=sw<40?1:Math.max(1,Math.ceil(sw/200));
-  for(let xx=Math.max(0,Math.floor(left));xx<Math.min(W,Math.ceil(left+sw));xx+=step){
+  let left=sx-sw/2;
+  for(let xx=Math.max(0,Math.floor(left));xx<Math.min(W,Math.ceil(left+sw));xx++){
    let col=Math.floor(xx);if(zBuffer[col]!==undefined&&depth>zBuffer[col]+.12)continue;
    let u=Math.floor((xx-left)/sw*frameW);if(u<0||u>=frameW)continue;
-   let srcWidth=Math.min(frameW-u,Math.max(1,Math.ceil(step/sw*frameW)));
+   let srcWidth=Math.min(frameW-u,Math.max(1,Math.ceil(frameW/sw)));
    const bend=pose?(pose.lean*(u/frameW-.5)+pose.lower*Math.abs(u/frameW-.5))*sh:0;
-   ctx.drawImage(sprite,frameX+u,frameY,srcWidth,frameH,xx,top+bend,step+.45,sh);
+   ctx.drawImage(sprite,u,0,srcWidth,frameH,xx,top+bend,1,sh);
   }
   ctx.globalAlpha=1;
   if(e&&e.flash>0){
-   let flare=clamp(e.flash*1.45,0,.38);ctx.save();ctx.globalAlpha=flare;
+   let flare=clamp(e.flash*.9,0,.22);ctx.save();ctx.globalAlpha=flare;clipAtWalls(sx,top+sh*.53,sh*.65,sw*.63,depth);
    let g=ctx.createRadialGradient(sx,top+sh*.53,2,sx,top+sh*.53,sw*.60);g.addColorStop(0,'#f7f2db');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(sx-sw*.64,top,sw*1.28,sh);ctx.restore()
   }
  }
@@ -1268,5 +1358,5 @@ function initInputs(){
  syncFullscreenUI();
 }
 
-buildTextures();buildGothicTextures();createDecorArt();for(const name of Object.keys({cross:1,holyWater:1,flightWater:1,ghost:1,wraith:1,cultist:1,demon:1,priest:1,hunter:1,medic:1,guardian:1})){art[name]=$('#asset_'+name)}for(const name of ['ghost','cultist','wraith','demon'])spiritAnimations[name]=$('#anim_'+name);for(const kind of ['ghost','cultist','wraith','demon'])$('#beast_'+kind).src=$('#asset_'+kind).src;$('#bestiaryBtn').onclick=()=>{$('#menu').classList.add('hidden');$('#bestiaryScreen').classList.remove('hidden')};$('#bestiaryBack').onclick=()=>{$('#bestiaryScreen').classList.add('hidden');$('#menu').classList.remove('hidden')};resize();initInputs();requestAnimationFrame(frame);
+buildTextures();buildGothicTextures();createDecorArt();loadDetailArt();for(const name of Object.keys({cross:1,holyWater:1,flightWater:1,ghost:1,wraith:1,cultist:1,demon:1,priest:1,hunter:1,medic:1,guardian:1})){art[name]=$('#asset_'+name)}for(const name of ['ghost','cultist','wraith','demon'])spiritAnimations[name]=$('#anim_'+name);for(const kind of ['ghost','cultist','wraith','demon'])$('#beast_'+kind).src=$('#asset_'+kind).src;$('#bestiaryBtn').onclick=()=>{$('#menu').classList.add('hidden');$('#bestiaryScreen').classList.remove('hidden')};$('#bestiaryBack').onclick=()=>{$('#bestiaryScreen').classList.add('hidden');$('#menu').classList.remove('hidden')};resize();initInputs();requestAnimationFrame(frame);
 })();
