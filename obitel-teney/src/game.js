@@ -2,7 +2,7 @@
 (()=>{'use strict';
 const $=s=>document.querySelector(s),canvas=$('#game'),ctx=canvas.getContext('2d',{alpha:false}),radar=$('#radar'),rctx=radar.getContext('2d'),bigmap=$('#bigmap'),bctx=bigmap.getContext('2d');
 const TAU=Math.PI*2,FOV=Math.PI/2.65,TAN=Math.tan(FOV/2),MAXRAY=28,MAPSIZE=31,IS_TOUCH=matchMedia('(pointer:coarse)').matches;
-let W=0,H=0,proj=0,buffer=null,texWall=[],floorTex,ceilTex,art={},last=0,t=0,grainTick=0,lookPitch=0,noiseSeed=1919;
+let W=0,H=0,proj=0,buffer=null,texWall=[],floorTex,ceilTex,art={},last=0,t=0,lookPitch=0,noiseSeed=1919;
 let scene='menu',world=null,player=null,enemies=[],objects=[],particles=[],visited=null,exitObject=null,objectives=[],stars=[],toastUntil=0,hitUntil=0,pauseFromMap=false,groanTick=0;
 let battle=false,battleSide='exorcist',battleCreature='ghost',battleHuman='priest',battleRoster=[],battleExCount=4,battleSpCount=4,exorcistBots=[],spiritAllyBots=[];
 let humanClass='priest';
@@ -136,7 +136,19 @@ function createDecorArt(){
  });
 } 
 
-function resize(){mobile?.reset();const w=window.innerWidth,h=window.innerHeight;W=clamp(Math.round(w*.78),360,800);H=Math.max(190,Math.round(W*h/w));canvas.width=W;canvas.height=H;proj=W/(2*TAN);buffer=ctx.createImageData(W,H);ctx.imageSmoothingEnabled=false}window.addEventListener('resize',resize);
+function resize(){
+ const {width,height}=canvas.getBoundingClientRect();
+ if(!width||!height)return;
+ const scale=Math.min(.78,800/width,850/height);
+ const w=Math.max(1,Math.round(width*scale)),h=Math.max(1,Math.round(height*scale));
+ if(w===W&&h===H)return;
+ mobile?.reset();W=w;H=h;
+ canvas.width=W;canvas.height=H;
+ proj=W/(2*TAN);buffer=ctx.createImageData(W,H);
+ ctx.imageSmoothingEnabled=false;
+ resizeLighting();
+}
+window.addEventListener('resize',resize);
 function generateWorld(){noiseSeed=(Math.imul(runSeed ^ (floorNo*179),2654435761)>>>0);let m=Array.from({length:MAPSIZE},()=>Array(MAPSIZE).fill(1)),dirs=[[2,0],[-2,0],[0,2],[0,-2]],stack=[[1,1]];m[1][1]=0;while(stack.length){let [x,y]=stack[stack.length-1],opt=dirs.filter(([dx,dy])=>x+dx>0&&x+dx<MAPSIZE-1&&y+dy>0&&y+dy<MAPSIZE-1&&m[y+dy][x+dx]);if(!opt.length){stack.pop();continue}let [dx,dy]=opt[(rng()*opt.length)|0];m[y+dy/2][x+dx/2]=0;m[y+dy][x+dx]=0;stack.push([x+dx,y+dy])}
  for(let r=0;r<11;r++){let x=3+((rng()*23)|0),y=3+((rng()*23)|0),sw=3+((rng()*4)|0),sh=3+((rng()*4)|0);for(let yy=y;yy<y+sh&&yy<MAPSIZE-1;yy++)for(let xx=x;xx<x+sw&&xx<MAPSIZE-1;xx++)m[yy][xx]=0}
  for(let y=2;y<MAPSIZE-2;y++)for(let x=2;x<MAPSIZE-2;x++)if(m[y][x]&&rng()<.20&&((!m[y][x-1]&&!m[y][x+1])||(!m[y-1][x]&&!m[y+1][x])))m[y][x]=0;
@@ -497,16 +509,107 @@ function showToast(message,seconds=2){$('#toast').textContent=message;$('#toast'
 function updateHud(){if(!player)return;$('#healthNum').textContent=Math.ceil(player.health);$('#healthBar').style.width=player.health+'%';$('#staminaNum').textContent=Math.ceil(player.stamina);$('#staminaBar').style.width=player.stamina+'%';$('#ammo').innerHTML=battle?'':'✠ <small>× '+player.grenades+' 💧</small>';$('#ammoName').textContent=battle?onlineClasses[battleRoster[0].character].attack.toUpperCase():(player.hidden?'В УКРЫТИИ · ':'')+(player.weapon==='water'?'СВЯТАЯ ВОДА · ГРАНАТА':'КРЕСТ · ИЗГНАНИЕ');$('#keyStat').textContent=battle?'СХВАТКА':'⚿ КЛЮЧИ: '+player.keys;$('#floorStat').textContent=battle?'АРЕНА · '+floorFlavor:'ЭТАЖ '+floorNo+' · '+floorFlavor;$('#flashHint').textContent='СВЕТ '+(player.flash?'◉':'○')+' '+Math.floor(player.battery)+'%';$('#flashHint').style.color=player.battery<20?'#d17869':'#d1baa1';if(t>toastUntil)$('#toast').classList.remove('show');if(t>hitUntil)$('#hitMark').style.opacity='0'}
 function endGame(win){resetInputs();scene=win?'won':'dead';$('#abilityInfo').style.display='none';stopAmbient();$('#resultEyebrow').textContent=win?'✠ ТЬМА ОТСТУПИЛА':'✠ СВЕТ ПОГАС';$('#resultTitle').innerHTML=win?'ВЫ <span>ВЫЖИЛИ</span>':'СИГНАЛ <span>ПОТЕРЯН</span>';$('#resultText').textContent=battle?(win?'Ваша команда выиграла схватку!':'Ваша команда проиграла схватку. Попробуйте ещё раз.'):(win?'Вы очистили три печати и закрыли разлом. Но во мраке кто-то всё ещё шепчет ваше имя.':'Экзорцист погиб. Духи остаются в обители, а древний разлом ещё открыт.');let seconds=Math.floor((performance.now()-player.started)/1000),mm=Math.floor(seconds/60),ss=('0'+seconds%60).slice(-2);$('#resultStats').innerHTML=`Печати: <b>${player.cores} / 3</b>　|　Устранено: <b>${player.kills}</b><br>Время: <b>${mm}:${ss}</b>　|　Применений: <b>${player.shots}</b>`;$('#resultScreen').classList.remove('hidden');$('#hud').style.display='none';$('#touchControls').classList.remove('gameOn');if(document.pointerLockElement)document.exitPointerLock();sfx(win?'win':'death')}
 function togglePause(force){if(scene==='play'){resetInputs();scene='paused';$('#pauseScreen').classList.remove('hidden');if(document.pointerLockElement)document.exitPointerLock();stopAmbient()}else if(scene==='paused'&&!force){scene='play';last=performance.now();$('#pauseScreen').classList.add('hidden');startAmbient()}}
-function drawBase(){let data=buffer.data,dirX=Math.cos(player.a),dirY=Math.sin(player.a),planeX=-dirY*TAN,planeY=dirX*TAN,horizon=H*.51+lookPitch+player.bob,fw=64,fd=floorTex.getContext('2d').getImageData(0,0,64,64).data,cd=ceilTex.getContext('2d').getImageData(0,0,64,64).data;
- for(let yy=0;yy<H;yy+=2){let floor=yy>horizon,off=Math.abs(yy-horizon),rowDist=clamp((floor?.5:.5)*proj/Math.max(1,off),.3,80),xstep=2/W,worldX=player.x+rowDist*(dirX-planeX),worldY=player.y+rowDist*(dirY-planeY),wxStep=rowDist*2*planeX*xstep,wyStep=rowDist*2*planeY*xstep,texture=floor?fd:cd;
- let baseLight=(floor?.26:.19)+((player.flash&&floor)? .19:0),distDark=clamp(1-rowDist/20,.08,1);let horizonFog=off<4?.5:1;
- for(let xx=0;xx<W;xx+=2){let tx=(Math.floor(worldX*64)&63),ty=(Math.floor(worldY*64)&63),idx=(ty*fw+tx)*4,cone=Math.max(0,1-Math.abs(xx/W-.5)*2);cone*=cone;let flashlight=player.flash?Math.pow(cone,2.7)*(.68+(Math.sin(t*12)*.02)):0;let light=clamp((baseLight+flashlight)*distDark*horizonFog,.055,1.0);let r=texture[idx]*light,g=texture[idx+1]*light,b=texture[idx+2]*light;for(let py=0;py<2&&yy+py<H;py++)for(let px=0;px<2&&xx+px<W;px++){let k=((yy+py)*W+xx+px)*4;data[k]=r;data[k+1]=g;data[k+2]=b;data[k+3]=255}worldX+=wxStep;worldY+=wyStep}
+const wallShade=makeCanvas(1,1),shadeCtx=wallShade.getContext('2d');
+const beamMask=makeCanvas(1,1);
+let beamX=[],beamY=[],surfaceTextures;
+
+function beamFalloff(radiusSquared){
+ const soft=Math.max(0,1-radiusSquared);
+ return soft*soft;
+}
+
+function resizeLighting(){
+ wallShade.width=beamMask.width=W;
+ wallShade.height=beamMask.height=H;
+ const light=beamMask.getContext('2d'),pixels=light.createImageData(W,H);
+ const radiusX=Math.min(W*.48,H*.79),radiusY=H*.54;
+ beamX=Float32Array.from({length:W},(_,x)=>((x+.5-W*.5)/radiusX)**2);
+ beamY=Float32Array.from({length:H},(_,y)=>((y+.5-H*.5)/radiusY)**2);
+ for(let y=0;y<H;y++){
+  for(let x=0;x<W;x++)pixels.data[(y*W+x)*4+3]=Math.round(255*beamFalloff(beamX[x]+beamY[y]));
  }
- ctx.putImageData(buffer,0,0)}
+ light.putImageData(pixels,0,0);
+}
+
+function readSurface(texture){
+ const data=texture.getContext('2d').getImageData(0,0,64,64).data;
+ const average=[0,0,0];
+ for(let i=0;i<data.length;i+=4)for(let c=0;c<3;c++)average[c]+=data[i+c]/4096;
+ return {data,average};
+}
+
+function drawBase(){
+ if(!surfaceTextures)surfaceTextures=[readSurface(ceilTex),readSurface(floorTex)];
+ const pixels=buffer.data,dirX=Math.cos(player.a),dirY=Math.sin(player.a);
+ const planeX=-dirY*TAN,planeY=dirX*TAN,horizon=H*.51+lookPitch+player.bob;
+ for(let y=0;y<H;y+=2){
+  const sampleY=Math.min(H-1,y+1),isFloor=sampleY>horizon;
+  const rayDepth=.5*proj/Math.max(1,Math.abs(sampleY+.5-horizon));
+  const depth=Math.min(80,rayDepth);
+  const fog=clamp(1-depth/27,.12,1);
+  const detail=clamp((15-depth)/9,0,1),lod=1-detail;
+  const {data,average}=surfaceTextures[Number(isFloor)];
+  const beamRow=beamY[sampleY];
+  const base=isFloor?.32:.25, lamp=player.flash?.77*clamp(1-depth/19,0,1):0;
+  const dx=depth*planeX*4/W,dy=depth*planeY*4/W;
+  let worldX=player.x+depth*(dirX-planeX+planeX*2/W);
+  let worldY=player.y+depth*(dirY-planeY+planeY*2/W);
+  for(let x=0;x<W;x+=2){
+   const light=(base+lamp*beamFalloff(beamX[Math.min(W-1,x+1)]+beamRow))*fog;
+   const fx=worldX*64,fy=worldY*64,sx=Math.floor(fx),sy=Math.floor(fy);
+   const u=fx-sx,v=fy-sy;
+   const a=((sy&63)*64+(sx&63))*4,b=((sy&63)*64+((sx+1)&63))*4;
+   const c=(((sy+1)&63)*64+(sx&63))*4,d=(((sy+1)&63)*64+((sx+1)&63))*4;
+   const r=((data[a]+(data[b]-data[a])*u)*(1-v)+(data[c]+(data[d]-data[c])*u)*v)*detail+average[0]*lod;
+   const g=((data[a+1]+(data[b+1]-data[a+1])*u)*(1-v)+(data[c+1]+(data[d+1]-data[c+1])*u)*v)*detail+average[1]*lod;
+   const blue=((data[a+2]+(data[b+2]-data[a+2])*u)*(1-v)+(data[c+2]+(data[d+2]-data[c+2])*u)*v)*detail+average[2]*lod;
+   for(let py=y;py<Math.min(y+2,H);py++){
+    for(let px=x;px<Math.min(x+2,W);px++){
+     const k=(py*W+px)*4;
+     pixels[k]=r*light;pixels[k+1]=g*light;pixels[k+2]=blue*light;pixels[k+3]=255;
+    }
+   }
+   worldX+=dx;worldY+=dy;
+  }
+ }
+ ctx.putImageData(buffer,0,0);
+}
+
 const zBuffer=[];
-function drawWalls(){let dirX=Math.cos(player.a),dirY=Math.sin(player.a),planeX=-dirY*TAN,planeY=dirX*TAN,horizon=H*.51+lookPitch+player.bob,step=W>700?2:1;
- for(let x=0;x<W;x+=step){let cameraX=2*x/W-1,rayX=dirX+planeX*cameraX,rayY=dirY+planeY*cameraX,hit=castRay(rayX,rayY),d=hit.d,wallHeight=proj/d,top=Math.round(horizon-wallHeight*.5),width=Math.min(step,W-x);for(let j=0;j<width;j++)zBuffer[x+j]=d;
- if(d>MAXRAY)continue;let locked=world[hit.my]?.[hit.mx]===2,wall=locked?texWall[4]:(()=>{const hash=Math.abs(hit.mx*13+hit.my*7+Math.floor(hit.mx/2)+floorNo*3);return texWall[hash%7<4?hash%4:5+(hash+floorNo)%4]})(),texX=clamp((hit.wallX*63)|0,0,63),fade=clamp((d-2)/19,0,.85),ambient=hit.side?.18:.07,beam=player.flash?Math.max(0,1-Math.abs(cameraX)*1.65)*clamp(1-d/19,0,.72):0,shade=clamp(.72-ambient+fade*.55-beam*.68,.03,.90);ctx.drawImage(wall,texX,0,1,64,x,top,width,wallHeight);ctx.fillStyle=`rgba(2,7,9,${shade})`;ctx.fillRect(x,top,width,wallHeight);if(hit.side===0&&hit.mx%7===0&&d<8){ctx.fillStyle=`rgba(112,32,28,${.14*clamp(1-d/8,0,1)})`;ctx.fillRect(x,top,width,wallHeight)}}}
+function drawWalls(){
+ const dirX=Math.cos(player.a),dirY=Math.sin(player.a),planeX=-dirY*TAN,planeY=dirX*TAN;
+ const horizon=H*.51+lookPitch+player.bob,step=W>700?2:1;
+ shadeCtx.clearRect(0,0,W,H);
+ shadeCtx.fillStyle='#020709';
+ shadeCtx.imageSmoothingEnabled=false;
+ for(let x=0;x<W;x+=step){
+  const width=Math.min(step,W-x),cameraX=2*(x+width*.5)/W-1;
+  const hit=castRay(dirX+planeX*cameraX,dirY+planeY*cameraX),depth=hit.d;
+  for(let i=0;i<width;i++)zBuffer[x+i]=depth;
+  if(depth>MAXRAY)continue;
+  const height=proj/depth,top=Math.round(horizon-height*.5);
+  const hash=Math.abs(hit.mx*13+hit.my*7+Math.floor(hit.mx/2)+floorNo*3);
+  const wall=texWall[world[hit.my]?.[hit.mx]===2?4:hash%7<4?hash%4:5+(hash+floorNo)%4];
+  const tx=clamp(hit.wallX*64-.5,0,63),column=Math.floor(tx),blend=tx-column;
+  ctx.drawImage(wall,column,0,1,64,x,top,width,height);
+  if(blend>0){
+   ctx.globalAlpha=blend;
+   ctx.drawImage(wall,column+1,0,1,64,x,top,width,height);
+   ctx.globalAlpha=1;
+  }
+  shadeCtx.globalCompositeOperation='source-over';
+  shadeCtx.globalAlpha=clamp((hit.side?.59:.69)+depth*.017,0,.9);
+  shadeCtx.fillRect(x,top,width,height);
+  if(player.flash&&depth<19){
+   shadeCtx.globalCompositeOperation='destination-out';
+   shadeCtx.globalAlpha=.88*(1-depth/19);
+   shadeCtx.drawImage(beamMask,x,0,width,H,x,0,width,H);
+  }
+ }
+ shadeCtx.globalCompositeOperation='source-over';
+ shadeCtx.globalAlpha=1;
+ ctx.drawImage(wallShade,0,0);
+}
 function drawSprites(){
  let list=[];onlineSprites(list);for(const e of exorcistBots)if(botLive(e)||e.deathAnim>0)list.push({x:e.x,y:e.y,type:'exorcist',enemy:e});for(const e of spiritAllyBots)if(botLive(e)||e.deathAnim>0)list.push({x:e.x,y:e.y,type:e.type,enemy:e});for(const e of enemies)if((e.alive||e.deathAnim>0)&&!(battle&&battleSide==='exorcist'&&e.abilityPhase>0))list.push({x:e.x,y:e.y,type:e.type,enemy:e});
  for(const o of objects)if(!o.used)list.push(o);for(const p of projectiles)list.push({x:p.x,y:p.y,z:p.z,type:'waterOrb',age:p.age});
@@ -617,10 +720,26 @@ function drawGun(){
  window.ObitelAnimation.firstPerson(ctx,role,sprite,player,t,W,H,water);
 }
 
-function drawPostFX(){if(player.abilityShield>0){ctx.save();ctx.strokeStyle='rgba(251,214,137,.45)';ctx.lineWidth=Math.max(3,W*.01);ctx.strokeRect(0,0,W,H);ctx.restore()}if(player.abilityPhase>0){ctx.fillStyle='rgba(116,166,207,.075)';ctx.fillRect(0,0,W,H)}const grad=ctx.createRadialGradient(W*.5,H*.47,H*.14,W*.5,H*.47,H*.8);grad.addColorStop(0,'rgba(0,0,0,0)');grad.addColorStop(.55,'rgba(0,0,0,.13)');grad.addColorStop(1,player.flash?'rgba(0,0,0,.68)':'rgba(0,0,0,.86)');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
- if(player.holyGlow>0){ctx.fillStyle=`rgba(93,204,244,${player.holyGlow*.23})`;ctx.fillRect(0,0,W,H)}if(player.hurt>0){ctx.fillStyle=`rgba(152,12,20,${player.hurt*.28})`;ctx.fillRect(0,0,W,H)}if(player.health<35){ctx.fillStyle=`rgba(93,0,6,${(.35-player.health/100)*(.2+.07*Math.sin(t*3))})`;ctx.fillRect(0,0,W,H)}if(Math.sin(t*2.5)> .997){ctx.fillStyle='rgba(197,231,222,.07)';ctx.fillRect(0,0,W,H)}
- ctx.fillStyle='rgba(182,194,176,.09)';for(let i=0;i<32;i++){let xx=(Math.sin(t*(.05+i*.08)+i*16.3)*3499)%W,yy=(Math.cos(t*(.09+i*.05)+i*7.2)*2243)%H;ctx.fillRect(Math.abs(xx),Math.abs(yy),1,1)}}
-function render(){if(!player)return;ctx.save();if(player.hurt>0)ctx.translate(rand(-player.hurt,player.hurt)*4,rand(-player.hurt,player.hurt)*4);drawBase();drawWalls();drawSprites();drawParticles();if(!player.hidden)drawGun();drawPostFX();if(player.hidden){ctx.fillStyle='rgba(4,5,8,.78)';ctx.fillRect(0,0,W*.28,H);ctx.fillRect(W*.72,0,W*.28,H);ctx.fillStyle='rgba(20,11,9,.42)';ctx.fillRect(0,0,W,H);ctx.strokeStyle='#866342';ctx.lineWidth=7;ctx.strokeRect(W*.26,0,W*.48,H);}ctx.restore();drawRadar()}
+function drawPostFX(){
+ if(player.abilityShield>0){
+  ctx.save();ctx.strokeStyle='rgba(251,214,137,.35)';ctx.lineWidth=Math.max(3,W*.01);ctx.strokeRect(0,0,W,H);ctx.restore();
+ }
+ const vignette=ctx.createRadialGradient(W*.5,H*.5,Math.min(W,H)*.23,W*.5,H*.5,Math.hypot(W,H)*.53);
+ vignette.addColorStop(0,'transparent');
+ vignette.addColorStop(1,player.flash?'rgba(0,0,0,.38)':'rgba(0,0,0,.57)');
+ ctx.fillStyle=vignette;ctx.fillRect(0,0,W,H);
+ const damage=Math.min(.26,Math.max(0,.35-player.health/100)*.25+player.hurt*.2);
+ if(damage>0){
+  const edge=ctx.createRadialGradient(W*.5,H*.5,Math.min(W,H)*.22,W*.5,H*.5,Math.hypot(W,H)*.53);
+  edge.addColorStop(0,'transparent');edge.addColorStop(1,`rgba(126,17,24,${damage})`);
+  ctx.fillStyle=edge;ctx.fillRect(0,0,W,H);
+ }
+ if(player.abilityPhase>0){
+  ctx.fillStyle=`rgba(116,166,207,${Math.min(.055,player.abilityPhase*.036)})`;
+  ctx.fillRect(0,0,W,H);
+ }
+}
+function render(){if(!player)return;drawBase();drawWalls();drawSprites();drawParticles();if(!player.hidden)drawGun();drawPostFX();if(player.hidden){ctx.fillStyle='rgba(4,5,8,.78)';ctx.fillRect(0,0,W*.28,H);ctx.fillRect(W*.72,0,W*.28,H);ctx.fillStyle='rgba(20,11,9,.42)';ctx.fillRect(0,0,W,H);ctx.strokeStyle='#866342';ctx.lineWidth=7;ctx.strokeRect(W*.26,0,W*.48,H);}drawRadar()}
 function drawRadar(){const w=110,h=110;rctx.fillStyle='#061012';rctx.fillRect(0,0,w,h);let scale=12,r=4.5,cx=w/2,cy=h/2,px=Math.floor(player.x),py=Math.floor(player.y);for(let yy=-5;yy<=5;yy++)for(let xx=-5;xx<=5;xx++){let gx=px+xx,gy=py+yy;if(gx<0||gy<0||gx>=MAPSIZE||gy>=MAPSIZE||!visited[gy][gx])continue;rctx.fillStyle=world[gy][gx]?'#1c3334':'#445653';rctx.fillRect(cx+xx*scale-scale/2,cy+yy*scale-scale/2,scale-1,scale-1)}for(let o of objects)if(!o.used&&['core','exit','keyItem','wardrobe','confessional'].includes(o.type)){let dx=(o.x-player.x),dy=(o.y-player.y);if(Math.abs(dx)>5||Math.abs(dy)>5)continue;rctx.fillStyle=o.type==='core'?'#a8eebd':o.type==='keyItem'?'#f1c16b':o.type==='wardrobe'||o.type==='confessional'?'#72929e':'#f16b5b';rctx.fillRect(cx+dx*scale-3,cy+dy*scale-3,6,6)}rctx.save();rctx.translate(cx,cy);rctx.rotate(player.a+Math.PI/2);rctx.fillStyle='#edf4d7';rctx.beginPath();rctx.moveTo(0,-8);rctx.lineTo(6,6);rctx.lineTo(0,3);rctx.lineTo(-6,6);rctx.fill();rctx.restore();rctx.strokeStyle='#52756a';rctx.strokeRect(.5,.5,w-1,h-1);rctx.fillStyle='#86aea3';rctx.font='8px monospace';rctx.fillText('RDR //13',5,10)}
 function drawBigmap(){const s=bigmap.width/MAPSIZE;bctx.fillStyle='#061012';bctx.fillRect(0,0,400,400);for(let y=0;y<MAPSIZE;y++)for(let x=0;x<MAPSIZE;x++){bctx.fillStyle=visited[y][x]?(world[y][x]?'#0b1719':'#465850'):(world[y][x]?'#03090a':'#142223');bctx.fillRect(x*s,y*s,s-.7,s-.7)}for(let o of objects)if(!o.used&&['core','exit','keyItem','wardrobe','confessional'].includes(o.type)){let x=o.x*s,y=o.y*s;bctx.fillStyle=o.type==='core'?'#a8edbb':o.type==='keyItem'?'#edca7e':o.type==='wardrobe'||o.type==='confessional'?'#7e9fae':'#fc6b59';bctx.fillRect(x-4,y-4,8,8)}if(vaultDoor&&!vaultDoor.used){bctx.fillStyle='#d98564';bctx.fillRect(vaultDoor.x*s-4,vaultDoor.y*s-4,8,8)}bctx.save();bctx.translate(player.x*s,player.y*s);bctx.rotate(player.a+Math.PI/2);bctx.fillStyle='white';bctx.beginPath();bctx.moveTo(0,-8);bctx.lineTo(6,6);bctx.lineTo(-6,6);bctx.fill();bctx.restore()}
 function openMap(){if(scene!=='play')return;resetInputs();pauseFromMap=true;scene='map';drawBigmap();$('#mapScreen').classList.remove('hidden');if(document.pointerLockElement)document.exitPointerLock();stopAmbient()}function closeMap(){if(scene!=='map')return;scene='play';pauseFromMap=false;last=performance.now();$('#mapScreen').classList.add('hidden');startAmbient()}
@@ -758,7 +877,7 @@ function startOnline(message, id, host) {
  enemies=[]; projectiles=[]; particles=[]; exorcistBots=[]; spiritAllyBots=[]; vaultDoor=null;
  visited = world.map(row => row.map(() => true));
  floorNo=1; floorFlavor='Зал исповедей'; t=0; lookPitch=0;
- player = { ...me, health:me.hp, stamina:100, battery:100, flash:true, grenades:0, keys:0, hidden:false,
+ player = { ...me, health:me.hp, stamina:100, battery:100, flash:netSide(me)==='hunt', grenades:0, keys:0, hidden:false,
   weapon:'cross', waterCd:0, crossEffect:0, throwAnim:0, holyGlow:0, cores:0, reload:0, flashShot:0,
   hurt:0, bob:0, steps:0, moveSpeed:0, walkTime:0, started:performance.now() };
  resetInputs();
