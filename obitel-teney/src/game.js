@@ -415,7 +415,7 @@ function makeFloor(initial=false){
  place('barrel',6,4);place('lamp',14,3);place('wardrobe',5,5);place('confessional',3,6);place('altar',4,5);place('candles',11,3);
  if(!battle){
   const [intro,archival]=floorStories[floorTheme],{x,y,a}=layout.spawn;
-  objects.push({type:'note',x:x+Math.cos(a)*1.45,y:y+Math.sin(a)*1.45,used:false,lore:intro});
+  objects.push({type:'note',x:x+Math.cos(a)*1.45,y:y+Math.sin(a)*1.45,used:false,lore:intro,intro:true});
   objects.push({type:'note',x:vcx-.5,y:vcy+.5,used:false,lore:archival});
  }
  function placeEnemy(type,x,y,grace=0){if(isWall(x,y))return;enemies.push({x,y,type,a:0,spawnX:x,spawnY:y,windup:null,investigate:null,hp:({ghost:68,cultist:93,wraith:100,demon:175})[type]*(difficulty==='hard'?1.25:difficulty==='easy'?.78:1),alive:true,speed:spiritAttack[type].speed,alert:false,lastSeen:0,attack:rand(.7,1.7),path:[],pathTimer:0,stun:0,walk:rand(0,10),flash:0,attackAnim:0,deathAnim:0,spawnGrace:grace})}
@@ -446,7 +446,8 @@ function makeFloor(initial=false){
   const c=candidates[(rng()*candidates.length)|0];if(!c||c.d<9||!canStand(c.x+.5,c.y+.5)||used.some(o=>Math.hypot(c.x-o.x,c.y-o.y)<3)||objects.some(o=>['core','keyItem','wardrobe','confessional'].includes(o.type)&&Math.hypot(o.x-c.x-.5,o.y-c.y-.5)<2))continue;
   let kind=floorEncounter[floorTheme][i%4];if(floorNo===1&&kind==='demon')kind='ghost';placeEnemy(kind,c.x+.5,c.y+.5,rand(.5,3));used.push(c);i++
  }
- markVisit();$('#coreCount').textContent='0 / 3';$('#missionSmall').textContent=`ЭТАЖ ${floorNo} · ${floorFlavor.toUpperCase()}`;$('#floorStat').textContent='ЭТАЖ '+floorNo+' · '+floorFlavor;$('#signal').textContent='ИЩИТЕ КЛЮЧИ, УКРЫТИЯ И ПЕЧАТИ';updateHud();saveCheckpoint();showToast(descentNotice|| (initial&&floorNo===1?'У ВХОДА ЛЕЖИТ ЗАПИСКА. ПОДОЙДИ К НЕЙ.':'СПУСК: ЭТАЖ '+floorNo+' · '+floorFlavor),descentNotice?6:3.2);
+ markVisit();$('#coreCount').textContent='0 / 3';$('#missionSmall').textContent=`ЭТАЖ ${floorNo} · ${floorFlavor.toUpperCase()}`;$('#floorStat').textContent='ЭТАЖ '+floorNo+' · '+floorFlavor;$('#signal').textContent='ИЩИТЕ КЛЮЧИ, УКРЫТИЯ И ПЕЧАТИ';updateHud();saveCheckpoint();if(descentNotice)showToast(descentNotice,6);
+ else if(!initial||floorNo!==1)showToast('СПУСК: ЭТАЖ '+floorNo+' · '+floorFlavor,3.2);
  descentNotice='';
 }
 
@@ -623,10 +624,10 @@ function update(dt){if(scene!=='play')return;if(battle&&battleSide==='spirit'){b
   ne?({exit:'[ E ] СПУСК: 3 ПЕЧАТИ + 1 КЛЮЧ',lockedDoor:player.keys?'[ E ] ОТКРЫТЬ КРИПТУ':'[ E ] ЗАПЕРТО · НУЖЕН КЛЮЧ',core:ritual?.seal===ne?'НЕ ОТХОДИ ОТ ПЕЧАТИ':'[ E ] НАЧАТЬ РИТУАЛ'})[ne.type]||'[ E ] СПРЯТАТЬСЯ':
   player.cores<3?'✠ ПЕЧАТИ '+player.cores+'/3 · КЛЮЧИ '+player.keys:'✠ КЛЮЧИ '+player.keys+' · ИЩИТЕ ВЫХОД';
  hudText('signal',prompt);
- for(let o of objects){if(o.used||!['ammoItem','medItem','batteryItem','keyItem','note'].includes(o.type))continue;if(!player.hidden&&dist(player,o)<.64){o.used=true;if(o.type==='keyItem'){player.keys++;showToast('ПОЛУЧЕН ЛАТУННЫЙ КЛЮЧ — '+player.keys,2.3);sfx('pickup')}if(o.type==='note'){
+ for(let o of objects){if(o.used||!['ammoItem','medItem','batteryItem','keyItem','note'].includes(o.type))continue;if(!player.hidden&&dist(player,o)<(o.intro?1.65:.64)){o.used=true;if(o.type==='keyItem'){player.keys++;showToast('ПОЛУЧЕН ЛАТУННЫЙ КЛЮЧ — '+player.keys,2.3);sfx('pickup')}if(o.type==='note'){
   const text=`Этаж ${floorNo} — ${floorFlavor}: ${o.lore}`;
   if(!foundLore.includes(text))foundLore.push(text);
-  saveCheckpoint();showToast(o.lore,5.8);sfx('pickup')
+  saveCheckpoint();if(!o.intro||floorNo===1||!$('#toast').classList.contains('show'))showToast(o.lore,5.8);sfx('pickup')
  }if(o.type==='ammoItem'){player.grenades=Math.min(14,player.grenades+2);showToast('+2 ФЛАКОНА СВЯТОЙ ВОДЫ',1.5);sfx('pickup')}if(o.type==='medItem'){player.health=Math.min(100,player.health+34);showToast('ОСВЯЩЁННАЯ РЕЛИКВИЯ +34',1.5);sfx('pickup')}if(o.type==='batteryItem'){player.battery=Math.min(100,player.battery+40);showToast('СВЕЧА: ФОНАРЬ +40%',1.5);sfx('pickup')}}}
  tickRitual(dt);
  tickSpirits(dt,sprint&&moved>.003);
