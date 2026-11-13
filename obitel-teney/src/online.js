@@ -2,7 +2,7 @@
 'use strict';
 
 const $ = id => document.getElementById(id);
-const version = 11, peerPrefix = 'obitel-pvp-v11-';
+const version = 11;
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const validCode = value => typeof value === 'string' && /^[A-HJ-NP-Z2-9]{6}$/.test(value);
 const classes = {
@@ -29,18 +29,16 @@ function create(game) {
  const guests = new Map();
  const directory = window.ObitelDirectory({
   onRooms: rooms => { entries = rooms; renderDirectory(); },
+  onWire: body => peer?.receive(body),
+  onWireReady: () => peer?.ready(),
   onStatus: ready => {
    directoryReady = ready;
-   $('lobbyConnection').textContent = ready ? 'Публичные комнаты обновляются автоматически.' : 'Каталог недоступен. Можно войти по коду.';
+   $('lobbyConnection').textContent = ready ? 'Публичные комнаты обновляются автоматически.' : 'Служба комнат недоступна. Переподключаемся…';
   }
  });
  const status = text => { $('netStatus').textContent = text; };
  const send = (link, data) => { if (link?.open) { try { link.send(data); } catch {} } };
- const broadcast = data => {
-  for (const guest of guests.values()) {
-   if (guest.player && (data.type !== 'state' || guest.link.bufferSize < 4)) send(guest.link, data);
-  }
- };
+ const broadcast = data => peer?.broadcast(data);
  function reset() {
   const oldPeer = peer;
   mode = 'idle'; peer = null; connection = null; room = null; self = null; roster = []; started = false;
@@ -48,7 +46,7 @@ function create(game) {
   directory.advertise(null);
   for (const guest of guests.values()) clearTimeout(guest.timeout);
   guests.clear();
-  oldPeer?.destroy();
+  if (oldPeer) oldPeer.destroy().finally(() => { if (!peer) directory.wire(''); });
  }
  function showSetup(message = '') {
   $('netSetup').hidden = false;
@@ -196,28 +194,11 @@ function create(game) {
    syncRoster();
   });
  }
- function peerError(source, error) {
-  if (peer !== source) return;
-  if (error?.type === 'peer-unavailable') { fail('Комната не найдена или матч уже начался.'); return; }
-  if (room && roster.length) {
-   if (mode === 'host' && source.disconnected && !source.destroyed) {
-    status('Переподключаемся к серверу соединений…');
-   }
-   return;
-  }
-  fail('Не удалось подключиться к сети. Попробуйте ещё раз.');
- }
- function makePeer(id) {
-  if (!window.Peer) { fail('Служба подключения не загрузилась. Обновите страницу.'); return null; }
-  let instance;
-  try { instance = id ? new window.Peer(id) : new window.Peer(); }
-  catch { fail('Не удалось открыть сетевое соединение.'); return null; }
+ function makePeer(code) {
+  if (!window.crypto?.subtle) { fail('Откройте игру по HTTPS для сетевого режима.'); return null; }
+  const instance = window.ObitelRelay(mode === 'host', code, directory);
   peer = instance;
-  instance.on('error', error => peerError(instance, error));
-  instance.on('disconnected', () => {
-   if (mode !== 'host' || instance !== peer) return;
-   setTimeout(() => { if (instance === peer && instance.disconnected && !instance.destroyed) instance.reconnect(); }, 2500);
-  });
+  instance.on('error', () => { if (peer === instance) fail('Не удалось открыть сетевое соединение.'); });
   return instance;
  }
  function hostRoom() {
@@ -226,7 +207,7 @@ function create(game) {
   const code = roomCode(), character = selected[side], isPublic = $('lobbyPublic').checked;
   const name = cleanName($('lobbyName').value);
   waitForPeer('Открываем комнату…');
-  const instance = makePeer(peerPrefix + code);
+  const instance = makePeer(code);
   if (!instance) return;
   instance.on('connection', acceptGuest);
   instance.on('open', id => {
@@ -246,11 +227,11 @@ function create(game) {
   if (!validCode(code)) { status('Введите шестизначный код комнаты.'); return; }
   mode = 'guest';
   waitForPeer('Ищем комнату ' + code + '…');
-  const instance = makePeer();
+  const instance = makePeer(code);
   if (!instance) return;
   instance.on('open', () => {
    if (peer !== instance) return;
-   const link = instance.connect(peerPrefix + code, { reliable:true, serialization:'json' });
+   const link = instance.connect();
    connection = link;
    link.on('open', () => send(link, { type:'hello', character, version }));
    link.on('data', message => {

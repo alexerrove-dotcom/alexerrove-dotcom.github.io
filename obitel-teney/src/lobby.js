@@ -1,10 +1,10 @@
-/* Room announcements only. Private room codes and match traffic stay on PeerJS. */
-window.ObitelDirectory = function ({ onRooms, onStatus }) {
+/* Public directory and a separate encrypted topic for the active match. */
+window.ObitelDirectory = function ({ onRooms, onStatus, onWire, onWireReady }) {
  const topic = 'obitel-teney/1-1/rooms';
  const urls = ['wss://broker.emqx.io:8084/mqtt', 'wss://test.mosquitto.org:8081/mqtt'];
  const encoder = new TextEncoder(), decoder = new TextDecoder();
  const entries = new Map(), links = new Map();
- let room = null, started = false, sequence = 0;
+ let room = null, started = false, sequence = 0, wireTopic = '', wireSubId = 1;
  const empty = new Uint8Array(0);
  const encode = value => Array.from(encoder.encode(value));
  const string = value => {
@@ -29,6 +29,12 @@ window.ObitelDirectory = function ({ onRooms, onStatus }) {
   for (const current of link ? [link] : links.values()) {
    if (current.ready) send(current, bytes);
   }
+ }
+ function subscribe(link, channel, id) {
+  send(link, packet(0x82, [id >> 8, id & 255, ...string(channel), 0]));
+ }
+ function unsubscribe(link, channel) {
+  send(link, packet(0xa2, [0, 2, ...string(channel)]));
  }
  function status() {
   onStatus([...links.values()].some(link => link.ready));
@@ -80,16 +86,27 @@ window.ObitelDirectory = function ({ onRooms, onStatus }) {
    if (bytes.length < end + length) { link.pending = bytes.slice(offset); return; }
    const type = bytes[offset] >> 4;
    if (type === 2 && length === 2 && bytes[end + 1] === 0) {
-    send(link, packet(0x82, [0, 1, ...string(topic), 0]));
+    subscribe(link, topic, 1);
    } else if (type === 9 && length === 3 && bytes[end + 2] === 0) {
-    link.ready = true;
-    status();
-    publish({ type: 'list' }, link);
-    if (room) publish({ type: 'room', ...room }, link);
-   } else if (type === 3 && length >= 2 && length < 1024) {
+    const id = bytes[end] * 256 + bytes[end + 1];
+    if (id === 1) {
+     link.ready = true;
+     status();
+     publish({ type: 'list' }, link);
+     if (room) publish({ type: 'room', ...room }, link);
+     if (wireTopic) subscribe(link, wireTopic, wireSubId);
+    } else if (id === wireSubId && wireTopic) {
+     link.wireReady = true;
+     onWireReady?.();
+    }
+   } else if (type === 3 && length >= 2 && length < 16000) {
     const topicLength = bytes[end] * 256 + bytes[end + 1];
-    if (topicLength + 2 < length && decoder.decode(bytes.subarray(end + 2, end + 2 + topicLength)) === topic) {
-     try { receive(link, JSON.parse(decoder.decode(bytes.subarray(end + 2 + topicLength, end + length)))); } catch {}
+    if (topicLength + 2 < length) {
+     const channel = decoder.decode(bytes.subarray(end + 2, end + 2 + topicLength));
+     const body = bytes.subarray(end + 2 + topicLength, end + length);
+     if (channel === topic && body.length < 900) {
+      try { receive(link, JSON.parse(decoder.decode(body))); } catch {}
+     } else if (channel === wireTopic && link.wireReady) onWire?.(body);
     }
    }
    offset = end + length;
@@ -98,7 +115,7 @@ window.ObitelDirectory = function ({ onRooms, onStatus }) {
  }
  function connect(url) {
   const ws = new WebSocket(url, 'mqtt');
-  const link = { ws, ready: false, pending:empty, lastReply: 0 };
+  const link = { ws, ready: false, wireReady:false, pending:empty, lastReply: 0 };
   links.set(url, link);
   ws.binaryType = 'arraybuffer';
   const deadline = setTimeout(() => { if (!link.ready) ws.close(); }, 7000);
@@ -127,6 +144,22 @@ window.ObitelDirectory = function ({ onRooms, onStatus }) {
    }, 5500);
   },
   refresh,
+  wire(channel) {
+   if (channel === wireTopic) return;
+   for (const link of links.values()) {
+    link.wireReady = false;
+    if (link.ready && wireTopic) unsubscribe(link, wireTopic);
+   }
+   wireTopic = channel;
+   wireSubId = 3 + ((wireSubId + 1) % 65532);
+   for (const link of links.values()) if (link.ready && channel) subscribe(link, channel, wireSubId);
+  },
+  wireReady: () => [...links.values()].some(link => link.wireReady),
+  wireSend(body) {
+   if (!wireTopic) return;
+   const bytes = packet(0x30, [...string(wireTopic), ...body]);
+   for (const link of links.values()) if (link.wireReady && link.ws.bufferedAmount < 65536) send(link, bytes);
+  },
   advertise(next) {
    sequence = Math.max(Date.now(), sequence + 1);
    if (room && (!next || next.code !== room.code)) publish({ type: 'close', code: room.code, seq: sequence });
