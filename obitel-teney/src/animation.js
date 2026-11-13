@@ -11,7 +11,7 @@ function pulse(timer, length, peak=.32) {
 
 const attacks={
  priest:   {duration:.34, keys:[[0,0,0,0,1],[.24,-.08,.07,-.12,.96],[.48,.20,.30,.15,1.16],[1,0,0,0,1]], light:[255,220,150]},
- hunter:   {duration:.33, keys:[[0,0,0,0,1],[.12,.16,.23,-.23,1.16],[.37,.09,.13,-.11,1.07],[.67,-.09,-.09,.10,.95],[1,0,0,0,1]], light:[255,175,95]},
+ hunter:   {duration:.36, keys:[[0,0,0,0,1],[.095,-.023,.085,.09,1.016],[.34,-.017,.032,.037,1.01],[.64,.008,-.014,-.015,1],[1,0,0,0,1]], light:[255,175,95]},
  medic:    {duration:.29, keys:[[0,0,0,0,1],[.23,.17,.25,.05,1.13],[.52,.25,.30,-.16,1.04],[.8,-.04,.09,.1,1],[1,0,0,0,1]], light:[131,241,211]},
  guardian: {duration:.42, keys:[[0,0,0,0,1],[.26,-.11,.09,-.21,1],[.52,.33,.23,.31,1.32],[.74,.18,.13,.2,1.17],[1,0,0,0,1]], light:[241,221,175]},
  ghost:    {duration:.37, keys:[[0,0,0,0,1],[.23,-.05,-.03,-.12,.9],[.55,.33,.26,.12,1.28],[.72,.22,.20,.08,1.22],[1,0,0,0,1]], light:[144,224,249]},
@@ -53,40 +53,38 @@ function firstPerson(ctx, role, sprite, player, time, width, height, alternate) 
  const [powerReach,powerLift,powerRoll,powerZoom]=abilityPose[role];
  const throwPose=pulse(player.throwAnim,.65,.42);
  const spectral=['ghost','wraith','cultist','demon'].includes(role);
- const size=Math.min(width*.57,height*(spectral ? .78 : .82));
+ const size=Math.min(width*(role==='hunter'?.43:.45),height*(spectral?.59:role==='hunter'?.68:.65));
  const spriteHeight=size*sourceHeight/sourceWidth;
  const advance=reach+power*powerReach;
  const rise=lift+power*powerLift;
  const swing=Math.sin(step)*move;
  const idle=Math.sin(time*2.25)*height*.004;
  const scale=zoom+(powerZoom-1)*power+throwPose*.06;
- const baseline=height+spriteHeight*(spectral?.25:.26);
+ const baseline=height+spriteHeight*(spectral?.12:role==='hunter'?.04:.13);
+ let muzzle=null;
  const draw=(side, amount)=>{
-  const x=width*.5+side*(width*.34-(advance*amount+throwPose*.16)*size)+swing*size*.026;
+  const anchor=role==='hunter'?.27:spectral?.29:.30;
+  const x=width*.5+side*(width*anchor-(advance*amount+throwPose*.16)*size)+swing*size*.02;
   const y=baseline-(rise*amount+throwPose*.48)*spriteHeight+idle+Math.sin(step+side*.6)*move*height*.019;
   ctx.save();
   ctx.translate(x,y);
   ctx.scale(side*scale,scale);
-  ctx.rotate(roll*amount+power*powerRoll+throwPose*.38+swing*.025);
+  const angle=roll*amount+power*powerRoll+throwPose*.38+swing*.02;
+  ctx.rotate(angle);
   if(spectral)ctx.globalAlpha=player.abilityPhase>0?.46:.94;
   ctx.drawImage(sprite,-size*.73,-spriteHeight*.87,size,spriteHeight);
   ctx.restore();
+  if(side===1){
+   // UV anchors are measured on the artwork, then transformed with the same recoil pose.
+   const uv=role==='hunter'?[.039,.034]:role==='priest'?[.46,.15]:role==='medic'?[.39,.23]:[.44,.23];
+   const ax=(uv[0]-.73)*size,ay=(uv[1]-.87)*spriteHeight;
+   muzzle={x:x+(ax*Math.cos(angle)-ay*Math.sin(angle))*scale,
+    y:y+(ax*Math.sin(angle)+ay*Math.cos(angle))*scale};
+  }
  };
  if(spectral&&(role==='ghost'||role==='demon'))draw(-1,role==='demon'?.91:.68);
  draw(1,1);
- if(role==='hunter'&&phase>0&&phase<.32){
-  const intensity=(1-phase/.32)**1.4,x=width*.605,y=height*.70,r=Math.min(width,height)*.13;
-  ctx.save();ctx.globalAlpha=intensity*.81;ctx.fillStyle='#f5ab64';
-  ctx.beginPath();
-  for(let i=0;i<12;i++){
-   const angle=i*Math.PI/6,reach=i%2?r*.31:r*(i%3===0?1:.64);
-   const px=x+Math.cos(angle)*reach,py=y+Math.sin(angle)*reach;
-   if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
-  }
-  ctx.closePath();ctx.fill();ctx.globalAlpha=intensity;ctx.fillStyle='#fff2d6';
-  ctx.beginPath();ctx.ellipse(x,y,r*.24,r*.13,-.4,0,Math.PI*2);ctx.fill();ctx.restore();
- }
- const energy=phase>0?Math.max(0,1-Math.abs(phase-(role==='hunter'?.17:.5))*3):0;
+ const energy=role!=='hunter'&&phase>0?Math.max(0,1-Math.abs(phase-.50)*3):0;
  if(energy||power||alternate&&throwPose){
   const [r,g,b]=spec.light;
   const glow=ctx.createRadialGradient(width*.52,height*.65,0,width*.52,height*.65,height*.29);
@@ -95,6 +93,7 @@ function firstPerson(ctx, role, sprite, player, time, width, height, alternate) 
   ctx.fillStyle=glow;
   ctx.fillRect(width*.52-height*.29,height*.65-height*.29,height*.58,height*.58);
  }
+ return muzzle;
 }
 
 function body(role, actor, t) {
@@ -108,10 +107,10 @@ function body(role, actor, t) {
  const falling=actor.alive?0:Math.max(0,1-actor.deathAnim/.94);
  return {
   x:Math.sin(step)*moving*.047+reach*.24+falling*.2,
-  crouch:idle*.016+Math.abs(Math.sin(step))*moving*.075+lift*.27+power*.09-falling*.65,
+  crouch:idle*.011+Math.abs(Math.sin(step))*moving*.044+lift*.17+power*.06-falling*.65,
   width:1+(zoom-1)*.62+power*.12+falling*.16,
-  lower:Math.sin(step)*moving*.10,
-  lean:roll*.64+power*abilityPose[role][2]+falling*.39
+  lower:Math.sin(step)*moving*.042,
+  lean:roll*.27+power*abilityPose[role][2]*.6+falling*.27
  };
 }
 
