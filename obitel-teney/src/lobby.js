@@ -1,6 +1,6 @@
 /* Public directory and a separate encrypted topic for the active match. */
 window.ObitelDirectory = function ({ onRooms, onStatus, onWire, onWireReady }) {
- const topic = 'obitel-teney/1-1/rooms';
+ const topic = 'obitel-teney/1-3/rooms';
  const urls = [
   'wss://broker.emqx.io:8084/mqtt',
   'wss://test.mosquitto.org:8081/mqtt',
@@ -68,7 +68,7 @@ window.ObitelDirectory = function ({ onRooms, onStatus, onWire, onWireReady }) {
    && ['hunt', 'spirit'].every(side => Number.isInteger(value[side]) && value[side] >= 0 && value[side] <= 4)
    && value.hunt + value.spirit > 0) {
    if (entries.size >= 300 && !previous) return;
-   const listed = { code: value.code, name: value.name.trim().slice(0, 28) || 'Аббатство', hunt: value.hunt, spirit: value.spirit };
+   const listed = { code: value.code, name: value.name.trim().slice(0, 28) || 'Аббатство', hunt: value.hunt, spirit: value.spirit, running:value.running === true };
    entries.set(value.code, { seq: value.seq, room: listed, expires: Date.now() + 20000 });
   } else return;
   draw();

@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#080b0e">
-<title>ОБИТЕЛЬ ТЕНЕЙ v1.2 — Онлайн и боты 4 на 4</title>
-<link rel="stylesheet" href="src/style.css?v=12">
-<link rel="stylesheet" href="src/lobby.css?v=12">
+<title>ОБИТЕЛЬ ТЕНЕЙ v1.3 — Открытая арена</title>
+<link rel="stylesheet" href="src/style.css?v=13">
+<link rel="stylesheet" href="src/lobby.css?v=13">
 </head>
 <body>
 <canvas id="game" aria-label="Игровое поле"></canvas><div id="grain"></div>
@@ -86,7 +86,7 @@
    <div class="lobbyHeading"><h3 id="netRoomName"></h3><button type="button" class="secondary" id="netCopy">Копировать ссылку</button></div>
    <p id="netRoomInfo"></p>
    <div id="netRoster" class="netRoster"></div>
-   <div class="netButtons"><button type="button" class="cta" id="netStart">Начать матч</button><button type="button" class="secondary" id="netLeave">Покинуть комнату</button></div>
+   <div class="netButtons"><button type="button" class="cta" id="netStart">Выйти на арену</button><button type="button" class="secondary" id="netLeave">Покинуть комнату</button></div>
   </section>
   <p id="netStatus" class="netStatus" role="status"></p>
   <button type="button" class="secondary" id="netClose">Назад</button>
@@ -94,7 +94,7 @@
 </div>
 <div id="netBanner" aria-live="off"></div>
 <div id="bestiaryScreen" class="screen hidden"><div class="panel" style="width:min(890px,96vw);max-height:94dvh;overflow-y:auto"><div class="eyebrow">✠ ОБИТАТЕЛИ ПОДЗЕМНОЙ ОБИТЕЛИ</div><h2 style="font-size:23px;letter-spacing:2px;margin:0 0 14px">БЕСТИАРИЙ</h2><div class="bestiaryGrid"><div class="beast"><img id="beast_ghost" alt="Монастырский дух"><b>МОНАСТЫРСКИЙ ДУХ</b><small>Тихо парит и преследует жертву</small></div><div class="beast"><img id="beast_cultist" alt="Призрачная монахиня"><b>ПРИЗРАЧНАЯ МОНАХИНЯ</b><small>Подкрадывается молча и бьёт в упор</small></div><div class="beast"><img id="beast_wraith" alt="Теневой призрак"><b>ТЕНЕВОЙ ПРИЗРАК</b><small>Быстрый и скользит сквозь тьму</small></div><div class="beast"><img id="beast_demon" alt="ПОЛТЕРГЕЙСТ"><b>ПОЛТЕРГЕЙСТ</b><small>Сильный дух, швыряет энергией и хаосом</small></div></div><button class="cta" id="bestiaryBack">НАЗАД В МЕНЮ</button></div></div>
-<div id="pauseScreen" class="screen hidden"><div class="panel"><div class="eyebrow">✠ РИТУАЛ ПРИОСТАНОВЛЕН</div><h2 class="heroTitle" style="font-size:38px">ПАУЗА</h2><p class="description">Во тьме до сих пор слышны чужие шаги.</p><button class="cta" id="resumeBtn">ПРОДОЛЖИТЬ</button><button class="secondary" id="restartPauseBtn">НОВАЯ ИГРА</button><button class="secondary" id="pauseJournalBtn">ДНЕВНИК</button><button class="secondary" id="returnMenuBtn">В ГЛАВНОЕ МЕНЮ</button>
+<div id="pauseScreen" class="screen hidden"><div class="panel"><div class="eyebrow">✠ РИТУАЛ ПРИОСТАНОВЛЕН</div><h2 class="heroTitle" style="font-size:38px">ПАУЗА</h2><p class="description">Во тьме до сих пор слышны чужие шаги.</p><button class="cta" id="resumeBtn">ПРОДОЛЖИТЬ</button><button class="secondary" id="restartPauseBtn">НОВАЯ ИГРА</button><button class="secondary" id="pauseJournalBtn">ДНЕВНИК</button><button class="secondary" id="netInviteInMatch" hidden>КОПИРОВАТЬ ПРИГЛАШЕНИЕ</button><button class="secondary" id="returnMenuBtn">В ГЛАВНОЕ МЕНЮ</button>
  <div id="controlSettings">
   <label>ЧУВСТВИТЕЛЬНОСТЬ ОБЗОРА <span id="lookValue">100%</span><input type="range" id="lookSensitivity" min="50" max="190" value="100" step="10"></label>
   <label>СКОРОСТЬ СТИКА <span id="stickValue">100%</span><input type="range" id="stickSensitivity" min="70" max="150" value="100" step="10"></label>
@@ -143,10 +143,11 @@
 <img id="anim_wraith" src="assets/wraith_anim.webp" alt="" hidden loading="eager">
 <img id="anim_demon" src="assets/demon_anim.webp" alt="" hidden loading="eager">
 <img id="asset_flightWater" src="assets/holy_water_flight.webp" alt="" hidden loading="eager">
-<script src="src/lobby.js?v=12" defer></script>
-<script src="src/relay.js?v=12" defer></script>
-<script src="src/characters.js?v=12" defer></script>
-<script src="src/online.js?v=12" defer></script>
-<script src="src/game.js?v=12" defer></script>
+<script src="src/lobby.js?v=13" defer></script>
+<script src="src/relay.js?v=13" defer></script>
+<script src="src/characters.js?v=13" defer></script>
+<script src="src/online.js?v=13" defer></script>
+<script src="src/animation.js?v=13" defer></script>
+<script src="src/game.js?v=13" defer></script>
 </body>
 </html>

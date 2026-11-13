@@ -2,7 +2,7 @@
 'use strict';
 
 const $ = id => document.getElementById(id);
-const version = 11;
+const version = 13;
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const validCode = value => typeof value === 'string' && /^[A-HJ-NP-Z2-9]{6}$/.test(value);
 const { classes, picker, renderRoster } = window.ObitelCharacters;
@@ -13,7 +13,7 @@ const count = (players, side) => players.filter(p => classes[p.character]?.side 
 window.ObitelOnline = { create };
 
 function create(game) {
- let mode = 'idle', peer, connection, timeout, helloTimer, room, roster = [], entries = [], self, started = false;
+ let mode = 'idle', peer, connection, timeout, helloTimer, room, roster = [], entries = [], self, started = false, round = 0, finished = false;
  let directoryReady = false, publicView = '';
  const guests = new Map();
  const directory = window.ObitelDirectory({
@@ -21,11 +21,14 @@ function create(game) {
   onWire: body => peer?.receive(body),
   onWireReady: () => {
    peer?.ready();
-   if (mode === 'host' && room && !started) syncRoster();
+   if (mode === 'host' && room) syncRoster();
   },
   onStatus: ready => {
    directoryReady = ready;
-   if (mode === 'host' && room && !started) showWaiting();
+   if (mode === 'host' && room) {
+    if (!ready) directory.advertise(null);
+    if (!started) showWaiting();
+   }
    $('lobbyConnection').textContent = ready ? 'Публичные комнаты обновляются автоматически.' : 'Служба комнат недоступна. Переподключаемся…';
   }
  });
@@ -34,8 +37,9 @@ function create(game) {
  const broadcast = data => peer?.broadcast(data);
  function reset() {
   const oldPeer = peer;
-  mode = 'idle'; peer = null; connection = null; room = null; self = null; roster = []; started = false;
+  mode = 'idle'; peer = null; connection = null; room = null; self = null; roster = []; started = false; round = 0; finished = false;
   clearTimeout(timeout);
+  timeout = null;
   clearInterval(helloTimer);
   directory.advertise(null);
   for (const guest of guests.values()) clearTimeout(guest.timeout);
@@ -73,7 +77,7 @@ function create(game) {
    const name = document.createElement('b'), details = document.createElement('small'), join = document.createElement('button');
    row.className = 'lobbyRoom'; info.className = 'lobbyRoomInfo'; join.className = 'lobbyJoin';
    name.textContent = entry.name;
-   details.textContent = 'Охотники ' + entry.hunt + '/4 · Духи ' + entry.spirit + '/4';
+   details.textContent = 'Охотники ' + entry.hunt + '/4 · Духи ' + entry.spirit + '/4' + (entry.running ? ' · На арене' : '');
    join.type = 'button';
    join.disabled = mode !== 'idle' || entry[side] === 4;
    join.textContent = entry[side] === 4 ? 'Команда полна' : 'Войти';
@@ -95,25 +99,29 @@ function create(game) {
   $('netClose').hidden = true;
   $('netRoomName').textContent = room.name;
   $('netRoomInfo').textContent = (room.public ? 'Публичная' : 'Закрытая') + ' · Код ' + room.code + ' · ' + roster.length + '/8 игроков';
-  const canStart = directory.wireReady() && count(roster, 'hunt') > 0 && count(roster, 'spirit') > 0;
   $('netStart').hidden = mode !== 'host';
-  $('netStart').disabled = !canStart;
+  $('netStart').disabled = false;
   renderRoster($('netRoster'), roster.map(member => ({
    character:member.character,
    label:member.id === self ? 'Вы' : member.host ? 'Хозяин' : ''
   })));
-  status(mode === 'host' && !directory.wireReady() ? 'Комната создана. Подключаем сервер для приглашений…' :
-   mode === 'host' && !canStart ? 'Для старта нужен хотя бы один игрок в каждой команде.' :
-   mode === 'guest' ? 'Ждём начала матча.' : '');
+  status(mode === 'host' && !directory.wireReady() ? 'Подключаем сервер для приглашений. На арену уже можно выйти.' :
+   mode === 'guest' ? 'Ждём начала матча.' : 'Можно выйти на арену в одиночку.');
+ }
+ function advertiseRoom() {
+  directory.advertise(room.public && !finished && directory.wireReady() ? {
+   code:room.code, name:room.name, hunt:count(roster, 'hunt'), spirit:count(roster, 'spirit'), running:started
+  } : null);
+ }
+ function welcome(link) {
+  send(link, { type:'welcome', room, self:link.peer, roster, round, running:started });
  }
  function syncRoster(newGuest) {
   roster = [roster[0], ...[...guests.values()].filter(g => g.player).map(g => g.player)];
-  if (newGuest) send(newGuest, { type:'welcome', room, self:newGuest.peer, roster });
+  if (newGuest) welcome(newGuest);
   broadcast({ type:'roster', roster });
-  if (!started) {
-   if (room.public) directory.advertise({ code:room.code, name:room.name, hunt:count(roster, 'hunt'), spirit:count(roster, 'spirit') });
-   showWaiting();
-  }
+  advertiseRoom();
+  if (!started) showWaiting();
  }
  function waitForPeer(text, onTimeout) {
   $('netHost').disabled = true;
@@ -141,13 +149,14 @@ function create(game) {
   link.on('data', message => {
    if (!message || typeof message !== 'object' || mode !== 'host') return;
    if (guest.player) {
-    if (started && message.type === 'input') game.input(link.peer, message);
-    if (!started && message.type === 'hello') send(link, { type:'welcome', room, self:link.peer, roster });
+    if (started && message.type === 'input' && message.round === round) game.input(link.peer, message);
+    if (message.type === 'hello') welcome(link);
     return;
    }
    if (message.type !== 'hello') return;
    const character = Object.hasOwn(classes, message.character) && classes[message.character];
-   const denial = started ? 'Матч уже начался.' : message.version !== version || !character ? 'Версии игры несовместимы.' :
+   const denial = message.version !== version || !character ? 'Обновите страницу: версии игры несовместимы.' :
+    finished || (started && !room.public) ? 'Комната закрыта для входа. Попробуйте в следующем раунде.' :
     count(roster, character.side) >= 4 ? 'Команда заполнена. Выберите другую сторону.' : '';
    if (denial) {
     send(link, { type:'deny', message:denial });
@@ -156,6 +165,7 @@ function create(game) {
    }
    clearTimeout(guest.timeout);
    guest.player = { id:link.peer, character:message.character, host:false };
+   if (started) game.add(guest.player);
    syncRoster(link);
   });
  }
@@ -177,7 +187,7 @@ function create(game) {
   roster = [{ id:self, character, host:true }];
   showWaiting();
   waitForPeer('Комната создана. Подключаем сервер для приглашений…', () => {
-   status('Сервер пока недоступен. Комната подключится автоматически, когда восстановится связь.');
+   if (!started) status('Сервер пока недоступен. Комната подключится автоматически, когда восстановится связь.');
   });
   const instance = makePeer(code);
   if (!instance) return;
@@ -185,7 +195,8 @@ function create(game) {
   instance.on('open', () => {
    if (peer !== instance) return;
    clearTimeout(timeout);
-   if (!started) syncRoster();
+   timeout = null;
+   syncRoster();
   });
  }
  function joinRoom() {
@@ -213,28 +224,38 @@ function create(game) {
     if (message.type === 'welcome') {
      room = message.room;
      self = message.self;
-     if (message.roster && !started) {
+     roster = message.roster;
+     if (!message.running && !started && message.round>=round) { round=message.round; finished=round>0; }
+     if (!message.running && !started) {
       clearTimeout(timeout);
+      timeout = null;
       clearInterval(helloTimer);
-      roster = message.roster;
       showWaiting();
      }
     }
     if (message.type === 'roster' && room) {
-     clearTimeout(timeout);
-     clearInterval(helloTimer);
      roster = message.roster;
-     if (!started) showWaiting();
+     if (!started && timeout === null) showWaiting();
     }
-    if (message.type === 'start' && room) {
-     started = true;
-     game.start(message, self, false);
+    if ((message.type === 'start' || message.type === 'state') && room && message.round >= round) {
+     if (!started || message.round > round) {
+      if (!message.players.some(actor => actor.id === self) || message.round === round && finished) return;
+      clearTimeout(timeout);
+      timeout = null;
+      clearInterval(helloTimer);
+      round = message.round;
+      started = true;
+      finished = false;
+      game.start(message, self, false);
+     }
+     if (message.type === 'state') game.state(message);
     }
-    if (message.type === 'state' && started) game.state(message);
-    if (message.type === 'effect' && started) game.effect(message);
-    if (message.type === 'finish' && started) game.finish(message);
-    if (message.type === 'lobby' && room) {
+    if (message.round !== round) return;
+    if (started && message.type === 'effect') game.effect(message);
+    if (started && message.type === 'finish') game.finish(message);
+    if (message.type === 'lobby') {
      started = false;
+     finished = true;
      showWaiting();
     }
    });
@@ -249,23 +270,28 @@ function create(game) {
   directory.start();
   showSetup();
  }
+ function sendMatch(data) { broadcast({ ...data, round }); }
  function startMatch() {
-  if (mode !== 'host' || started || !directory.wireReady() || !count(roster, 'hunt') || !count(roster, 'spirit')) return;
+  if (mode !== 'host' || started) return;
   started = true;
-  directory.advertise(null);
+  finished = false;
+  round++;
+  advertiseRoom();
   const message = { type:'start', players:roster };
-  broadcast(message);
   game.start(message, self, true);
+  sendMatch(message);
  }
  function backToLobby() {
-  if (mode === 'host') {
-   started = false;
-   broadcast({ type:'lobby' });
-   syncRoster();
-  } else if (mode === 'guest') {
-   game.showLobby();
-   status('Ждём возвращения хозяина в лобби.');
-  }
+  if (mode !== 'host') return;
+  sendMatch({ type:'lobby' });
+  started = false;
+  finished = false;
+  syncRoster();
+ }
+ function roundFinished() {
+  if (mode !== 'host') return;
+  finished = true;
+  advertiseRoom();
  }
  const selection = picker($('netHunt'), $('netSpirits'), $('netClasses'), game.portrait, renderDirectory);
  $('netHost').onclick = hostRoom;
@@ -278,15 +304,21 @@ function create(game) {
  $('netStart').onclick = startMatch;
  $('netClose').onclick = () => { reset(); game.closeLobby(); };
  $('netLeave').onclick = () => leave('Вы покинули комнату.');
- $('netCopy').onclick = async () => {
+ async function copyInvite() {
   if (!room) return;
   const url = new URL(location.href);
   url.searchParams.set('room', room.code);
   url.hash = '';
-  try { await navigator.clipboard.writeText(url.href); status('Ссылка скопирована.'); }
-  catch { status('Код для приглашения: ' + room.code); }
- };
+  const notice = text => {
+   if (started) $('netInviteInMatch').textContent=text;
+   else status(text);
+  };
+  try { await navigator.clipboard.writeText(url.href); notice('Ссылка скопирована'); }
+  catch { notice('Код комнаты: ' + room.code); }
+ }
+ $('netCopy').onclick = copyInvite;
+ $('netInviteInMatch').onclick = copyInvite;
  window.addEventListener('pagehide', reset);
- return { open, reset, backToLobby, broadcast, sendInput: input => send(connection, { type:'input', ...input }) };
+ return { open, reset, backToLobby, roundFinished, broadcast:sendMatch, sendInput: input => send(connection, { type:'input', ...input, round }) };
 }
 })();

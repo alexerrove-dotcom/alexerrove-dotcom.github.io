@@ -91,13 +91,13 @@ window.ObitelRelay = function (isHost, code, directory) {
   else if (links.get('host')?.open) wire('host',{ op:'keep' });
  }
  async function initialize() {
-  const hash = await crypto.subtle.digest('SHA-256',encoder.encode('obitel-1.1-relay/' + code));
-  const secret = await crypto.subtle.digest('SHA-256',encoder.encode('obitel-1.1-key/' + code));
+  const hash = await crypto.subtle.digest('SHA-256',encoder.encode('obitel-1.3-relay/' + code));
+  const secret = await crypto.subtle.digest('SHA-256',encoder.encode('obitel-1.3-key/' + code));
   const imported = await crypto.subtle.importKey('raw',secret,'AES-GCM',false,['encrypt','decrypt']);
   if (dead) return;
   key = imported;
   const channel = hex(hash);
-  directory.wire('obitel-teney/1-1/play/' + channel);
+  directory.wire('obitel-teney/1-3/play/' + channel);
   ticker = setInterval(tick,1500);
  }
  initialize().catch(error=>{ if(!dead)emit(listeners,'error',error); });

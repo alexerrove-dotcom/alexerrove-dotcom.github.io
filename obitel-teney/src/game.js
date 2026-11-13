@@ -196,6 +196,7 @@ function humanPower(type,caster,spirits,hurt,allies){let x=caster.x,y=caster.y;
 }
 function useAbility(){if(!player||scene!=='play'||player.abilityCd>.03||player.health<=0||player.hidden)return;
  if(match){if(player.abilityCd<=.03&&match.me.stun===0)match.action++;return}
+ player.powerAnim=.62;
  if(battle&&battleSide==='spirit'){const t=SPIRIT_ABILITY[battleCreature];player.abilityCd=t.cd;const sp={get x(){return player.x},set x(v){player.x=v},get y(){return player.y},set y(v){player.y=v},a:player.a,hp:player.health,abilityPhase:0};spiritPower(battleCreature,sp,exorcistBots.filter(e=>e.team==='enemy'),(e,d)=>botHurt(e,d));player.health=sp.hp;player.abilityPhase=sp.abilityPhase||0;sfx('growl');showToast(t.name,1.2);powerUI();return}
  const t=HUMAN_ABILITY[humanClass]||HUMAN_ABILITY.priest;player.abilityCd=t.cd;
  const caster={x:player.x,y:player.y,a:player.a,hp:player.health,abilityShield:0};
@@ -206,6 +207,7 @@ function useAbility(){if(!player||scene!=='play'||player.abilityCd>.03||player.h
 function botPowers(dt){if(!battle)return;const ghosts=battleSide==='spirit'?spiritAllyBots:enemies,human=exorcistBots;
  for(const b of [...human,...ghosts]){if(!botLive(b))continue;b.abilityCd=Math.max(0,(b.abilityCd||0)-dt);b.abilityShield=Math.max(0,(b.abilityShield||0)-dt);b.abilityPhase=Math.max(0,(b.abilityPhase||0)-dt);if(b.abilityCd>0)continue;
  let enemies=b.type==='exorcist'?ghosts:human,target=botNearest(b.x,b.y,enemies);if(!target||Math.hypot(target.x-b.x,target.y-b.y)>4.4)continue;
+ b.powerAnim=.62;
  b.abilityCd=(b.type==='exorcist'?HUMAN_ABILITY[b.role||'priest']:SPIRIT_ABILITY[b.type]).cd;
  if(b.type==='exorcist')humanPower(b.role||'priest',b,enemies,(e,d)=>botHurt(e,d),human.filter(e=>e.team===b.team));
  else spiritPower(b.type,b,human.filter(e=>e.team!==b.team),(e,d)=>botHurt(e,d));
@@ -224,7 +226,7 @@ function battleAttack(){
  }
  if(targets.length){$('#hitMark').style.opacity='1';hitUntil=t+.2;sfx('impact')}
 }
-function advanceBot(b,target,dt,range){let d=Math.hypot(target.x-b.x,target.y-b.y);b.a=Math.atan2(target.y-b.y,target.x-b.x);b.pathTimer-=dt;if(b.pathTimer<=0){b.pathTimer=.65;b.path=bPath(b.x,b.y,target.x,target.y)}let goal=b.path[0]||target;if(b.path.length&&Math.hypot(b.x-goal.x,b.y-goal.y)<.22){b.path.shift();goal=b.path[0]||target}if(d>range){let dx=goal.x-b.x,dy=goal.y-b.y,len=Math.hypot(dx,dy)||1;moveEntity(b,dx/len*b.speed*dt,dy/len*b.speed*dt,.18);b.walk+=dt*6}return d}
+function advanceBot(b,target,dt,range){b.moving=0;let d=Math.hypot(target.x-b.x,target.y-b.y);b.a=Math.atan2(target.y-b.y,target.x-b.x);b.pathTimer-=dt;if(b.pathTimer<=0){b.pathTimer=.65;b.path=bPath(b.x,b.y,target.x,target.y)}let goal=b.path[0]||target;if(b.path.length&&Math.hypot(b.x-goal.x,b.y-goal.y)<.22){b.path.shift();goal=b.path[0]||target}if(d>range||!lineClear(b.x,b.y,target.x,target.y)){b.moving=1;let dx=goal.x-b.x,dy=goal.y-b.y,len=Math.hypot(dx,dy)||1;moveEntity(b,dx/len*b.speed*dt,dy/len*b.speed*dt,.18);b.walk+=dt*6}return d}
 function battleBotsUpdate(dt){botPowers(dt);
  const spirits=battleSide==='spirit'?spiritAllyBots:enemies;
  const exorcists=battleSide==='spirit'?exorcistBots:[player,...exorcistBots];
@@ -238,7 +240,10 @@ function battleBotsUpdate(dt){botPowers(dt);
   let target=botNearest(b.x,b.y,exTargets);if(!target)continue;let d=advanceBot(b,target,dt,.75);
   if(d<.99&&b.attack<=0){b.attack=1.1;b.attackAnim=.45;botHurt(target,({ghost:11,wraith:17,cultist:14,demon:22})[b.type]||12)}
  }
- for(const b of [...spirits,...exorcistBots])if(!botLive(b)&&b.deathAnim>0)b.deathAnim=Math.max(0,b.deathAnim-dt);
+ for(const b of [...spirits,...exorcistBots]){
+  b.powerAnim=Math.max(0,(b.powerAnim||0)-dt);
+  if(!botLive(b)&&b.deathAnim>0)b.deathAnim=Math.max(0,b.deathAnim-dt);
+ }
  const liveEx=exorcists.filter(botLive).length,liveSp=spiritTargets.filter(botLive).length;
  if(player.health<=0){endGame(false);return}if((battleSide==='spirit'?liveEx:liveSp)===0){endGame(true);return}
  $('#signal').textContent='ЭКЗОРЦИСТЫ '+liveEx+' · ДУХИ '+liveSp;$('#missionSmall').textContent='СХВАТКА · '+onlineClasses[battleRoster[0].character].name.toUpperCase();
@@ -391,7 +396,7 @@ function waterBurst(p){sfx('waterBlast');player.holyGlow=.55;spawnHoly(p.x,p.y,7
  if(dist(player,p)<1.25){player.hurt=Math.max(player.hurt,.08)}
  for(let o of objects)if(o.type==='barrel'&&!o.used&&Math.hypot(o.x-p.x,o.y-p.y)<2){o.hp-=85;if(o.hp<=0)explodeBarrel(o)}
 }
-function updateHoly(dt){player.crossEffect=Math.max(0,player.crossEffect-dt);player.throwAnim=Math.max(0,player.throwAnim-dt);player.waterCd=Math.max(0,player.waterCd-dt);player.holyGlow=Math.max(0,player.holyGlow-dt);
+function updateHoly(dt){player.powerAnim=Math.max(0,(player.powerAnim||0)-dt);player.crossEffect=Math.max(0,player.crossEffect-dt);player.throwAnim=Math.max(0,player.throwAnim-dt);player.waterCd=Math.max(0,player.waterCd-dt);player.holyGlow=Math.max(0,player.holyGlow-dt);
  for(let i=projectiles.length-1;i>=0;i--){const p=projectiles[i];p.age+=dt;p.spin+=dt*13;p.trail=(p.trail||0)+dt;if(p.trail>.045){p.trail=0;particles.push({x:p.x,y:p.y,z:p.z,vx:rand(-.12,.12),vy:rand(-.12,.12),vz:.12,life:.35,max:.35,size:2,hue:'blue'})}let nx=p.x+p.vx*dt,ny=p.y+p.vy*dt;p.vz-=4.4*dt;p.z+=p.vz*dt;let impact=isWall(nx,ny)||p.z<.03||p.age>.85||enemies.some(e=>e.alive&&Math.hypot(e.x-nx,e.y-ny)<.40&&p.age>.10);if(!impact){p.x=nx;p.y=ny}else{waterBurst(p);projectiles.splice(i,1)}}
  for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;p.vz-=4*dt;p.vx*=.96;p.vy*=.96;if(p.life<=0)particles.splice(i,1)}
  for(let i=objects.length-1;i>=0;i--){let o=objects[i];if(o.type==='ashes'&&t-o.born>2.2)objects.splice(i,1)}
@@ -513,13 +518,14 @@ function drawSprites(){
   if(anim)sprite=spiritAnimations[o.type];
   if(!sprite||!sprite.width||!sprite.height||sprite.complete===false)continue;
   let sx=W/2+(lateral/depth)*proj,bottom=horizon+((.5-z)/depth)*proj,sh=proj/depth*yScale,sw=proj/depth*xScale;
-  const e=o.enemy;let attack=0,dying=0;
-  if(e){
-   let phase=t*(e.type==='wraith'?3.2:2.2)+e.walk*.17;
-   sx+=Math.sin(phase)*Math.min(5,sw*.027);
-   sh*=1+Math.sin(phase*1.1)*.014;
-   if(e.attackAnim>0){attack=Math.sin((.45-e.attackAnim)/.45*Math.PI);sh*=1+attack*.22;sw*=1+attack*.12;bottom+=attack*5}
-   if(!e.alive){dying=1-e.deathAnim/.94;sh*=1+dying*.23;sw*=1+dying*.16;bottom-=dying*H*.21;sx+=Math.sin(t*21+e.walk)*dying*6}
+  const e=o.enemy;
+  const pose=e?window.ObitelAnimation.body(e.role||o.type,e,t):null;
+  const dying=e&&!e.alive?clamp(1-e.deathAnim/.94,0,1):0;
+  if(pose){
+   sx+=sw*pose.x;
+   sh*=Math.max(.15,1+pose.crouch);
+   sw*=pose.width;
+   bottom+=ghost?-dying*sh*.8:0;
   }
   let top=bottom-sh;
   if(o.type==='core'){top+=Math.sin(t*2.5+o.id)*5;sw*=1+Math.sin(t*3.5+o.id)*.032}
@@ -544,7 +550,7 @@ function drawSprites(){
   let frameNo=0,frameW=sprite.width,frameH=sprite.height,frameX=0,frameY=0;
   if(e&&anim){
    if(e.attackAnim>0)frameNo=12+Math.min(3,Math.floor((1-e.attackAnim/.45)*4));
-   else if(e.alert&&e.spawnGrace<=0)frameNo=8+(Math.floor((t*8+e.walk*.3))%4);
+   else if((e.motion??e.moving??(e.alert&&e.spawnGrace<=0 ? 1:0))>.12)frameNo=8+(Math.floor((t*8+e.walk*.3))%4);
    else frameNo=(Math.floor((t*7+e.walk*.24))%8);
    frameW=sprite.naturalWidth/4;frameH=sprite.naturalHeight/4;
    frameX=(frameNo%4)*frameW;frameY=Math.floor(frameNo/4)*frameH;
@@ -570,7 +576,8 @@ function drawSprites(){
    let col=Math.floor(xx);if(zBuffer[col]!==undefined&&depth>zBuffer[col]+.12)continue;
    let u=Math.floor((xx-left)/sw*frameW);if(u<0||u>=frameW)continue;
    let srcWidth=Math.min(frameW-u,Math.max(1,Math.ceil(step/sw*frameW)));
-   ctx.drawImage(sprite,frameX+u,frameY,srcWidth,frameH,xx,top,step+.45,sh);
+   const bend=pose?(pose.lean*(u/frameW-.5)+pose.lower*Math.abs(u/frameW-.5))*sh:0;
+   ctx.drawImage(sprite,frameX+u,frameY,srcWidth,frameH,xx,top+bend,step+.45,sh);
   }
   ctx.globalAlpha=1;
   if(e&&e.flash>0){
@@ -582,11 +589,11 @@ function drawSprites(){
 
 function drawParticles(){const cs=Math.cos(player.a),sn=Math.sin(player.a),horizon=H*.51+lookPitch+player.bob;ctx.save();for(const p of particles){let dx=p.x-player.x,dy=p.y-player.y,d=dx*cs+dy*sn,l=-dx*sn+dy*cs;if(d<=.15||d>13)continue;let sx=W*.5+l/d*proj,sy=horizon+(.5-p.z)/d*proj;let z=proj/d*p.size*.017;if(zBuffer[Math.floor(sx)]<d-.14)continue;ctx.globalAlpha=clamp(p.life/(p.max||.85),0,1)*.8;ctx.fillStyle=p.hue==='ember'?'#ff944d':p.hue==='gold'?'#ffe2a1':p.hue==='violet'?'#c890ff':'#8aebff';ctx.beginPath();ctx.arc(sx,sy,Math.min(12,Math.max(1,z)),0,TAU);ctx.fill()}ctx.restore()}
 
-function drawHunterTool(role){
- const sway=Math.sin(player.walkTime*2)*Math.min(1,player.moveSpeed)*2;
- const strike=Math.sin((player.crossEffect||0)*9)*8;
+function drawHunterTool(role, pose){
+ const sway=Math.sin(pose.step)*pose.stride*4;
+ const strike=pose.attack*(role==='hunter'?22:-14)-pose.power*24;
  const size=Math.min(W,H);
- ctx.save();ctx.translate(W*.62+sway,H+strike);ctx.scale(size/150,size/150);
+ ctx.save();ctx.translate(W*.62+sway,H+strike);ctx.scale(size/150,size/150);ctx.rotate(pose.attack*(role==='guardian'?.24:-.12)+pose.power*.12);
  const shape=(points,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(...points[0]);for(const point of points.slice(1))ctx.lineTo(...point);ctx.closePath();ctx.fill()};
  if(role==='guardian'){
   shape([[-42,-56],[37,-69],[53,-22],[25,12],[-28,10]],'#252c32');
@@ -603,9 +610,12 @@ function drawHunterTool(role){
  }
  ctx.restore();
 }
-function drawGun(){if(match?netSide(match.me)==='spirit':battle&&battleSide==='spirit'){netDrawHands();return}
- const role=match?.me.character||(battle?battleHuman:'priest');
- if(role!=='priest'){drawHunterTool(role);return}
+function drawGun(){
+ if(player.health<=0)return;
+ const role=match?.me.character||(battle?(battleSide==='spirit'?battleCreature:battleHuman):'priest');
+ const pose=window.ObitelAnimation.firstPerson(ctx,role,player,t,W,H);
+ if(onlineClasses[role].side==='spirit')return;
+ if(role!=='priest'){drawHunterTool(role,pose);return}
  const walking=Math.min(1,player.moveSpeed/3.5),stride=Math.sin(player.walkTime*2)*walking;
  const breathing=Math.sin(t*1.8),striking=player.crossEffect>0?Math.sin((.34-player.crossEffect)/.34*Math.PI):0;
  const throwing=player.throwAnim>0?Math.sin((.65-player.throwAnim)/.65*Math.PI):0;
@@ -613,7 +623,7 @@ function drawGun(){if(match?netSide(match.me)==='spirit':battle&&battleSide==='s
  if(!isWater){
   const cross=art.cross;if(cross&&cross.complete&&cross.naturalWidth){
    let gw=Math.min(W*.50,H*.99),gh=gw*(cross.naturalHeight/cross.naturalWidth);
-   let x=W*.50+stride*4,y=H-gh*.77+breathing*2+stride*4+striking*17;
+   let x=W*.50+stride*4,y=H-gh*.77+breathing*2+stride*4+striking*17-pose.power*18;
    ctx.save();ctx.translate(x,y+gh*.52);ctx.rotate((stride*.016+breathing*.005-striking*.06));
    if(striking){ctx.shadowColor='#fff0b7';ctx.shadowBlur=19+striking*14}
    ctx.drawImage(cross,-gw*.5,-gh*.52,gw,gh);ctx.restore();
@@ -704,6 +714,7 @@ function returnToMenu(){
  scene='menu';battle=false;humanClass='priest';$('#abilityInfo').style.display='none';$('#ability').style.display='none';stopAmbient();$('#hud').style.display='none';$('#touchControls').classList.remove('gameOn');
  for(const id of ['#pauseScreen','#mapScreen','#resultScreen','#settingsScreen','#helpScreen','#journalScreen','#skirmishScreen'])$(id).classList.add('hidden');
  $('#menu').classList.remove('hidden');$('#restartBtn').hidden=false;$('#fire').textContent='КРЕСТ';$('#reload').textContent='ВОДА';$('#use').textContent='ДЕЙСТВ.';
+ $('#netInviteInMatch').hidden=true;
  for(const id of ['reload','use','flash'])$('#'+id).style.display='';$('#hudCenter').style.display='';setContinueButton();
 }
 
@@ -731,7 +742,7 @@ function onlineArena() {
 function onlineActor(member, slot) {
  const hunter = onlineClasses[member.character].side === 'hunt';
  const x = hunter ? 2.5 : 17.5, y = [4.5,6.7,8.9,12.5][slot], a = hunter ? 0 : Math.PI;
- return { ...member, x, y, a, hp:100, kills:0, shots:0, walk:0, fireCd:0, abilityCd:0, abilityPhase:0,
+ return { ...member, slot, x, y, a, hp:100, kills:0, shots:0, walk:0, motion:0, fireCd:0, abilityCd:0, abilityPhase:0,
   abilityShield:0, stun:0, flash:0, input:{ ...emptyInput(), a }, usedAction:0, lastInput:0 };
 }
 function showOnlineLobby() {
@@ -745,6 +756,7 @@ function showOnlineLobby() {
  $('#abilityInfo').style.display = 'none';
  $('#netBanner').style.display = 'none';
  $('#restartPauseBtn').hidden = false;
+ $('#netInviteInMatch').hidden = true;
  $('#pauseJournalBtn').hidden = false;
  $('#restartBtn').textContent = 'ПОВТОРИТЬ';
  $('#restartBtn').hidden = false;
@@ -756,10 +768,13 @@ function showOnlineLobby() {
 }
 function startOnline(message, id, host) {
  const slots = { hunt:0, spirit:0 };
- const actors = new Map(message.players.map(member => [member.id, onlineActor(member, slots[netSide(member)]++)]));
+ const actors = new Map(message.players.map(member => {
+  const spawned=onlineActor(member, slots[netSide(member)]++);
+  return [member.id, { ...spawned, ...member }];
+ }));
  const me = actors.get(id);
  if (!me) return;
- match = { host, id, me, actors, remaining:240, action:0, lastSend:0, latest:null, result:null, tick:performance.now(), deadline:performance.now()+240000 };
+ match = { host, id, me, actors, remaining:240, action:0, lastSend:0, latest:null, result:null, tick:performance.now(), deadline:null, sequence:0, lastSequence:-1, waiting:true };
  world = onlineArena();
  objects = [];
  for (const x of [2.5,8.5,11.5,17.5]) for (const y of [2.1,13.9]) objects.push({type:'lamp',x,y});
@@ -767,7 +782,7 @@ function startOnline(message, id, host) {
  enemies=[]; projectiles=[]; particles=[]; exorcistBots=[]; spiritAllyBots=[]; vaultDoor=null;
  visited = world.map(row => row.map(() => true));
  floorNo=1; floorFlavor='Зал исповедей'; t=0; lookPitch=0;
- player = { ...me, health:100, stamina:100, battery:100, flash:true, grenades:0, keys:0, hidden:false,
+ player = { ...me, health:me.hp, stamina:100, battery:100, flash:true, grenades:0, keys:0, hidden:false,
   weapon:'cross', waterCd:0, crossEffect:0, throwAnim:0, holyGlow:0, cores:0, reload:0, flashShot:0,
   hurt:0, bob:0, steps:0, moveSpeed:0, walkTime:0, started:performance.now() };
  Object.assign(touch, { forward:0, strafe:0, forwardTarget:0, strafeTarget:0, fire:false, sprint:false });
@@ -777,17 +792,31 @@ function startOnline(message, id, host) {
  $('#hud').style.display='block'; $('#touchControls').classList.add('gameOn');
  $('#fire').textContent='АТАКА'; $('#sprint').style.display='none'; $('#reload').style.display='none'; $('#use').style.display='none';
  $('#flash').style.display=netSide(me)==='hunt'?'':'none';
- $('#restartPauseBtn').hidden=true; $('#pauseJournalBtn').hidden=true;
+ $('#restartPauseBtn').hidden=true;
+ $('#netInviteInMatch').hidden=false;
+ $('#netInviteInMatch').textContent='КОПИРОВАТЬ ПРИГЛАШЕНИЕ'; $('#pauseJournalBtn').hidden=true;
  $('#missionSmall').textContent='ОНЛАЙН · ВЫ '+(netSide(me)==='hunt'?'ЗА ОХОТНИКОВ':'ЗА ДУХОВ');
  $('#netBanner').classList.add('netMatchBanner');
  audioInit(); startAmbient(); onlineHud();
 }
+function onlineAdd(member) {
+ if (!match?.host || match.result) return;
+ const side=netSide(member);
+ const used=new Set([...match.actors.values()].filter(actor=>netSide(actor)===side).map(actor=>actor.slot));
+ const slot=[0,1,2,3].find(i=>!used.has(i));
+ if (slot===undefined) return;
+ const actor=onlineActor(member,slot);
+ actor.spawnGrace=1.8;
+ match.actors.set(actor.id,actor);
+ showToast(onlineClasses[actor.character].name.toUpperCase()+' ВОШЁЛ НА АРЕНУ',2);
+}
+
 function onlineHud() {
  const state = match;
  const alive = side => [...state.actors.values()].filter(actor => netSide(actor) === side && actor.hp > 0).length;
  const seconds = Math.max(0, Math.ceil(state.remaining));
- $('#coreCount').textContent = Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');
- $('#signal').textContent = state.me.hp > 0 ? 'ОХОТНИКИ '+alive('hunt')+' · ДУХИ '+alive('spirit') : 'ВЫ ВЫБЫЛИ · МОЖНО ОСМАТРИВАТЬСЯ ДО КОНЦА МАТЧА';
+ $('#coreCount').textContent = state.waiting?'–:––':Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');
+ $('#signal').textContent = state.waiting ? 'РАЗМИНКА · ЖДЁМ СОПЕРНИКА' : state.me.hp > 0 ? 'ОХОТНИКИ '+alive('hunt')+' · ДУХИ '+alive('spirit') : 'ВЫ ВЫБЫЛИ · МОЖНО ОСМАТРИВАТЬСЯ ДО КОНЦА МАТЧА';
  const banner=$('#netBanner');
  const label = onlineClasses[state.me.character].name+' · '+onlineClasses[state.me.character].attack;
  if (banner.textContent !== label) banner.textContent=label;
@@ -812,10 +841,11 @@ function onlineMove(actor, input, dt, character) {
  moveEntity(actor,(Math.cos(input.a)*f-Math.sin(input.a)*s)*scale,(Math.sin(input.a)*f+Math.cos(input.a)*s)*scale,.19);
 }
 function onlineHurt(actor, amount, attacker) {
- if (actor.hp <= 0) return;
+ if (actor.hp <= 0 || actor.spawnGrace>0) return;
  actor.hp = Math.max(0,actor.hp-amount*(actor.abilityShield>0?.35:1)*(actor.abilityPhase>0?.3:1));
  actor.flash = .28;
  if (actor.hp <= 0) {
+  actor.deathAnim=.94;
   attacker.kills++;
   onlineEmit({ type:'effect', kind:'death', id:actor.id, x:actor.x, y:actor.y, color:onlineClasses[actor.character].color });
  }
@@ -828,7 +858,7 @@ function onlineEffect(message) {
  if (!match || match.result) return;
  const actor=match.actors.get(message.id);
  if (message.kind === 'attack') {
-  if (actor) actor.anim=.33;
+  if (actor) actor.attackAnim=.45;
   if (message.id === match.id) {
    player.crossEffect=.33;
    sfx(netSide(match.me)==='hunt'?'holy':'growl');
@@ -841,13 +871,16 @@ function onlineEffect(message) {
    }
   }
  } else if (message.kind === 'power') {
+  if (actor) actor.powerAnim=.62;
   if (message.id === match.id) {
    player.holyGlow=.4;
+   player.powerAnim=.62;
    showToast(onlinePower(match.me).name,1.3);
    sfx(netSide(match.me)==='hunt'?'holy':'growl');
   }
- } else if (message.kind === 'death' && message.id === match.id) {
-  sfx('death');
+ } else if (message.kind === 'death') {
+  if (actor) actor.deathAnim=.94;
+  if (message.id === match.id) sfx('death');
  }
  spawnHoly(message.tx ?? message.x, message.ty ?? message.y, message.kind==='attack'?10:30, message.color);
 }
@@ -876,19 +909,26 @@ function castRayFrom(x,y,a) {
 }
 function onlineSnapshot() {
  const { actors, remaining } = match;
- return { type:'state', remaining, players:[...actors.values()].map(actor => ({
-  id:actor.id, character:actor.character, x:actor.x, y:actor.y, a:actor.a, hp:actor.hp, kills:actor.kills,
+ return { type:'state', remaining, waiting:match.waiting, sequence:++match.sequence, players:[...actors.values()].map(actor => ({
+  id:actor.id, character:actor.character, slot:actor.slot, x:actor.x, y:actor.y, a:actor.a, hp:actor.hp, kills:actor.kills,
   shots:actor.shots, walk:actor.walk, stun:actor.stun, abilityCd:actor.abilityCd, abilityPhase:actor.abilityPhase,
   abilityShield:actor.abilityShield, flash:actor.flash
  })) };
 }
 function onlineState(message) {
- if (!match || match.result) return;
+ if (!match || match.result || message.sequence<=match.lastSequence) return;
+ match.lastSequence=message.sequence;
  match.remaining=message.remaining;
+ match.waiting=message.waiting;
  for (const [id] of match.actors) if (!message.players.some(actor=>actor.id===id)) match.actors.delete(id);
  for (const fresh of message.players) {
-  const actor=match.actors.get(fresh.id);
-  if (!actor) continue;
+  let actor=match.actors.get(fresh.id);
+  if (!actor) {
+   actor={ ...onlineActor(fresh,fresh.slot), ...fresh };
+   match.actors.set(actor.id,actor);
+  } else if (fresh.hp<=0 && actor.hp>0) {
+   actor.deathAnim=.94;
+  }
   if (fresh.id===match.id) {
    if (fresh.hp<actor.hp) { player.hurt=.45; if (fresh.hp>0) sfx('hurt'); }
    match.latest=fresh;
@@ -919,22 +959,29 @@ function onlineTick() {
  if (!match?.host || match.result) return;
  const now=performance.now(), dt=clamp((now-match.tick)/1000,0,.12);
  match.tick=now;
- match.remaining=(match.deadline-now)/1000;
  const actors=[...match.actors.values()];
+ if (match.deadline===null && ['hunt','spirit'].every(side=>actors.some(actor=>netSide(actor)===side))) {
+  match.deadline=now+240000;
+  match.waiting=false;
+  showToast('СОПЕРНИК НА АРЕНЕ · БОЙ НАЧАЛСЯ',2.4);
+ }
+ if (match.deadline!==null) match.remaining=(match.deadline-now)/1000;
  for (const actor of actors) {
-  for (const timer of ['fireCd','abilityCd','abilityPhase','abilityShield','flash','stun']) actor[timer]=Math.max(0,actor[timer]-dt);
-  if (actor.hp<=0 || now-actor.lastInput>350) continue;
+  for (const timer of ['fireCd','abilityCd','abilityPhase','abilityShield','flash','stun','spawnGrace']) actor[timer]=Math.max(0,(actor[timer]||0)-dt);
+  if (match.finishAt || actor.hp<=0 || now-actor.lastInput>350) continue;
   const input=actor.input;
   actor.a=input.a;
   if (actor.stun<=0) {
+   const x=actor.x,y=actor.y;
    onlineMove(actor,input,dt,actor.character);
-   if (Math.abs(input.f)+Math.abs(input.s)>.1) actor.walk+=dt*8;
+   actor.walk+=Math.hypot(actor.x-x,actor.y-y)*4;
   }
-  const opponents=actors.filter(other=>other.hp>0 && netSide(other)!==netSide(actor));
-  if (actor.stun<=0 && input.attack && actor.fireCd===0) onlineAttack(actor,opponents);
+  const opponents=actors.filter(other=>other.hp>0 && !other.spawnGrace && netSide(other)!==netSide(actor));
+  if (actor.stun<=0 && input.attack && actor.fireCd===0) { actor.spawnGrace=0; onlineAttack(actor,opponents); }
   if (input.action!==actor.usedAction) {
    actor.usedAction=input.action;
    if (actor.stun>0 || actor.abilityCd>0) continue;
+   actor.spawnGrace=0;
    actor.abilityCd=onlinePower(actor).cd;
    const hurt=(other,amount)=>onlineHurt(other,amount,actor);
    if (netSide(actor)==='hunt') humanPower(actor.character,actor,opponents,hurt,actors.filter(other=>netSide(other)==='hunt'));
@@ -945,11 +992,18 @@ function onlineTick() {
  const survivors=side=>actors.filter(actor=>netSide(actor)===side && actor.hp>0);
  const hunters=survivors('hunt'), spirits=survivors('spirit');
  const score=team=>team.reduce((sum,actor)=>sum+actor.hp,0);
- if (match.remaining<=0 || !hunters.length || !spirits.length) {
+ if (!match.waiting && (match.remaining<=0 || !hunters.length || !spirits.length)) {
   const winner=hunters.length!==spirits.length?(hunters.length>spirits.length?'hunt':'spirit'):
    score(hunters)===score(spirits)?'draw':score(hunters)>score(spirits)?'hunt':'spirit';
   const result={ type:'finish', winner };
-  online.broadcast(onlineSnapshot()); online.broadcast(result); onlineFinish(result);
+  if (!match.finishAt) {
+   match.finishAt=now+950;
+   match.decided=result;
+   online.roundFinished();
+  }
+ }
+ if (match.finishAt && now>=match.finishAt) {
+  online.broadcast(onlineSnapshot()); online.broadcast(match.decided); onlineFinish(match.decided);
   return;
  }
  if (now-match.lastSend>=75) { match.lastSend=now; online.broadcast(onlineSnapshot()); }
@@ -995,7 +1049,9 @@ function onlineFrame(dt) {
  t+=dt;
  updateHoly(dt);
  for (const actor of match.actors.values()) {
-  actor.anim=Math.max(0,(actor.anim||0)-dt);
+  for (const timer of ['attackAnim','powerAnim','deathAnim']) actor[timer]=Math.max(0,(actor[timer]||0)-dt);
+  actor.motion+=(Math.min(1,Math.abs(actor.walk-(actor.lastWalk??actor.walk))*7)-actor.motion)*Math.min(1,dt*10);
+  actor.lastWalk=actor.walk;
   if (actor.id===match.id) continue;
   actor.drawX=actor.drawX===undefined?actor.x:actor.drawX+(actor.x-actor.drawX)*Math.min(1,dt*14);
   actor.drawY=actor.drawY===undefined?actor.y:actor.drawY+(actor.y-actor.drawY)*Math.min(1,dt*14);
@@ -1005,31 +1061,18 @@ function onlineFrame(dt) {
 function onlineSprites(list) {
  if (!match) return;
  for (const actor of match.actors.values()) {
-  if (actor.id===match.id || actor.hp<=0 || (actor.abilityPhase>0 && netSide(actor)!==netSide(match.me))) continue;
+  if (actor.id===match.id || (actor.hp<=0 && !actor.deathAnim) || (actor.abilityPhase>0 && netSide(actor)!==netSide(match.me))) continue;
   const type=netSide(actor)==='hunt'?'exorcist':actor.character;
   list.push({ x:actor.drawX??actor.x,y:actor.drawY??actor.y,type,
-   enemy:{ type,role:actor.character,alive:true,walk:actor.walk,flash:actor.flash,attackAnim:actor.anim } });
+   enemy:{ ...actor,type,role:actor.character,alive:actor.hp>0 } });
  }
-}
-function netDrawHands() {
- const spirit = match ? match.me.character : battleCreature;
- const colors={ ghost:'#92c9d5',wraith:'#b18adf',cultist:'#c1a8ea',demon:'#db997f' };
- const wave=Math.sin(t*3)*5-(player.crossEffect||0)*44;
- ctx.save();
- ctx.globalAlpha=.42;
- ctx.fillStyle=colors[spirit];
- for(const side of [-1,1]){
-  const x=W*.5+side*W*.42;
-  ctx.beginPath(); ctx.ellipse(x,H*.89+wave,Math.min(110,W*.12),Math.min(65,H*.12),side*.25,0,TAU); ctx.fill();
- }
- ctx.restore();
 }
 const characterPortrait = id => art[id].src;
 function netWireUI() {
  online=window.ObitelOnline.create({
   portrait:characterPortrait,
   showLobby:showOnlineLobby, closeLobby:()=>{ $('#onlineScreen').classList.add('hidden'); $('#menu').classList.remove('hidden'); },
-  start:startOnline, input:onlineApplyInput, state:onlineState, effect:onlineEffect, finish:onlineFinish,
+  start:startOnline, add:onlineAdd, input:onlineApplyInput, state:onlineState, effect:onlineEffect, finish:onlineFinish,
   drop:id=>match?.actors.delete(id)
  });
  $('#onlineBtn').onclick=online.open;
