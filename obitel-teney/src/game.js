@@ -15,7 +15,7 @@ const floorNames=['Кельи тишины','Склеп семи свечей','
 function safeStore(key, data){try{localStorage.setItem(key,JSON.stringify(data))}catch(err){}}
 function safeRead(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch(err){return null}}
 function persistOptions(){safeStore(OPTIONS_KEY,{...settings,difficulty})}
-function setContinueButton(){let btn=$('#continueBtn');if(btn){let saved=safeRead(SAVE_KEY);btn.disabled=!saved;btn.textContent=saved?'ПРОДОЛЖИТЬ — ЭТАЖ '+saved.floorNo:'ПРОДОЛЖИТЬ — НЕТ СОХРАНЕНИЯ'}}
+function setContinueButton(){let btn=$('#continueBtn');if(btn){let saved=safeRead(SAVE_KEY);btn.disabled=!saved;$('#continueDetail').textContent=saved?'Сохранение · этаж '+saved.floorNo:'Нет сохранения'}}
 let mobile;
 function resetInputs(){for(const code in key)key[code]=false;mobile?.reset();}
 function playerRole(){return match?.me.character||(battle?battleRoster[0].character:'priest');}
@@ -149,11 +149,10 @@ function resize(){
  resizeLighting();
 }
 window.addEventListener('resize',resize);
-function generateWorld(){noiseSeed=(Math.imul(runSeed ^ (floorNo*179),2654435761)>>>0);let m=Array.from({length:MAPSIZE},()=>Array(MAPSIZE).fill(1)),dirs=[[2,0],[-2,0],[0,2],[0,-2]],stack=[[1,1]];m[1][1]=0;while(stack.length){let [x,y]=stack[stack.length-1],opt=dirs.filter(([dx,dy])=>x+dx>0&&x+dx<MAPSIZE-1&&y+dy>0&&y+dy<MAPSIZE-1&&m[y+dy][x+dx]);if(!opt.length){stack.pop();continue}let [dx,dy]=opt[(rng()*opt.length)|0];m[y+dy/2][x+dx/2]=0;m[y+dy][x+dx]=0;stack.push([x+dx,y+dy])}
- for(let r=0;r<11;r++){let x=3+((rng()*23)|0),y=3+((rng()*23)|0),sw=3+((rng()*4)|0),sh=3+((rng()*4)|0);for(let yy=y;yy<y+sh&&yy<MAPSIZE-1;yy++)for(let xx=x;xx<x+sw&&xx<MAPSIZE-1;xx++)m[yy][xx]=0}
- for(let y=2;y<MAPSIZE-2;y++)for(let x=2;x<MAPSIZE-2;x++)if(m[y][x]&&rng()<.20&&((!m[y][x-1]&&!m[y][x+1])||(!m[y-1][x]&&!m[y+1][x])))m[y][x]=0;
- for(let y=1;y<=4;y++)for(let x=1;x<=4;x++)m[y][x]=0;
- return m}
+function generateWorld(){
+ noiseSeed=(Math.imul(runSeed ^ (floorNo*179),2654435761)>>>0);
+ return window.ObitelLayout.generate(MAPSIZE,floorNo,rng);
+}
 function gridDist(sx,sy,m){const d=Array.from({length:MAPSIZE},()=>Array(MAPSIZE).fill(-1)),q=[[sx,sy]];d[sy][sx]=0;for(let i=0;i<q.length;i++){let [x,y]=q[i];for(let [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){let nx=x+dx,ny=y+dy;if(ny<0||nx<0||ny>=MAPSIZE||nx>=MAPSIZE||m[ny][nx]||d[ny][nx]>=0)continue;d[ny][nx]=d[y][x]+1;q.push([nx,ny])}}return d}
 function isWall(x,y){let xx=Math.floor(x),yy=Math.floor(y);return yy<0||xx<0||yy>=MAPSIZE||xx>=MAPSIZE||!!world[yy][xx]}
 function canStand(x,y,r=.20){if(isWall(x-r,y-r)||isWall(x+r,y-r)||isWall(x-r,y+r)||isWall(x+r,y+r))return false;for(let o of objects)if(['barrel','wardrobe','confessional','altar'].includes(o.type)&&!o.used&&Math.hypot(o.x-x,o.y-y)<r+(o.type==='altar'?.32:.24))return false;return true}
@@ -256,7 +255,7 @@ function battleAttack(){
  }
  if(targets.length){$('#hitMark').style.opacity='1';hitUntil=t+.2;sfx('impact')}
 }
-function advanceBot(b,target,dt,range){b.moving=0;let d=Math.hypot(target.x-b.x,target.y-b.y);b.a=Math.atan2(target.y-b.y,target.x-b.x);b.pathTimer-=dt;if(b.pathTimer<=0){b.pathTimer=.65;b.path=bPath(b.x,b.y,target.x,target.y)}let goal=b.path[0]||target;if(b.path.length&&Math.hypot(b.x-goal.x,b.y-goal.y)<.22){b.path.shift();goal=b.path[0]||target}if(d>range||!lineClear(b.x,b.y,target.x,target.y)){b.moving=1;let dx=goal.x-b.x,dy=goal.y-b.y,len=Math.hypot(dx,dy)||1;moveEntity(b,dx/len*b.speed*dt,dy/len*b.speed*dt,.18);b.walk+=dt*6}return d}
+function advanceBot(b,target,dt,range){b.moving=0;let d=Math.hypot(target.x-b.x,target.y-b.y);b.a=Math.atan2(target.y-b.y,target.x-b.x);b.pathTimer-=dt;if(b.pathTimer<=0){b.pathTimer=.65;b.path=bPath(b.x,b.y,target.x,target.y)}let goal=b.path[0]||target;if(b.path.length&&Math.hypot(b.x-goal.x,b.y-goal.y)<.22){b.path.shift();goal=b.path[0]||target}if(d>range||!lineClear(b.x,b.y,target.x,target.y)){let dx=goal.x-b.x,dy=goal.y-b.y,len=Math.hypot(dx,dy)||1;const x=b.x,y=b.y;moveEntity(b,dx/len*b.speed*dt,dy/len*b.speed*dt,.18);const moved=Math.hypot(b.x-x,b.y-y);b.moving=moved>.001?1:0;b.walk+=moved*4}return d}
 function battleBotsUpdate(dt){botPowers(dt);
  const spirits=battleSide==='spirit'?spiritAllyBots:enemies;
  const exorcists=battleSide==='spirit'?exorcistBots:[player,...exorcistBots];
@@ -289,11 +288,11 @@ function createGame(loadCheckpoint=false){
 }
 function makeFloor(initial=false){
  world=generateWorld();visited=Array.from({length:MAPSIZE},()=>Array(MAPSIZE).fill(false));enemies=[];objects=[];particles=[];projectiles=[];vaultDoor=null;exorcistBots=[];spiritAllyBots=[];player.abilityCd=0;player.abilityPhase=0;player.abilityShield=0;
- const doors=[];player.x=2.45;player.y=2.4;player.a=.1;player.keys=0;player.cores=0;player.hidden=false;player.hideSpot=null;player.hideFrom=null;player.stamina=100;player.battery=Math.max(45,player.battery);player.flash=true;player.fireCd=0;player.hurt=0;player.walkTime=0;player.bob=0;lookPitch=0;spiritEmitTime=0;t=0;groanTick=0;resetInputs();
+ player.x=2.45;player.y=2.4;player.a=.1;player.keys=0;player.cores=0;player.hidden=false;player.hideSpot=null;player.hideFrom=null;player.stamina=100;player.battery=Math.max(45,player.battery);player.flash=true;player.fireCd=0;player.hurt=0;player.moveSpeed=0;player.weaponMotion=0;player.walkTime=0;player.bob=0;lookPitch=0;spiritEmitTime=0;t=0;groanTick=0;resetInputs();
  floorFlavor=floorNames[(floorNo-1)%floorNames.length];
  // Build a sealed side chamber. A key outside opens it; another key inside opens the descent.
  const centers=[];const initialD=gridDist(2,2,world);
- for(let y=6;y<MAPSIZE-6;y++)for(let x=6;x<MAPSIZE-6;x++)if(initialD[y][x]>17)centers.push({x,y,d:initialD[y][x],rnd:rng()});
+ for(let y=5;y<MAPSIZE-4;y++)for(let x=5;x<MAPSIZE-4;x++)if(initialD[y][x]>17)centers.push({x,y,d:initialD[y][x],rnd:rng()});
  centers.sort((a,b)=>b.d-a.d+b.rnd-a.rnd);
  for(const c of centers){
   let picked=null;
@@ -302,16 +301,22 @@ function makeFloor(initial=false){
    let trial=world.map(row=>row.slice());
    for(let yy=c.y-2;yy<=c.y+2;yy++)for(let xx=c.x-2;xx<=c.x+2;xx++)trial[yy][xx]=xx===c.x-2||xx===c.x+2||yy===c.y-2||yy===c.y+2?1:0;
    const gx=c.x+dx*2,gy=c.y+dy*2;trial[gy][gx]=2;
-   const reachable=gridDist(2,2,trial),open=reachable.flat().filter(v=>v>=0).length;
-   if(reachable[oy][ox]>=0&&open>110){picked={trial,x:gx,y:gy,cx:c.x,cy:c.y};break}
+   const reachable=gridDist(2,2,trial);
+   let outside=0,connected=0;
+   for(let y=1;y<MAPSIZE-1;y++)for(let x=1;x<MAPSIZE-1;x++){
+    if(trial[y][x]!==0||(Math.abs(x-c.x)<2&&Math.abs(y-c.y)<2))continue;
+    outside++;
+    if(reachable[y][x]>=0)connected++;
+   }
+   if(reachable[oy][ox]>=0&&connected===outside){picked={trial,x:gx,y:gy,cx:c.x,cy:c.y};break}
   }
-  if(picked){world=picked.trial;vaultDoor={type:'lockedDoor',x:picked.x+.5,y:picked.y+.5,gx:picked.x,gy:picked.y,roomX:picked.cx,roomY:picked.cy,used:false};doors.push(vaultDoor);break}
+  if(picked){world=picked.trial;vaultDoor={type:'lockedDoor',x:picked.x+.5,y:picked.y+.5,gx:picked.x,gy:picked.y,roomX:picked.cx,roomY:picked.cy,used:false};break}
  }
  // The emergency fallback still gives a locked chamber: never make a floor unwinnable.
  if(!vaultDoor){
   const cx=19,cy=19;for(let yy=cy-2;yy<=cy+2;yy++)for(let xx=cx-2;xx<=cx+2;xx++)world[yy][xx]=xx===cx-2||xx===cx+2||yy===cy-2||yy===cy+2?1:0;
   const sideX=cx-2;world[cy][sideX]=2;for(let xx=3;xx<sideX;xx++)world[cy][xx]=0;for(let yy=2;yy<=cy;yy++)world[yy][3]=0;
-  vaultDoor={type:'lockedDoor',x:sideX+.5,y:cy+.5,gx:sideX,gy:cy,roomX:cx,roomY:cy,used:false};doors.push(vaultDoor);
+  vaultDoor={type:'lockedDoor',x:sideX+.5,y:cy+.5,gx:sideX,gy:cy,roomX:cx,roomY:cy,used:false};
  }
  const vcx=vaultDoor.roomX,vcy=vaultDoor.roomY;
  const dmap=gridDist(2,2,world);
@@ -362,7 +367,11 @@ function makeFloor(initial=false){
   return true;
  }
  function place(type,n,sep=3){
-  const available=[...candidates].sort(()=>rng()-.5),used=[];
+  const available=[...candidates],used=[];
+  for(let i=available.length-1;i>0;i--){
+   const j=Math.floor(rng()*(i+1));
+   [available[i],available[j]]=[available[j],available[i]];
+  }
   for(const c of available){
    if(used.length>=n)break;
    if(used.some(o=>Math.hypot(o.x-c.x,o.y-c.y)<sep)||!goodPropTile(c,type))continue;
@@ -378,7 +387,7 @@ function makeFloor(initial=false){
  if(battle){
   player.health=100;player.stamina=100;player.flash=battleSide==='exorcist';player.grenades=battleSide==='exorcist'?8:0;player.weapon='cross';
   const team=[{x:2.45,y:2.4},{x:3.55,y:2.65},{x:2.55,y:3.55},{x:3.50,y:3.55}];
-  const far=candidates.filter(c=>c.d>9&&!reserved.some(o=>Math.hypot(o.x-c.x,o.y-c.y)<2));
+  const far=candidates.filter(c=>c.d>9&&canStand(c.x+.5,c.y+.5));
   function distant(i){const c=far[(Math.floor(i*Math.max(1,far.length-1)/Math.max(1,4)))|0]||cells[(i*18)%cells.length]||{x:8,y:8};return {x:c.x+.5,y:c.y+.5}}
   let ally=1, opponent=0;
   const playerTeam=battleSide==='spirit'?'spirit':'hunt';
@@ -459,9 +468,9 @@ function update(dt){if(scene!=='play')return;if(battle&&battleSide==='spirit'){b
  markVisit();if(battle){battleBotsUpdate(dt);updateHud();return}let ne=nearestInteract();if(player.hidden){$('#signal').textContent='ВЫ В УКРЫТИИ · E / ДЕЙСТВ. — ВЫЙТИ'}else if(ne){$('#signal').textContent=ne.type==='exit'?'[ E ] СПУСК: 3 ПЕЧАТИ + 1 КЛЮЧ':ne.type==='lockedDoor'?'[ E ] ОТКРЫТЬ ДВЕРЬ · НУЖЕН КЛЮЧ':ne.type==='core'?'[ E ] ОЧИСТИТЬ ПЕЧАТЬ':ne.type==='note'?'ЗАПИСКА':'[ E ] СПРЯТАТЬСЯ'}else $('#signal').textContent=player.cores<3?'✠ ПЕЧАТИ '+player.cores+'/3 · КЛЮЧИ '+player.keys:'✠ КЛЮЧИ '+player.keys+' · ИЩИТЕ ВЫХОД';
  for(let o of objects){if(o.used||!['ammoItem','medItem','batteryItem','keyItem','note'].includes(o.type))continue;if(!player.hidden&&dist(player,o)<.64){o.used=true;if(o.type==='keyItem'){player.keys++;showToast('ПОЛУЧЕН ЛАТУННЫЙ КЛЮЧ — '+player.keys,2.3);sfx('pickup')}if(o.type==='note'){const text=`Этаж ${floorNo} — ${floorFlavor}: стены шепчут, даже когда здесь никого нет.`;foundLore.push(text);showToast('НАЙДЕНА СТРАНИЦА ДНЕВНИКА',2);sfx('pickup')}if(o.type==='ammoItem'){player.grenades=Math.min(14,player.grenades+2);showToast('+2 ФЛАКОНА СВЯТОЙ ВОДЫ',1.5);sfx('pickup')}if(o.type==='medItem'){player.health=Math.min(100,player.health+34);showToast('ОСВЯЩЁННАЯ РЕЛИКВИЯ +34',1.5);sfx('pickup')}if(o.type==='batteryItem'){player.battery=Math.min(100,player.battery+40);showToast('СВЕЧА: ФОНАРЬ +40%',1.5);sfx('pickup')}}}
  if(t-groanTick>3.2&&enemies.some(e=>e.alive&&dist(e,player)<7)){groanTick=t+rand(-.6,2.5);sfx('growl')}
- for(let e of enemies)if(e.alive){e.spawnGrace=Math.max(0,(e.spawnGrace||0)-dt);e.walk+=dt*5;e.flash=Math.max(0,e.flash-dt);e.attackAnim=Math.max(0,e.attackAnim-dt);e.stun=Math.max(0,e.stun-dt);e.attack-=dt;let d=dist(player,e),visible=!player.hidden&&d<8&&lineClear(e.x,e.y,player.x,player.y);if(player.hidden){e.alert=false;e.path=[]}
+ for(let e of enemies)if(e.alive){e.spawnGrace=Math.max(0,(e.spawnGrace||0)-dt);e.moving=0;e.flash=Math.max(0,e.flash-dt);e.attackAnim=Math.max(0,e.attackAnim-dt);e.stun=Math.max(0,e.stun-dt);e.attack-=dt;let d=dist(player,e),visible=!player.hidden&&d<8&&lineClear(e.x,e.y,player.x,player.y);if(player.hidden){e.alert=false;e.path=[]}
  if(visible&&d<6.5||d<2.2){e.alert=true;e.lastSeen=t}if(e.alert&&d>17&&t-e.lastSeen>12)e.alert=false;
- if(e.alert&&e.stun<=0&&e.spawnGrace<=0){e.pathTimer-=dt;if(e.pathTimer<=0){e.pathTimer=rand(.7,1.2);e.path=bPath(e.x,e.y,player.x,player.y)}let target=e.path.length?e.path[0]:{x:player.x,y:player.y};if(e.path.length&&dist(e,target)<.19){e.path.shift();target=e.path[0]||player}if(d>.65){let dx=target.x-e.x,dy=target.y-e.y,dl=Math.hypot(dx,dy);if(dl>.01){let speed=e.speed*(d<2?1.22:1)*dt;moveEntity(e,dx/dl*speed,dy/dl*speed,.2)}}}
+ if(e.alert&&e.stun<=0&&e.spawnGrace<=0){e.pathTimer-=dt;if(e.pathTimer<=0){e.pathTimer=rand(.7,1.2);e.path=bPath(e.x,e.y,player.x,player.y)}let target=e.path.length?e.path[0]:{x:player.x,y:player.y};if(e.path.length&&dist(e,target)<.19){e.path.shift();target=e.path[0]||player}if(d>.65){let dx=target.x-e.x,dy=target.y-e.y,dl=Math.hypot(dx,dy);if(dl>.01){let speed=e.speed*(d<2?1.22:1)*dt;const x=e.x,y=e.y;moveEntity(e,dx/dl*speed,dy/dl*speed,.2);e.moving=Math.hypot(e.x-x,e.y-y)>.001?1:0;e.walk+=Math.hypot(e.x-x,e.y-y)*6}}}
  if(!player.hidden&&d<.86&&e.attack<=0&&e.spawnGrace<=0){e.attack=rand(1.05,1.6);e.attackAnim=.45;player.health=Math.max(0,player.health-({ghost:11,cultist:14,wraith:17,demon:22})[e.type]*((player.abilityShield||0)>0?.35:1));player.hurt=.55;sfx('hurt');showToast('КОНТАКТ! ОТСТУПАЙТЕ!',.75);if(player.health<=0){endGame(false);return}}
  }
  
@@ -643,7 +652,7 @@ function drawSprites(){
   if(!sprite||!sprite.width||!sprite.height||sprite.complete===false)continue;
   let sx=W/2+(lateral/depth)*proj,bottom=horizon+((.5-z)/depth)*proj,sh=proj/depth*yScale,sw=proj/depth*xScale;
   const e=o.enemy;
-  const pose=e?window.ObitelAnimation.body(e.role||o.type,e,t):null;
+  const pose=e?window.ObitelAnimation.body(o.type==='exorcist'?(e.role||'priest'):o.type,e,t):null;
   const dying=e&&!e.alive?clamp(1-e.deathAnim/.94,0,1):0;
   if(pose){
    sx+=sw*pose.x;
@@ -743,7 +752,7 @@ function render(){if(!player)return;drawBase();drawWalls();drawSprites();drawPar
 function drawRadar(){const w=110,h=110;rctx.fillStyle='#061012';rctx.fillRect(0,0,w,h);let scale=12,r=4.5,cx=w/2,cy=h/2,px=Math.floor(player.x),py=Math.floor(player.y);for(let yy=-5;yy<=5;yy++)for(let xx=-5;xx<=5;xx++){let gx=px+xx,gy=py+yy;if(gx<0||gy<0||gx>=MAPSIZE||gy>=MAPSIZE||!visited[gy][gx])continue;rctx.fillStyle=world[gy][gx]?'#1c3334':'#445653';rctx.fillRect(cx+xx*scale-scale/2,cy+yy*scale-scale/2,scale-1,scale-1)}for(let o of objects)if(!o.used&&['core','exit','keyItem','wardrobe','confessional'].includes(o.type)){let dx=(o.x-player.x),dy=(o.y-player.y);if(Math.abs(dx)>5||Math.abs(dy)>5)continue;rctx.fillStyle=o.type==='core'?'#a8eebd':o.type==='keyItem'?'#f1c16b':o.type==='wardrobe'||o.type==='confessional'?'#72929e':'#f16b5b';rctx.fillRect(cx+dx*scale-3,cy+dy*scale-3,6,6)}rctx.save();rctx.translate(cx,cy);rctx.rotate(player.a+Math.PI/2);rctx.fillStyle='#edf4d7';rctx.beginPath();rctx.moveTo(0,-8);rctx.lineTo(6,6);rctx.lineTo(0,3);rctx.lineTo(-6,6);rctx.fill();rctx.restore();rctx.strokeStyle='#52756a';rctx.strokeRect(.5,.5,w-1,h-1);rctx.fillStyle='#86aea3';rctx.font='8px monospace';rctx.fillText('RDR //13',5,10)}
 function drawBigmap(){const s=bigmap.width/MAPSIZE;bctx.fillStyle='#061012';bctx.fillRect(0,0,400,400);for(let y=0;y<MAPSIZE;y++)for(let x=0;x<MAPSIZE;x++){bctx.fillStyle=visited[y][x]?(world[y][x]?'#0b1719':'#465850'):(world[y][x]?'#03090a':'#142223');bctx.fillRect(x*s,y*s,s-.7,s-.7)}for(let o of objects)if(!o.used&&['core','exit','keyItem','wardrobe','confessional'].includes(o.type)){let x=o.x*s,y=o.y*s;bctx.fillStyle=o.type==='core'?'#a8edbb':o.type==='keyItem'?'#edca7e':o.type==='wardrobe'||o.type==='confessional'?'#7e9fae':'#fc6b59';bctx.fillRect(x-4,y-4,8,8)}if(vaultDoor&&!vaultDoor.used){bctx.fillStyle='#d98564';bctx.fillRect(vaultDoor.x*s-4,vaultDoor.y*s-4,8,8)}bctx.save();bctx.translate(player.x*s,player.y*s);bctx.rotate(player.a+Math.PI/2);bctx.fillStyle='white';bctx.beginPath();bctx.moveTo(0,-8);bctx.lineTo(6,6);bctx.lineTo(-6,6);bctx.fill();bctx.restore()}
 function openMap(){if(scene!=='play')return;resetInputs();pauseFromMap=true;scene='map';drawBigmap();$('#mapScreen').classList.remove('hidden');if(document.pointerLockElement)document.exitPointerLock();stopAmbient()}function closeMap(){if(scene!=='map')return;scene='play';pauseFromMap=false;last=performance.now();$('#mapScreen').classList.add('hidden');startAmbient()}
-function frame(now){let dt=clamp((now-last)/1000,0,.05);last=now;if(match&&!match.result)onlineFrame(dt);else if(scene==='play')update(dt);if(scene==='play')render();requestAnimationFrame(frame)}
+function frame(now){let dt=clamp((now-last)/1000,0,.05);last=now;if(match&&!match.result)onlineFrame(dt);else if(scene==='play')update(dt);if(scene==='play'){const motion=player.weaponMotion||0;player.weaponMotion=motion+(player.moveSpeed-motion)*(1-Math.exp(-dt*11));render()}requestAnimationFrame(frame)}
 // Procedural sound: no external assets or libraries.
 let audio=null,master=null,drone=[],ambNoise=null,ambFilter=null,ambientOn=false;function audioInit(){if(audio)return;try{audio=new (window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=settings.muted?0:.35;master.connect(audio.destination)}catch(e){audio=null}}
 function sndTone(freq,kind='sine',dur=.1,vol=.1,slide=0){if(!audio||settings.muted)return;const now=audio.currentTime,o=audio.createOscillator(),g=audio.createGain();o.type=kind;o.frequency.setValueAtTime(freq,now);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(18,freq+slide),now+dur);g.gain.setValueAtTime(vol,now);g.gain.exponentialRampToValueAtTime(.0001,now+dur);o.connect(g);g.connect(master);o.start(now);o.stop(now+dur+.01)}
@@ -767,6 +776,7 @@ function syncFullscreenUI(){
  for(let sel of ['#fullscreenBtn','#menuFullscreen','#pauseFullscreen']){
   let b=$(sel);if(!b)continue;
   b.title=active?'Выйти из полноэкранного режима':'Открыть на весь экран';
+  if(sel==='#menuFullscreen'){b.textContent=active?'Выйти из полного экрана':'На весь экран';continue}
   if(sel!=='#fullscreenBtn')b.textContent=active?'⊟ ВЫЙТИ ИЗ ПОЛНОГО ЭКРАНА':'⛶ ПОЛНЫЙ ЭКРАН / АЛЬБОМНЫЙ РЕЖИМ';
  }
 }
@@ -1255,11 +1265,8 @@ function initInputs(){
   }
  });
  document.addEventListener('contextmenu',e=>e.preventDefault());
- $('#menuControls').textContent=IS_TOUCH?
- 'ТЕЛЕФОН: стик — движение · свайп с другой стороны — обзор · удерживайте атаку для повторных ударов · настройки в паузе':
- 'ПК: WASD — ходьба · мышь — обзор вверх/вниз · I/K — наклон · 1/2 — оружие · ЛКМ — атака · ПКМ/G — вода · Shift — бег · E — ключ/укрытие · J — журнал · F — фонарь · Tab — карта · Alt+Enter — полный экран';
  syncFullscreenUI();
 }
 
-buildTextures();buildGothicTextures();createDecorArt();for(const name of Object.keys({cross:1,holyWater:1,flightWater:1,ghost:1,wraith:1,cultist:1,demon:1,priest:1,hunter:1,medic:1,guardian:1})){art[name]=$('#asset_'+name)}for(const name of ['ghost','cultist','wraith','demon'])spiritAnimations[name]=$('#anim_'+name);$('#menuFigure').src=$('#asset_ghost').src;for(const kind of ['ghost','cultist','wraith','demon'])$('#beast_'+kind).src=$('#asset_'+kind).src;$('#bestiaryBtn').onclick=()=>{$('#menu').classList.add('hidden');$('#bestiaryScreen').classList.remove('hidden')};$('#bestiaryBack').onclick=()=>{$('#bestiaryScreen').classList.add('hidden');$('#menu').classList.remove('hidden')};resize();initInputs();requestAnimationFrame(frame);
+buildTextures();buildGothicTextures();createDecorArt();for(const name of Object.keys({cross:1,holyWater:1,flightWater:1,ghost:1,wraith:1,cultist:1,demon:1,priest:1,hunter:1,medic:1,guardian:1})){art[name]=$('#asset_'+name)}for(const name of ['ghost','cultist','wraith','demon'])spiritAnimations[name]=$('#anim_'+name);for(const kind of ['ghost','cultist','wraith','demon'])$('#beast_'+kind).src=$('#asset_'+kind).src;$('#bestiaryBtn').onclick=()=>{$('#menu').classList.add('hidden');$('#bestiaryScreen').classList.remove('hidden')};$('#bestiaryBack').onclick=()=>{$('#bestiaryScreen').classList.add('hidden');$('#menu').classList.remove('hidden')};resize();initInputs();requestAnimationFrame(frame);
 })();

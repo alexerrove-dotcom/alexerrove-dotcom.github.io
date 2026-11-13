@@ -23,18 +23,28 @@ const abilityPose={
  priest:[.14,.28,-.16,1.15],hunter:[.19,.18,-.16,1.09],medic:[.20,.32,.25,1.12],guardian:[.09,.64,-.09,1.03],
  ghost:[.16,.32,-.24,1.09],wraith:[.39,.24,.28,1.18],cultist:[.02,.42,-.31,1.1],demon:[.26,.37,-.12,1.27]
 };
+// Monotone cubic interpolation keeps velocity continuous through intermediate poses.
+function tangent(track,index,channel){
+ if(index===0||index===track.length-1)return 0;
+ const previous=track[index-1],point=track[index],next=track[index+1];
+ const left=(point[channel]-previous[channel])/(point[0]-previous[0]);
+ const right=(next[channel]-point[channel])/(next[0]-point[0]);
+ return left*right>0?2*left*right/(left+right):0;
+}
 function sample(track, phase) {
  const end=track.findIndex(point=>point[0]>=phase);
  if(end<1)return track[0].slice(1);
- const from=track[end-1],to=track[end];
- const u=(phase-from[0])/(to[0]-from[0]);
- const smooth=u*u*(3-2*u);
- return from.slice(1).map((value,i)=>value+(to[i+1]-value)*smooth);
+ const from=track[end-1],to=track[end],duration=to[0]-from[0];
+ const u=(phase-from[0])/duration, u2=u*u, u3=u2*u;
+ return from.slice(1).map((value,i)=>{
+  const channel=i+1,m0=tangent(track,end-1,channel)*duration,m1=tangent(track,end,channel)*duration;
+  return (2*u3-3*u2+1)*value+(u3-2*u2+u)*m0+(-2*u3+3*u2)*to[channel]+(u3-u2)*m1;
+ });
 }
 
 function firstPerson(ctx, role, sprite, player, time, width, height, alternate) {
  if(!sprite?.complete||!sprite.naturalWidth)return;
- const move=Math.min(1,(player.moveSpeed||0)/2.7);
+ const move=Math.min(1,(player.weaponMotion||0)/2.7);
  const step=player.walkTime*2, spec=attacks[role];
  const phase=player.crossEffect>0?Math.min(1,1-player.crossEffect/spec.duration):0;
  const [reach,lift,roll,zoom]=sample(spec.keys,Math.max(0,phase));

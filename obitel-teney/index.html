@@ -4,10 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#080b0e">
-<title>ОБИТЕЛЬ ТЕНЕЙ v1.5 — Освещение</title>
+<title>ОБИТЕЛЬ ТЕНЕЙ v1.6 — Новые этажи</title>
 <link rel="stylesheet" href="src/style.css?v=15">
 <link rel="stylesheet" href="src/lobby.css?v=14">
 <link rel="stylesheet" href="src/controls.css?v=14">
+<link rel="stylesheet" href="src/menu.css?v=16">
 </head>
 <body>
 <canvas id="game" aria-label="Игровое поле"></canvas>
@@ -32,17 +33,25 @@
  </div>
 </div>
 <div id="rotateNotice" role="note"><div class="rotateGlyph">▯</div><h2>ПОВЕРНИТЕ ТЕЛЕФОН</h2><p>«Обитель теней» создана для горизонтального экрана. Поверните телефон и нажмите кнопку полного экрана.</p><button id="rotateFullscreen">⛶ ОТКРЫТЬ НА ВЕСЬ ЭКРАН</button></div>
-<div id="menu" class="screen"><img id="menuFigure" class="menuFigure" alt="" aria-hidden="true"><div class="panel"><div class="eyebrow">✠ АББАТСТВО / ТРИНАДЦАТАЯ ПОЛНОЧЬ</div><h1 class="heroTitle">ОБИТЕЛЬ<br><span>ТЕНЕЙ</span></h1><div class="subtitle">БЕСКОНЕЧНАЯ ЭКСПЕДИЦИЯ В МИР ДУХОВ</div><p class="description">В подземельях заброшенного аббатства распахнулась дверь в иной мир. Вы — последний экзорцист, пришедший закрыть её. <strong>Очищайте печати, ищите два ключа, отпирайте тайные комнаты и спускайтесь этаж за этажом без конца.</strong> Крест отпугивает духов, а флаконы святой воды взрываются ослепляющим светом.</p><div class="dividerLine"></div><div class="controlsHelp" id="menuControls">ПК: WASD — ходьба · мышь — обзор + вверх/вниз · I/K или PgUp/PgDn — вверх/вниз · 1/2 — сменить оружие · Shift — бег · R — бросок воды · E — действие · F — фонарь · Tab — карта · Esc — пауза</div><div id="mainMenuActions">
-<button class="cta" id="startBtn">НОВАЯ ИГРА</button>
-<button class="secondary" id="onlineBtn">ОНЛАЙН · ИГРАТЬ С ЛЮДЬМИ</button>
-<button class="secondary" id="skirmishBtn">СХВАТКА 4 × 4 · БОТЫ</button>
-<button class="secondary" id="continueBtn" disabled>ПРОДОЛЖИТЬ</button>
-<button class="secondary" id="menuSettingsBtn">НАСТРОЙКИ</button>
-<button class="secondary" id="menuHelpBtn">КАК ИГРАТЬ</button>
-<button class="secondary" id="bestiaryBtn">БЕСТИАРИЙ</button>
-<button class="secondary" id="menuJournalBtn">ДНЕВНИК</button>
+<div id="menu" class="screen">
+ <main class="menuShell">
+  <header class="menuIntro">
+   <h1>Обитель <span>теней</span></h1>
+   <p>Спустись в подземелья аббатства. Найди ключи, очисти три печати и открой путь на следующий этаж.</p>
+  </header>
+  <nav id="mainMenuActions" aria-label="Режим игры">
+   <button class="menuMode menuExpedition" id="startBtn"><span aria-hidden="true">✠</span><span><strong>Новая экспедиция</strong><small>Одиночная игра</small></span></button>
+   <button class="menuMode" id="continueBtn" disabled><span aria-hidden="true">↪</span><span><strong>Продолжить</strong><small id="continueDetail">Нет сохранения</small></span></button>
+   <button class="menuMode" id="onlineBtn"><span aria-hidden="true">◈</span><span><strong>Онлайн 4 × 4</strong><small>Публичные и закрытые комнаты</small></span></button>
+   <button class="menuMode" id="skirmishBtn"><span aria-hidden="true">✥</span><span><strong>Схватка с ботами</strong><small>Выбор класса и состава команд</small></span></button>
+  </nav>
+  <div class="menuTools" aria-label="Параметры и справка">
+   <button id="menuSettingsBtn">Настройки</button><button id="menuHelpBtn">Как играть</button>
+   <button id="bestiaryBtn">Бестиарий</button><button id="menuJournalBtn">Дневник</button>
+   <button id="menuFullscreen">На весь экран</button>
+  </div>
+ </main>
 </div>
-<button class="secondary" id="menuFullscreen">⛶ ПОЛНЫЙ ЭКРАН</button><div class="meta">ПСЕВДО-3D · АНИМИРОВАННЫЕ ПРИЗРАКИ · АЛЬБОМНЫЙ РЕЖИМ · ОФЛАЙН</div></div></div>
 <div id="skirmishScreen" class="screen hidden">
  <div class="panel onlinePanel">
   <div class="eyebrow">ОБИТЕЛЬ ТЕНЕЙ</div>
@@ -174,8 +183,9 @@
 <script src="src/relay.js?v=14" defer></script>
 <script src="src/characters.js?v=14" defer></script>
 <script src="src/online.js?v=14" defer></script>
-<script src="src/animation.js?v=14" defer></script>
+<script src="src/animation.js?v=16" defer></script>
 <script src="src/controls.js?v=14" defer></script>
-<script src="src/game.js?v=15" defer></script>
+<script src="src/layout.js?v=16" defer></script>
+<script src="src/game.js?v=16" defer></script>
 </body>
 </html>
