@@ -1,7 +1,8 @@
 /* Application messages are encrypted before they reach the shared WebSocket relays. */
 window.ObitelRelay = function (isHost, code, directory) {
  const encoder = new TextEncoder(), decoder = new TextDecoder();
- const id = isHost ? 'host' : crypto.randomUUID();
+ const hex = bytes => [...new Uint8Array(bytes)].map(byte=>byte.toString(16).padStart(2,'0')).join('');
+ const id = isHost ? 'host' : hex(crypto.getRandomValues(new Uint8Array(18)));
  const links = new Map(), listeners = new Map();
  const duplicates = new Set(), pending = [];
  let key, dead = false, ticker, incoming = Promise.resolve(), outgoing = Promise.resolve(), opened = false;
@@ -95,7 +96,7 @@ window.ObitelRelay = function (isHost, code, directory) {
   const imported = await crypto.subtle.importKey('raw',secret,'AES-GCM',false,['encrypt','decrypt']);
   if (dead) return;
   key = imported;
-  const channel = [...new Uint8Array(hash)].map(byte=>byte.toString(16).padStart(2,'0')).join('');
+  const channel = hex(hash);
   directory.wire('obitel-teney/1-1/play/' + channel);
   ticker = setInterval(tick,1500);
  }

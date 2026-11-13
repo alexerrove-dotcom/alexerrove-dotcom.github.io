@@ -5,34 +5,27 @@ const $ = id => document.getElementById(id);
 const version = 11;
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const validCode = value => typeof value === 'string' && /^[A-HJ-NP-Z2-9]{6}$/.test(value);
-const classes = {
- priest:   { side:'hunt', name:'Священник', attack:'Освящённый луч', power:'Круг очищения', speed:2.65, range:5.8, arc:.27, damage:27, interval:.52, color:'gold' },
- hunter:   { side:'hunt', name:'Охотник', attack:'Дальний выстрел', power:'Световая вспышка', speed:2.95, range:8.5, arc:.15, damage:38, interval:.92, color:'ember' },
- medic:    { side:'hunt', name:'Лекарь', attack:'Быстрые импульсы', power:'Исцеление команды', speed:2.85, range:4.4, arc:.36, damage:16, interval:.33, color:'blue' },
- guardian: { side:'hunt', name:'Страж', attack:'Взмах щитом', power:'Защитный купол', speed:2.35, range:2.5, arc:1.05, damage:36, interval:.67, sweep:true, color:'gold' },
- ghost:    { side:'spirit', name:'Монастырский дух', attack:'Холодный захват', power:'Невидимость', speed:2.85, range:2.25, arc:.64, damage:24, interval:.54, color:'blue' },
- wraith:   { side:'spirit', name:'Теневой призрак', attack:'Быстрый выпад', power:'Теневой рывок', speed:3.30, range:1.65, arc:.48, damage:21, interval:.36, color:'violet' },
- cultist:  { side:'spirit', name:'Призрачная монахиня', attack:'Проклятие на расстоянии', power:'Кража жизни', speed:2.65, range:5.5, arc:.27, damage:26, interval:.75, color:'violet' },
- demon:    { side:'spirit', name:'Полтергейст', attack:'Широкая волна', power:'Удар с отбрасыванием', speed:2.35, range:3.4, arc:.78, damage:31, interval:1, sweep:true, color:'ember' }
-};
-const sides = { hunt:'Охотники', spirit:'Духи' };
+const { classes, picker, renderRoster } = window.ObitelCharacters;
 const cleanName = value => String(value || '').trim().slice(0, 28) || 'Заброшенное аббатство';
 const roomCode = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), n => alphabet[n % alphabet.length]).join('');
 const count = (players, side) => players.filter(p => classes[p.character]?.side === side).length;
 
-window.ObitelOnline = { classes, count, create };
+window.ObitelOnline = { create };
 
 function create(game) {
- let side = 'hunt', selected = { hunt:'priest', spirit:'ghost' };
- let mode = 'idle', peer, connection, timeout, room, roster = [], entries = [], self, started = false;
+ let mode = 'idle', peer, connection, timeout, helloTimer, room, roster = [], entries = [], self, started = false;
  let directoryReady = false, publicView = '';
  const guests = new Map();
  const directory = window.ObitelDirectory({
   onRooms: rooms => { entries = rooms; renderDirectory(); },
   onWire: body => peer?.receive(body),
-  onWireReady: () => peer?.ready(),
+  onWireReady: () => {
+   peer?.ready();
+   if (mode === 'host' && room && !started) syncRoster();
+  },
   onStatus: ready => {
    directoryReady = ready;
+   if (mode === 'host' && room && !started) showWaiting();
    $('lobbyConnection').textContent = ready ? 'Публичные комнаты обновляются автоматически.' : 'Служба комнат недоступна. Переподключаемся…';
   }
  });
@@ -43,6 +36,7 @@ function create(game) {
   const oldPeer = peer;
   mode = 'idle'; peer = null; connection = null; room = null; self = null; roster = []; started = false;
   clearTimeout(timeout);
+  clearInterval(helloTimer);
   directory.advertise(null);
   for (const guest of guests.values()) clearTimeout(guest.timeout);
   guests.clear();
@@ -54,7 +48,7 @@ function create(game) {
   $('netClose').hidden = false;
   $('netHost').disabled = false;
   $('netJoin').disabled = false;
-  renderClasses();
+  selection.render();
   renderDirectory();
   status(message);
  }
@@ -68,32 +62,8 @@ function create(game) {
  function fail(message) {
   leave(message);
  }
- function renderClasses() {
-  $('netHunt').setAttribute('aria-pressed', String(side === 'hunt'));
-  $('netSpirits').setAttribute('aria-pressed', String(side === 'spirit'));
-  const box = $('netClasses');
-  if (box.dataset.side !== side) {
-   box.dataset.side = side;
-   box.replaceChildren();
-   for (const [id, config] of Object.entries(classes)) {
-    if (config.side !== side) continue;
-    const card = document.createElement('button'), image = document.createElement('img');
-    const title = document.createElement('b'), attack = document.createElement('small'), power = document.createElement('span');
-    card.type = 'button';
-    card.className = 'netClass';
-    card.dataset.character = id;
-    image.src = game.portrait(id);
-    image.alt = '';
-    title.textContent = config.name; attack.textContent = config.attack; power.textContent = config.power;
-    card.append(image, title, attack, power);
-    card.onclick = () => { selected[side] = id; renderClasses(); };
-    box.append(card);
-   }
-  }
-  for (const card of box.children) card.setAttribute('aria-pressed', String(card.dataset.character === selected[side]));
- }
  function renderDirectory() {
-  const box = $('lobbyList');
+  const side = selection.side, box = $('lobbyList');
   const fingerprint = JSON.stringify([side, mode, entries]);
   if (publicView === fingerprint) return;
   publicView = fingerprint;
@@ -125,37 +95,32 @@ function create(game) {
   $('netClose').hidden = true;
   $('netRoomName').textContent = room.name;
   $('netRoomInfo').textContent = (room.public ? 'Публичная' : 'Закрытая') + ' · Код ' + room.code + ' · ' + roster.length + '/8 игроков';
-  const canStart = count(roster, 'hunt') > 0 && count(roster, 'spirit') > 0;
+  const canStart = directory.wireReady() && count(roster, 'hunt') > 0 && count(roster, 'spirit') > 0;
   $('netStart').hidden = mode !== 'host';
   $('netStart').disabled = !canStart;
-  for (const [key, prefix] of [['hunt', 'netHunt'], ['spirit', 'netSpirit']]) {
-   const list = $(prefix + 'Roster');
-   list.replaceChildren();
-   const team = roster.filter(p => classes[p.character]?.side === key);
-   $(prefix + 'Count').textContent = team.length + '/4';
-   for (const member of team) {
-    const item = document.createElement('li');
-    item.textContent = classes[member.character].name + (member.id === self ? ' · Вы' : member.host ? ' · Хозяин' : '');
-    list.append(item);
-   }
-  }
-  status(mode === 'host' && !canStart ? 'Для старта нужен хотя бы один игрок в каждой команде.' :
+  renderRoster($('netRoster'), roster.map(member => ({
+   character:member.character,
+   label:member.id === self ? 'Вы' : member.host ? 'Хозяин' : ''
+  })));
+  status(mode === 'host' && !directory.wireReady() ? 'Комната создана. Подключаем сервер для приглашений…' :
+   mode === 'host' && !canStart ? 'Для старта нужен хотя бы один игрок в каждой команде.' :
    mode === 'guest' ? 'Ждём начала матча.' : '');
  }
- function syncRoster() {
+ function syncRoster(newGuest) {
   roster = [roster[0], ...[...guests.values()].filter(g => g.player).map(g => g.player)];
+  if (newGuest) send(newGuest, { type:'welcome', room, self:newGuest.peer, roster });
   broadcast({ type:'roster', roster });
   if (!started) {
    if (room.public) directory.advertise({ code:room.code, name:room.name, hunt:count(roster, 'hunt'), spirit:count(roster, 'spirit') });
    showWaiting();
   }
  }
- function waitForPeer(text) {
+ function waitForPeer(text, onTimeout) {
   $('netHost').disabled = true;
   $('netJoin').disabled = true;
   renderDirectory();
   status(text);
-  timeout = setTimeout(() => fail('Сеть не ответила. Проверьте подключение и повторите попытку.'), 18000);
+  timeout = setTimeout(onTimeout, 26000);
  }
  function removeGuest(id) {
   const guest = guests.get(id);
@@ -177,6 +142,7 @@ function create(game) {
    if (!message || typeof message !== 'object' || mode !== 'host') return;
    if (guest.player) {
     if (started && message.type === 'input') game.input(link.peer, message);
+    if (!started && message.type === 'hello') send(link, { type:'welcome', room, self:link.peer, roster });
     return;
    }
    if (message.type !== 'hello') return;
@@ -190,8 +156,7 @@ function create(game) {
    }
    clearTimeout(guest.timeout);
    guest.player = { id:link.peer, character:message.character, host:false };
-   send(link, { type:'welcome', room, self:link.peer });
-   syncRoster();
+   syncRoster(link);
   });
  }
  function makePeer(code) {
@@ -204,45 +169,60 @@ function create(game) {
  function hostRoom() {
   if (mode !== 'idle') return;
   mode = 'host';
-  const code = roomCode(), character = selected[side], isPublic = $('lobbyPublic').checked;
+  if (!window.crypto?.subtle) { fail('Откройте игру по HTTPS для сетевого режима.'); return; }
+  const code = roomCode(), character = selection.character, isPublic = $('lobbyPublic').checked;
   const name = cleanName($('lobbyName').value);
-  waitForPeer('Открываем комнату…');
+  self = 'host';
+  room = { code, name, public:isPublic };
+  roster = [{ id:self, character, host:true }];
+  showWaiting();
+  waitForPeer('Комната создана. Подключаем сервер для приглашений…', () => {
+   status('Сервер пока недоступен. Комната подключится автоматически, когда восстановится связь.');
+  });
   const instance = makePeer(code);
   if (!instance) return;
   instance.on('connection', acceptGuest);
-  instance.on('open', id => {
+  instance.on('open', () => {
    if (peer !== instance) return;
    clearTimeout(timeout);
-   if (!room) {
-    self = id;
-    room = { code, name, public:isPublic };
-    roster = [{ id, character, host:true }];
-   }
    if (!started) syncRoster();
   });
  }
  function joinRoom() {
   if (mode !== 'idle') return;
-  const code = $('netCode').value.trim().toUpperCase(), character = selected[side];
+  const code = $('netCode').value.trim().toUpperCase(), character = selection.character;
   if (!validCode(code)) { status('Введите шестизначный код комнаты.'); return; }
   mode = 'guest';
-  waitForPeer('Ищем комнату ' + code + '…');
+  waitForPeer('Ищем комнату ' + code + '…', () => fail(directory.wireReady() ?
+   'Комната не отвечает. Проверьте код и открыт ли браузер хозяина.' :
+   'Сервер комнат пока недоступен. Повторите попытку после подключения.'));
   const instance = makePeer(code);
   if (!instance) return;
   instance.on('open', () => {
    if (peer !== instance) return;
    const link = instance.connect();
    connection = link;
-   link.on('open', () => send(link, { type:'hello', character, version }));
+   link.on('open', () => {
+    const hello = () => send(link, { type:'hello', character, version });
+    hello();
+    helloTimer = setInterval(hello, 1200);
+   });
    link.on('data', message => {
     if (connection !== link || !message) return;
     if (message.type === 'deny') { fail(message.message); return; }
     if (message.type === 'welcome') {
      room = message.room;
      self = message.self;
+     if (message.roster && !started) {
+      clearTimeout(timeout);
+      clearInterval(helloTimer);
+      roster = message.roster;
+      showWaiting();
+     }
     }
     if (message.type === 'roster' && room) {
      clearTimeout(timeout);
+     clearInterval(helloTimer);
      roster = message.roster;
      if (!started) showWaiting();
     }
@@ -270,7 +250,7 @@ function create(game) {
   showSetup();
  }
  function startMatch() {
-  if (mode !== 'host' || started || !count(roster, 'hunt') || !count(roster, 'spirit')) return;
+  if (mode !== 'host' || started || !directory.wireReady() || !count(roster, 'hunt') || !count(roster, 'spirit')) return;
   started = true;
   directory.advertise(null);
   const message = { type:'start', players:roster };
@@ -287,8 +267,7 @@ function create(game) {
    status('Ждём возвращения хозяина в лобби.');
   }
  }
- $('netHunt').onclick = () => { side = 'hunt'; renderClasses(); renderDirectory(); };
- $('netSpirits').onclick = () => { side = 'spirit'; renderClasses(); renderDirectory(); };
+ const selection = picker($('netHunt'), $('netSpirits'), $('netClasses'), game.portrait, renderDirectory);
  $('netHost').onclick = hostRoom;
  $('netJoin').onclick = joinRoom;
  $('netCode').addEventListener('keydown', event => { if (event.key === 'Enter') joinRoom(); });

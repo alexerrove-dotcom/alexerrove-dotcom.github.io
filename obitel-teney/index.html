@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#080b0e">
-<title>ОБИТЕЛЬ ТЕНЕЙ v1.1 — Онлайн 4 на 4</title>
-<link rel="stylesheet" href="src/style.css">
-<link rel="stylesheet" href="src/lobby.css?v=11">
+<title>ОБИТЕЛЬ ТЕНЕЙ v1.2 — Онлайн и боты 4 на 4</title>
+<link rel="stylesheet" href="src/style.css?v=12">
+<link rel="stylesheet" href="src/lobby.css?v=12">
 </head>
 <body>
 <canvas id="game" aria-label="Игровое поле"></canvas><div id="grain"></div>
@@ -30,7 +30,29 @@
 <button class="secondary" id="menuJournalBtn">ДНЕВНИК</button>
 </div>
 <button class="secondary" id="menuFullscreen">⛶ ПОЛНЫЙ ЭКРАН</button><div class="meta">ПСЕВДО-3D · АНИМИРОВАННЫЕ ПРИЗРАКИ · АЛЬБОМНЫЙ РЕЖИМ · ОФЛАЙН</div></div></div>
-<div id="skirmishScreen" class="screen hidden"><div class="panel" style="width:min(580px,95vw);max-height:94dvh;overflow-y:auto"><div class="eyebrow">✠ СХВАТКА · ИГРА С БОТАМИ</div><h2 style="margin:5px 0 14px">4 ЭКЗОРЦИСТА × 4 ДУХА</h2><p class="description">Выберите сторону и количество участников. Играть можно за любого из четырёх духов или за экзорциста. Боты сражаются за обе команды.</p><label class="netLabel">КОМАНДА<select id="skirmishSide"><option value="exorcist">Экзорцисты</option><option value="spirit">Духи</option></select></label><label class="netLabel">КЛАСС ЧЕЛОВЕКА<select id="skirmishHuman"><option value="priest">Священник — круг очищения</option><option value="hunter">Охотник — световая вспышка</option><option value="medic">Лекарь — исцеление</option><option value="guardian">Страж — купол</option></select></label><label class="netLabel">МОДЕЛЬ ДУХА<select id="skirmishCreature"><option value="ghost">Монастырский дух</option><option value="wraith">Теневой призрак</option><option value="cultist">Призрачная монахиня</option><option value="demon">Полтергейст</option></select></label><div class="netButtons"><label class="netLabel" style="flex:1">ЭКЗОРЦИСТОВ<select id="skirmishExorcists"><option>1</option><option>2</option><option>3</option><option selected>4</option></select></label><label class="netLabel" style="flex:1">ДУХОВ<select id="skirmishSpirits"><option>1</option><option>2</option><option>3</option><option selected>4</option></select></label></div><label class="lobbyPublic"><input type="checkbox" id="skirmishBots" checked> Включить ботов (заполнить свободные места)</label><p class="netNote">Когда боты отключены, противник ИИ всё равно остаётся для тренировки. Пока это локальная схватка; сетевые комнаты работают отдельно.</p><div class="netButtons"><button class="cta" id="skirmishStart">НАЧАТЬ</button><button class="secondary" id="skirmishBack">НАЗАД</button></div></div></div>
+<div id="skirmishScreen" class="screen hidden">
+ <div class="panel onlinePanel">
+  <div class="eyebrow">ОБИТЕЛЬ ТЕНЕЙ</div>
+  <h2>Схватка с ботами</h2>
+  <div id="skirmishSetup">
+   <div class="netTeams" role="group" aria-label="Команда">
+    <button type="button" id="skirmishHunt" aria-pressed="true">Охотники</button>
+    <button type="button" id="skirmishSpirits" aria-pressed="false">Духи</button>
+   </div>
+   <div id="skirmishClasses" class="netClasses" role="group" aria-label="Персонаж"></div>
+   <div class="netColumns botTeamSizes">
+    <label class="netLabel">Охотников<select id="skirmishExorcists"><option>1</option><option>2</option><option>3</option><option selected>4</option></select></label>
+    <label class="netLabel">Духов<select id="skirmishSpiritsCount"><option>1</option><option>2</option><option>3</option><option selected>4</option></select></label>
+   </div>
+   <div class="netButtons"><button type="button" class="cta" id="skirmishCreate">Создать комнату</button><button type="button" class="secondary" id="skirmishBack">Назад</button></div>
+  </div>
+  <section id="skirmishRoom" hidden>
+   <p class="lobbyStatus">Локальная комната · Игра с ботами</p>
+   <div id="skirmishRoster" class="netRoster"></div>
+   <div class="netButtons"><button type="button" class="cta" id="skirmishStart">Начать матч</button><button type="button" class="secondary" id="skirmishEdit">Изменить состав</button></div>
+  </section>
+ </div>
+</div>
 <div id="onlineScreen" class="screen hidden">
  <div class="panel onlinePanel">
   <div class="eyebrow">ОБИТЕЛЬ ТЕНЕЙ</div>
@@ -63,7 +85,7 @@
   <section id="netWaiting" hidden>
    <div class="lobbyHeading"><h3 id="netRoomName"></h3><button type="button" class="secondary" id="netCopy">Копировать ссылку</button></div>
    <p id="netRoomInfo"></p>
-   <div class="netRoster"><div><h3>Охотники <span id="netHuntCount"></span></h3><ul id="netHuntRoster"></ul></div><div><h3>Духи <span id="netSpiritCount"></span></h3><ul id="netSpiritRoster"></ul></div></div>
+   <div id="netRoster" class="netRoster"></div>
    <div class="netButtons"><button type="button" class="cta" id="netStart">Начать матч</button><button type="button" class="secondary" id="netLeave">Покинуть комнату</button></div>
   </section>
   <p id="netStatus" class="netStatus" role="status"></p>
@@ -109,6 +131,10 @@
 <img id="asset_cross" src="assets/cross.webp" alt="" hidden loading="eager">
 <img id="asset_holyWater" src="assets/holyWater.webp" alt="" hidden loading="eager">
 <img id="asset_demon" src="assets/demon.webp" alt="" hidden loading="eager">
+<img id="asset_priest" src="assets/priest.webp" alt="" hidden>
+<img id="asset_hunter" src="assets/hunter.webp" alt="" hidden>
+<img id="asset_medic" src="assets/medic.webp" alt="" hidden>
+<img id="asset_guardian" src="assets/guardian.webp" alt="" hidden>
 <img id="asset_ghost" src="assets/ghost.webp" alt="" hidden loading="eager">
 <img id="asset_wraith" src="assets/wraith.webp" alt="" hidden loading="eager">
 <img id="asset_cultist" src="assets/cultist.webp" alt="" hidden loading="eager">
@@ -117,9 +143,10 @@
 <img id="anim_wraith" src="assets/wraith_anim.webp" alt="" hidden loading="eager">
 <img id="anim_demon" src="assets/demon_anim.webp" alt="" hidden loading="eager">
 <img id="asset_flightWater" src="assets/holy_water_flight.webp" alt="" hidden loading="eager">
-<script src="src/lobby.js?v=112" defer></script>
-<script src="src/relay.js?v=112" defer></script>
-<script src="src/online.js?v=112" defer></script>
-<script src="src/game.js?v=11" defer></script>
+<script src="src/lobby.js?v=12" defer></script>
+<script src="src/relay.js?v=12" defer></script>
+<script src="src/characters.js?v=12" defer></script>
+<script src="src/online.js?v=12" defer></script>
+<script src="src/game.js?v=12" defer></script>
 </body>
 </html>

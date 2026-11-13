@@ -1,4 +1,4 @@
-#onlineScreen .onlinePanel{width:min(760px,96vw);max-width:760px;max-height:94dvh;overflow-y:auto;text-align:left}
+.screen .onlinePanel{width:min(760px,96vw);max-width:760px;max-height:94dvh;overflow-y:auto;text-align:left}
 .onlinePanel [hidden],#pauseScreen [hidden],#resultScreen [hidden]{display:none!important}
 .onlinePanel h2{margin:5px 0 14px;font-size:26px;color:#f3ddbd}
 .onlinePanel h3{margin:0;font-size:13px;letter-spacing:.06em;color:#e7cba3}
@@ -9,7 +9,7 @@
 .netTeams button[aria-pressed=true],.netClass[aria-pressed=true]{border-color:#e0af77;box-shadow:inset 0 0 0 1px #e0af77;background:#30241f;color:#fff0d7}
 .netClasses{grid-template-columns:repeat(4,minmax(0,1fr));margin:8px 0 12px}
 .netClass{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px;text-align:left;min-width:0}
-.netClass img{align-self:center;width:58px;height:61px;object-fit:contain}
+.netClass img{align-self:center;width:90px;height:106px;object-fit:contain}
 .netClass b{font-size:12px;line-height:1.2}
 .netClass small{font-size:11px;line-height:1.26;color:#c9bda9}
 .netClass span{font-size:10px;color:#eac994;line-height:1.2}
@@ -36,5 +36,8 @@
 .netRoster h3 span{color:#c2aa8b;font-weight:400}
 #netStatus:empty{display:none}
 #netBanner.netMatchBanner{top:64px}
-@media(max-height:450px){#onlineScreen .onlinePanel{padding:10px 13px}.onlinePanel h2{font-size:21px;margin-bottom:8px}.netClasses{margin-bottom:8px}.netClass img{height:39px;width:42px}.lobbyList{max-height:125px}#netBanner.netMatchBanner{top:39px}}
+@media(max-height:450px){.screen .onlinePanel{padding:10px 13px}.onlinePanel h2{font-size:21px;margin-bottom:8px}.netClasses{margin-bottom:8px}.netClass img{height:64px;width:62px}.lobbyList{max-height:125px}#netBanner.netMatchBanner{top:39px}}
 @media(max-width:550px){.netClasses{grid-template-columns:1fr 1fr}}
+
+.botTeamSizes label{margin:0}
+.netClass:focus-visible,.netTeams button:focus-visible{outline:2px solid #f1d3a5;outline-offset:2px}

@@ -1,7 +1,11 @@
 /* Public directory and a separate encrypted topic for the active match. */
 window.ObitelDirectory = function ({ onRooms, onStatus, onWire, onWireReady }) {
  const topic = 'obitel-teney/1-1/rooms';
- const urls = ['wss://broker.emqx.io:8084/mqtt', 'wss://test.mosquitto.org:8081/mqtt'];
+ const urls = [
+  'wss://broker.emqx.io:8084/mqtt',
+  'wss://test.mosquitto.org:8081/mqtt',
+  'wss://broker.connectmq.com:8084/mqtt'
+ ];
  const encoder = new TextEncoder(), decoder = new TextDecoder();
  const entries = new Map(), links = new Map();
  let room = null, started = false, sequence = 0, wireTopic = '', wireSubId = 1;
@@ -113,8 +117,12 @@ window.ObitelDirectory = function ({ onRooms, onStatus, onWire, onWireReady }) {
   }
   link.pending = empty;
  }
+ function retry(url) { setTimeout(() => connect(url), 2000 + Math.random() * 2500); }
  function connect(url) {
-  const ws = new WebSocket(url, 'mqtt');
+  if (links.has(url)) return;
+  let ws;
+  try { ws = new WebSocket(url, 'mqtt'); }
+  catch { status(); retry(url); return; }
   const link = { ws, ready: false, wireReady:false, pending:empty, lastReply: 0 };
   links.set(url, link);
   ws.binaryType = 'arraybuffer';
@@ -128,10 +136,14 @@ window.ObitelDirectory = function ({ onRooms, onStatus, onWire, onWireReady }) {
    clearTimeout(deadline);
    links.delete(url);
    status();
-   setTimeout(() => connect(url), 4000 + Math.random() * 2500);
+   retry(url);
   });
  }
- function refresh() { publish({ type: 'list' }); draw(); }
+ function refresh() {
+  for (const url of urls) if (!links.has(url)) connect(url);
+  publish({ type: 'list' });
+  draw();
+ }
  return {
   start() {
    if (started) { refresh(); return; }
