@@ -4,9 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#080b0e">
-<title>ОБИТЕЛЬ ТЕНЕЙ v1.3 — Открытая арена</title>
-<link rel="stylesheet" href="src/style.css?v=13">
-<link rel="stylesheet" href="src/lobby.css?v=13">
+<title>ОБИТЕЛЬ ТЕНЕЙ v1.4 — Управление и анимации</title>
+<link rel="stylesheet" href="src/style.css?v=14">
+<link rel="stylesheet" href="src/lobby.css?v=14">
+<link rel="stylesheet" href="src/controls.css?v=14">
 </head>
 <body>
 <canvas id="game" aria-label="Игровое поле"></canvas><div id="grain"></div>
@@ -17,7 +18,19 @@
  <div id="bottomLeft"><div><div id="ammo">9 <small>/ 54</small></div><div id="ammoName">КРЕСТ • ВОДА ДЛЯ ИЗГНАНИЯ</div></div></div>
  <div id="abilityInfo"></div><div id="crosshair"></div><div id="hitMark">×</div><div id="signal"></div><div id="toast"></div>
 </div>
-<div id="touchControls"><div id="lookZone"></div><div id="stick"><div id="knob"></div></div><div id="actions"><button class="action" id="mapBtn">КАРТА</button><button class="action" id="flash">СВЕТ</button><button class="action" id="sprint">БЕГ</button><button class="action" id="reload">ВОДА</button><button class="action" id="use">ДЕЙСТВ.</button><button class="action" id="ability">УМЕНИЕ</button><button class="action" id="fire">КРЕСТ</button></div></div>
+<div id="touchControls" data-role="priest" data-mode="expedition" data-side="hunt">
+ <div id="lookZone"></div>
+ <div id="moveZone"><div id="stick"><div id="knob"><span aria-hidden="true">✠</span></div></div></div>
+ <div id="actions">
+  <button type="button" class="action" id="mapBtn" aria-label="Карта"><span class="controlIcon" aria-hidden="true">◫</span><span class="controlLabel">Карта</span></button>
+  <button type="button" class="action" id="flash" aria-label="Свет"><span class="controlIcon" aria-hidden="true">☀</span><span class="controlLabel">Свет</span></button>
+  <button type="button" class="action" id="sprint" aria-label="Бег"><span class="controlIcon" aria-hidden="true">»</span><span class="controlLabel">Бег</span></button>
+  <button type="button" class="action" id="reload" aria-label="Вода"><span class="controlIcon" aria-hidden="true">♦</span><span class="controlLabel">Вода</span></button>
+  <button type="button" class="action" id="use" aria-label="Действие"><span class="controlIcon" aria-hidden="true">◇</span><span class="controlLabel">Действие</span></button>
+  <button type="button" class="action" id="ability" aria-label="Умение"><span class="controlIcon" aria-hidden="true">✧</span><span class="controlLabel">Умение</span></button>
+  <button type="button" class="action" id="fire" aria-label="Крест"><span class="controlIcon" aria-hidden="true">✠</span><span class="controlLabel">Крест</span></button>
+ </div>
+</div>
 <div id="rotateNotice" role="note"><div class="rotateGlyph">▯</div><h2>ПОВЕРНИТЕ ТЕЛЕФОН</h2><p>«Обитель теней» создана для горизонтального экрана. Поверните телефон и нажмите кнопку полного экрана.</p><button id="rotateFullscreen">⛶ ОТКРЫТЬ НА ВЕСЬ ЭКРАН</button></div>
 <div id="menu" class="screen"><img id="menuFigure" class="menuFigure" alt="" aria-hidden="true"><div class="panel"><div class="eyebrow">✠ АББАТСТВО / ТРИНАДЦАТАЯ ПОЛНОЧЬ</div><h1 class="heroTitle">ОБИТЕЛЬ<br><span>ТЕНЕЙ</span></h1><div class="subtitle">БЕСКОНЕЧНАЯ ЭКСПЕДИЦИЯ В МИР ДУХОВ</div><p class="description">В подземельях заброшенного аббатства распахнулась дверь в иной мир. Вы — последний экзорцист, пришедший закрыть её. <strong>Очищайте печати, ищите два ключа, отпирайте тайные комнаты и спускайтесь этаж за этажом без конца.</strong> Крест отпугивает духов, а флаконы святой воды взрываются ослепляющим светом.</p><div class="dividerLine"></div><div class="controlsHelp" id="menuControls">ПК: WASD — ходьба · мышь — обзор + вверх/вниз · I/K или PgUp/PgDn — вверх/вниз · 1/2 — сменить оружие · Shift — бег · R — бросок воды · E — действие · F — фонарь · Tab — карта · Esc — пауза</div><div id="mainMenuActions">
 <button class="cta" id="startBtn">НОВАЯ ИГРА</button>
@@ -97,9 +110,12 @@
 <div id="pauseScreen" class="screen hidden"><div class="panel"><div class="eyebrow">✠ РИТУАЛ ПРИОСТАНОВЛЕН</div><h2 class="heroTitle" style="font-size:38px">ПАУЗА</h2><p class="description">Во тьме до сих пор слышны чужие шаги.</p><button class="cta" id="resumeBtn">ПРОДОЛЖИТЬ</button><button class="secondary" id="restartPauseBtn">НОВАЯ ИГРА</button><button class="secondary" id="pauseJournalBtn">ДНЕВНИК</button><button class="secondary" id="netInviteInMatch" hidden>КОПИРОВАТЬ ПРИГЛАШЕНИЕ</button><button class="secondary" id="returnMenuBtn">В ГЛАВНОЕ МЕНЮ</button>
  <div id="controlSettings">
   <label>ЧУВСТВИТЕЛЬНОСТЬ ОБЗОРА <span id="lookValue">100%</span><input type="range" id="lookSensitivity" min="50" max="190" value="100" step="10"></label>
-  <label>СКОРОСТЬ СТИКА <span id="stickValue">100%</span><input type="range" id="stickSensitivity" min="70" max="150" value="100" step="10"></label>
+  <label>ОТКЛИК СТИКА <span id="stickValue">100%</span><input type="range" id="stickSensitivity" min="70" max="150" value="100" step="10"></label>
   <label class="toggleSetting"><input type="checkbox" id="invertView"> Инвертировать обзор по вертикали</label>
   <label class="toggleSetting"><input type="checkbox" id="leftHanded"> Управление для левши</label>
+  <label>МЁРТВАЯ ЗОНА СТИКА<input id="deadZone" type="range" min="4" max="24" value="9"></label>
+  <label class="toggleSetting"><input type="checkbox" id="floatingStick" checked> Плавающий стик</label>
+  <label class="toggleSetting"><input type="checkbox" id="vibration" checked> Вибрация кнопок</label>
  </div>
  <button class="secondary" id="pauseFullscreen">⛶ ПОЛНЫЙ ЭКРАН</button><div class="meta">Esc — вернуться к игре</div></div></div>
 <div id="settingsScreen" class="screen subScreen hidden"><div class="panel">
@@ -110,6 +126,9 @@
   <label>ДЖОЙСТИК <input id="menuStick" type="range" min="70" max="150" value="100" step="10"></label>
   <label class="inline"><input id="menuInvert" type="checkbox"> Инверсия Y</label>
   <label class="inline"><input id="menuLeft" type="checkbox"> Для левши</label>
+  <label>МЁРТВАЯ ЗОНА СТИКА<input id="menuDeadZone" type="range" min="4" max="24" value="9"></label>
+  <label class="inline"><input type="checkbox" id="menuFloatingStick" checked> Плавающий стик</label>
+  <label class="inline"><input type="checkbox" id="menuVibration" checked> Вибрация кнопок</label>
  </div><p>Сложность применяется к новой игре, параметры управления сохраняются автоматически.</p>
  <button class="cta" id="settingsBack">ГОТОВО</button>
 </div></div>
@@ -143,11 +162,20 @@
 <img id="anim_wraith" src="assets/wraith_anim.webp" alt="" hidden loading="eager">
 <img id="anim_demon" src="assets/demon_anim.webp" alt="" hidden loading="eager">
 <img id="asset_flightWater" src="assets/holy_water_flight.webp" alt="" hidden loading="eager">
-<script src="src/lobby.js?v=13" defer></script>
-<script src="src/relay.js?v=13" defer></script>
-<script src="src/characters.js?v=13" defer></script>
-<script src="src/online.js?v=13" defer></script>
-<script src="src/animation.js?v=13" defer></script>
-<script src="src/game.js?v=13" defer></script>
+<img id="fps_priest" src="assets/fps_priest.webp" alt="" hidden>
+<img id="fps_hunter" src="assets/fps_hunter.webp" alt="" hidden>
+<img id="fps_medic" src="assets/fps_medic.webp" alt="" hidden>
+<img id="fps_guardian" src="assets/fps_guardian.webp" alt="" hidden>
+<img id="fps_ghost" src="assets/fps_ghost.webp" alt="" hidden>
+<img id="fps_wraith" src="assets/fps_wraith.webp" alt="" hidden>
+<img id="fps_cultist" src="assets/fps_cultist.webp" alt="" hidden>
+<img id="fps_demon" src="assets/fps_demon.webp" alt="" hidden>
+<script src="src/lobby.js?v=14" defer></script>
+<script src="src/relay.js?v=14" defer></script>
+<script src="src/characters.js?v=14" defer></script>
+<script src="src/online.js?v=14" defer></script>
+<script src="src/animation.js?v=14" defer></script>
+<script src="src/controls.js?v=14" defer></script>
+<script src="src/game.js?v=14" defer></script>
 </body>
 </html>

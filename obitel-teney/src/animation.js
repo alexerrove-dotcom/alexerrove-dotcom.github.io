@@ -1,16 +1,7 @@
 (() => {
 'use strict';
 
-const poses = {
- priest:   { cloth:'#3a2229', edge:'#b58a5e', skin:'#b29b87', reach:22, spread:6, tilt:.13, pace:1 },
- hunter:   { cloth:'#30362e', edge:'#8c8062', skin:'#a99078', reach:-17, spread:8, tilt:-.10, pace:1.14 },
- medic:    { cloth:'#66564b', edge:'#b99f82', skin:'#c7aa94', reach:13, spread:16, tilt:.09, pace:1.08 },
- guardian: { cloth:'#333c43', edge:'#a8b3b6', skin:'#8b999d', reach:32, spread:4, tilt:.22, pace:.8 },
- ghost:    { cloth:'#344b5b', edge:'#9fcbe0', skin:'#b8d9e4', reach:32, spread:12, tilt:.13, pace:.86, fingers:1 },
- wraith:   { cloth:'#302745', edge:'#a886d5', skin:'#b49ccc', reach:53, spread:20, tilt:.24, pace:1.3, fingers:1.2 },
- cultist:  { cloth:'#494452', edge:'#c1acd4', skin:'#cac5cf', reach:23, spread:38, tilt:-.2, pace:.92, fingers:.97 },
- demon:    { cloth:'#48323b', edge:'#e09675', skin:'#aa737a', reach:44, spread:27, tilt:.29, pace:.72, fingers:1.14 }
-};
+const pace={priest:1,hunter:1.14,medic:1.08,guardian:.8,ghost:.86,wraith:1.3,cultist:.92,demon:.72};
 
 function pulse(timer, length, peak=.32) {
  if (!(timer>0)) return 0;
@@ -18,84 +9,88 @@ function pulse(timer, length, peak=.32) {
  return progress<peak ? Math.sin(progress/peak*Math.PI/2) : Math.pow(Math.max(0,1-(progress-peak)/(1-peak)),1.6);
 }
 
-function firstPerson(ctx, role, player, t, width, height) {
- const style=poses[role];
- const stride=Math.min(1,(player.moveSpeed||0)/2.7);
- const step=player.walkTime*2;
- const attack=pulse(player.crossEffect,.34,.24);
+const attacks={
+ priest:   {duration:.34, keys:[[0,0,0,0,1],[.24,-.08,.07,-.12,.96],[.48,.20,.30,.15,1.16],[1,0,0,0,1]], light:[255,220,150]},
+ hunter:   {duration:.33, keys:[[0,0,0,0,1],[.12,.16,.23,-.23,1.16],[.37,.09,.13,-.11,1.07],[.67,-.09,-.09,.10,.95],[1,0,0,0,1]], light:[255,175,95]},
+ medic:    {duration:.29, keys:[[0,0,0,0,1],[.23,.17,.25,.05,1.13],[.52,.25,.30,-.16,1.04],[.8,-.04,.09,.1,1],[1,0,0,0,1]], light:[131,241,211]},
+ guardian: {duration:.42, keys:[[0,0,0,0,1],[.26,-.11,.09,-.21,1],[.52,.33,.23,.31,1.32],[.74,.18,.13,.2,1.17],[1,0,0,0,1]], light:[241,221,175]},
+ ghost:    {duration:.37, keys:[[0,0,0,0,1],[.23,-.05,-.03,-.12,.9],[.55,.33,.26,.12,1.28],[.72,.22,.20,.08,1.22],[1,0,0,0,1]], light:[144,224,249]},
+ wraith:   {duration:.32, keys:[[0,0,0,0,1],[.20,-.16,.18,-.25,1.04],[.47,.58,.20,.37,1.17],[.70,.28,-.08,.49,1.02],[1,0,0,0,1]], light:[201,155,251]},
+ cultist:  {duration:.43, keys:[[0,0,0,0,1],[.26,.08,.28,-.13,1.04],[.53,.17,.36,-.19,1.09],[.74,.30,.24,.11,1.18],[1,0,0,0,1]], light:[224,168,232]},
+ demon:    {duration:.46, keys:[[0,0,0,0,1],[.27,-.12,.18,-.22,.92],[.50,.35,.28,.06,1.43],[.73,.23,.14,.13,1.22],[1,0,0,0,1]], light:[255,123,93]}
+};
+const abilityPose={
+ priest:[.14,.28,-.16,1.15],hunter:[.19,.18,-.16,1.09],medic:[.20,.32,.25,1.12],guardian:[.09,.64,-.09,1.03],
+ ghost:[.16,.32,-.24,1.09],wraith:[.39,.24,.28,1.18],cultist:[.02,.42,-.31,1.1],demon:[.26,.37,-.12,1.27]
+};
+function sample(track, phase) {
+ const end=track.findIndex(point=>point[0]>=phase);
+ if(end<1)return track[0].slice(1);
+ const from=track[end-1],to=track[end];
+ const u=(phase-from[0])/(to[0]-from[0]);
+ const smooth=u*u*(3-2*u);
+ return from.slice(1).map((value,i)=>value+(to[i+1]-value)*smooth);
+}
+
+function firstPerson(ctx, role, sprite, player, time, width, height, alternate) {
+ if(!sprite?.complete||!sprite.naturalWidth)return;
+ const move=Math.min(1,(player.moveSpeed||0)/2.7);
+ const step=player.walkTime*2, spec=attacks[role];
+ const phase=player.crossEffect>0?Math.min(1,1-player.crossEffect/spec.duration):0;
+ const [reach,lift,roll,zoom]=sample(spec.keys,Math.max(0,phase));
  const power=pulse(player.powerAnim,.62,.4);
- const hit=pulse(player.hurt,.55);
- const scale=Math.min(height/255,width/510);
- const unit=Math.max(.4,scale);
- for (const side of [-1,1]) {
-  const spectral=Boolean(style.fingers);
-  const lead=role==='wraith'||role==='hunter' ? (side===1?1:.35) : 1;
-  const swing=Math.sin(step+side*Math.PI*.5)*stride;
-  const lift=style.reach*attack*lead+power*(role==='guardian'?63:role==='wraith'?25:47);
-  const center=width*.5+side*(width*(spectral?.27:.255)-(style.spread*attack+power*26)*unit);
-  const baseline=height+(13+Math.sin(t*2.15+side)*2.4+swing*5-lift+hit*18)*unit;
+ const [powerReach,powerLift,powerRoll,powerZoom]=abilityPose[role];
+ const throwPose=pulse(player.throwAnim,.65,.42);
+ const spectral=['ghost','wraith','cultist','demon'].includes(role);
+ const size=Math.min(width*.57,height*(spectral ? .78 : .82));
+ const spriteHeight=size*sprite.naturalHeight/sprite.naturalWidth;
+ const advance=reach+power*powerReach;
+ const rise=lift+power*powerLift;
+ const swing=Math.sin(step)*move;
+ const idle=Math.sin(time*2.25)*height*.006;
+ const scale=zoom+(powerZoom-1)*power+throwPose*.06;
+ const baseline=height+spriteHeight*(spectral?.25:.26);
+ const draw=(side, amount)=>{
+  const x=width*.5+side*(width*.34-(advance*amount+throwPose*.16)*size)+swing*size*.026;
+  const y=baseline-(rise*amount+throwPose*.48)*spriteHeight+idle+Math.sin(step+side*.6)*move*height*.019;
   ctx.save();
-  ctx.translate(center,baseline);
-  ctx.scale(-side*unit,unit);
-  ctx.rotate(.32+style.tilt*attack+power*.19+swing*.045);
-  if(spectral) {
-   ctx.globalAlpha=.68+Math.sin(t*2.8+side)*.09;
-   ctx.shadowColor=style.edge;
-   ctx.shadowBlur=10+(attack+power)*12;
-  }
-  const shade=ctx.createLinearGradient(-24,-90,23,20);
-  shade.addColorStop(0,style.skin);
-  shade.addColorStop(.43,style.edge);
-  shade.addColorStop(1,style.cloth);
-  ctx.fillStyle=shade;
-  ctx.beginPath();
-  ctx.moveTo(-27,21);ctx.bezierCurveTo(-25,-7,-21,-31,-15,-47);
-  ctx.quadraticCurveTo(-18,-67,0,-71);ctx.quadraticCurveTo(17,-70,19,-50);
-  ctx.bezierCurveTo(20,-24,15,4,26,21);ctx.closePath();ctx.fill();
-  if(spectral) {
-   ctx.lineCap='round';
-   for(let finger=0;finger<4;finger++){
-    const x=-12+finger*8;
-    const length=(19+Math.sin((finger+1)*.73)*16)*style.fingers;
-    const curl=(1-attack)*8+power*7;
-    ctx.beginPath();ctx.moveTo(x,-58);
-    ctx.quadraticCurveTo(x-4+finger*2,-69-length*.65,x+finger*3+curl-7,-63-length);
-    ctx.strokeStyle=style.cloth;ctx.lineWidth=7.5;ctx.stroke();
-    ctx.strokeStyle=shade;ctx.lineWidth=5.4;ctx.stroke();
-   }
-   ctx.beginPath();ctx.moveTo(13,-61);ctx.quadraticCurveTo(25,-58,26+power*5,-73);
-   ctx.strokeStyle=shade;ctx.lineWidth=6;ctx.stroke();
-  } else {
-   ctx.fillStyle=style.cloth;
-   ctx.beginPath();ctx.moveTo(-24,18);ctx.lineTo(-18,-46);ctx.quadraticCurveTo(0,-37,20,-46);ctx.lineTo(25,18);ctx.fill();
-   ctx.strokeStyle=style.edge;ctx.lineWidth=3;
-   ctx.beginPath();ctx.moveTo(-18,-45);ctx.quadraticCurveTo(1,-37,20,-45);ctx.stroke();
-   ctx.strokeStyle='#262023';ctx.lineWidth=1.3;
-   for(let i=0;i<3;i++){
-    ctx.beginPath();ctx.moveTo(-8+i*7,-66);ctx.quadraticCurveTo(-10+i*7,-57,-6+i*7,-51);ctx.stroke();
-   }
-  }
+  ctx.translate(x,y);
+  ctx.scale(side*scale,scale);
+  ctx.rotate(roll*amount+power*powerRoll+throwPose*.38+swing*.025);
+  if(spectral)ctx.globalAlpha=player.abilityPhase>0?.46:.94;
+  ctx.drawImage(sprite,-size*.73,-spriteHeight*.87,size,spriteHeight);
   ctx.restore();
+ };
+ if(spectral&&(role==='ghost'||role==='demon'))draw(-1,role==='demon'?.91:.68);
+ draw(1,1);
+ const energy=phase>0?Math.max(0,1-Math.abs(phase-(role==='hunter'?.17:.5))*3):0;
+ if(energy||power||alternate&&throwPose){
+  const [r,g,b]=spec.light;
+  const glow=ctx.createRadialGradient(width*.52,height*.65,0,width*.52,height*.65,height*.36);
+  glow.addColorStop(0,`rgba(${r},${g},${b},${energy*.23+power*.18+throwPose*.10})`);
+  glow.addColorStop(1,`rgba(${r},${g},${b},0)`);
+  ctx.fillStyle=glow;
+  ctx.fillRect(0,0,width,height);
  }
- return { attack, power, stride, step };
 }
 
 function body(role, actor, t) {
- const style=poses[role];
+ const cadence=pace[role];
  const moving=actor.motion??actor.moving??(actor.alert&&actor.spawnGrace<=0 ? .6 : 0);
- const idle=Math.sin(t*2.4*style.pace);
- const step=actor.walk*1.6*style.pace;
- const attack=pulse(actor.attackAnim,.45);
+ const idle=Math.sin(t*2.4*cadence);
+ const step=actor.walk*1.6*cadence;
+ const attack=actor.attackAnim>0?sample(attacks[role].keys,Math.min(1,Math.max(0,1-actor.attackAnim/.45))):[0,0,0,1];
+ const [reach,lift,roll,zoom]=attack;
  const power=pulse(actor.powerAnim,.62);
  const falling=actor.alive?0:Math.max(0,1-actor.deathAnim/.94);
  return {
-  x:Math.sin(step)*moving*.047+attack*style.tilt*.32+falling*.2,
-  crouch:idle*.016+Math.abs(Math.sin(step))*moving*.075+power*.09-falling*.65,
-  width:1+attack*.18+power*.12+falling*.16,
+  x:Math.sin(step)*moving*.047+reach*.24+falling*.2,
+  crouch:idle*.016+Math.abs(Math.sin(step))*moving*.075+lift*.27+power*.09-falling*.65,
+  width:1+(zoom-1)*.62+power*.12+falling*.16,
   lower:Math.sin(step)*moving*.10,
-  lean:(power-attack)*style.tilt+falling*.39
+  lean:roll*.64+power*abilityPose[role][2]+falling*.39
  };
 }
 
-window.ObitelAnimation={ firstPerson, body };
+window.ObitelAnimation={ firstPerson, body, attackTime:role=>attacks[role].duration };
 })();
