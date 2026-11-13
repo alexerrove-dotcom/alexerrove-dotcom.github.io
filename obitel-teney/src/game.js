@@ -989,7 +989,31 @@ function drawSprites(cs,sn,horizon){
  }
 }
 
-function drawParticles(cs,sn,horizon){ctx.save();for(const p of particles){let dx=p.x-player.x,dy=p.y-player.y,d=dx*cs+dy*sn,l=-dx*sn+dy*cs;if(d<=.15||d>13)continue;let sx=W*.5+l/d*proj,sy=horizon+(.5-p.z)/d*proj;let z=proj/d*p.size*.017;if(zBuffer[Math.floor(sx)]<d-.14)continue;ctx.globalAlpha=clamp(p.life/(p.max||.85),0,1)*.8;ctx.fillStyle=p.hue==='ember'?'#ff944d':p.hue==='gold'?'#ffe2a1':p.hue==='violet'?'#c890ff':'#8aebff';ctx.beginPath();ctx.arc(sx,sy,Math.min(12,Math.max(1,z)),0,TAU);ctx.fill()}ctx.restore()}
+const sparkBatches={blue:[],gold:[],violet:[],ember:[]};
+function drawParticles(cs,sn,horizon){
+ for(const batch of Object.values(sparkBatches))batch.length=0;
+ for(const p of particles){
+  const dx=p.x-player.x,dy=p.y-player.y,depth=dx*cs+dy*sn;
+  if(depth<=.19||depth>13)continue;
+  const x=W*.5+(-dx*sn+dy*cs)*proj/depth,y=horizon+(.5-p.z)*proj/depth;
+  if(x<1||x>W-1||y<1||y>H-1||zBuffer[Math.floor(x)]<depth-.08)continue;
+  const fade=clamp(p.life/(p.max||.85),0,1);
+  const length=clamp(proj/depth*p.size*.009,1,H*.012)*fade;
+  if(length<.5)continue;
+  const horizontal=(-p.vx*sn+p.vy*cs),vertical=-p.vz;
+  const speed=Math.hypot(horizontal,vertical)||1;
+  sparkBatches[p.hue].push({x,y,dx:horizontal/speed*length,dy:vertical/speed*length,fade});
+ }
+ ctx.save();ctx.lineCap='round';ctx.lineWidth=Math.max(1,H*.0024);
+ for(const [hue,batch] of Object.entries(sparkBatches)){
+  ctx.strokeStyle=effectColors[hue];
+  for(const p of batch){
+   ctx.globalAlpha=p.fade*.84;
+   ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.dx-.1,p.y-p.dy-.1);ctx.stroke();
+  }
+ }
+ ctx.restore();
+}
 
 function drawCombatFX(cs,sn,horizon){
  const center=W*.5;
