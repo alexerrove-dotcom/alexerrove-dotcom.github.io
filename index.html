@@ -5,33 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="yandex-verification" content="e435f01044535539">
   <meta name="theme-color" content="#101118">
-  <meta name="description" content="FoxFX Фотостудия. Эффекты для фото и видео, Jiggle Effect, обрезка, изменение размера, поворот и удаление фона в одном месте.">
-  <meta property="og:title" content="FoxFX Фотостудия">
+  <meta name="description" content="Jiggle Effect. Эффекты для фото и видео, Jiggle Effect, обрезка, изменение размера, поворот и удаление фона в одном месте.">
+  <meta property="og:title" content="Jiggle Effect">
   <meta property="og:description" content="Фотоэффекты, Jiggle Effect и инструменты для редактирования изображений.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://alexerrove-dotcom.github.io/">
   <link rel="canonical" href="https://alexerrove-dotcom.github.io/">
-  <link rel="icon" href="/foxfx/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="/photo-studio/studio.css?v=1">
-  <title>FoxFX Фотостудия — редакторы фото и видео</title>
+  <link rel="icon" href="/photo-studio/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/photo-studio/studio.css?v=2">
+  <title>Jiggle Effect — редакторы фото и видео</title>
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; background: #101118; color: #f5f0f0; font: 15px/1.55 Inter, system-ui, sans-serif; }
+    body { margin: 0; background: var(--studio-bg); color: var(--studio-text); font: 15px/1.55 var(--studio-font); }
     main { width: min(100% - 36px, 1050px); margin: auto; padding: clamp(42px, 9vw, 106px) 0 60px; }
     h1, h2, h3, p { margin: 0; }
     h1 { max-width: 650px; font-size: clamp(39px, 8vw, 76px); line-height: 1; letter-spacing: -.072em; }
-    .intro { margin-top: 16px; max-width: 620px; color: #c9c4cf; font-size: clamp(15px,2vw,18px); }
+    .intro { margin-top: 16px; max-width: 620px; color: var(--studio-muted); font-size: clamp(15px,2vw,18px); }
     .editors, .utilities { display: grid; gap: 12px; }
     .editors { grid-template-columns: 1fr 1fr; margin: 32px 0 36px; }
     .utilities { grid-template-columns: repeat(4, 1fr); margin-top: 13px; }
-    .tile { color: inherit; text-decoration: none; display: flex; flex-direction: column; gap: 5px; padding: 16px; border-radius: 13px; border: 1px solid #3a3744; background: #1a1a24; }
-    .tile:hover { border-color: #eca77d; }
+    .tile { color: inherit; text-decoration: none; display: flex; flex-direction: column; gap: 5px; padding: 16px; border-radius: 13px; border: 1px solid var(--studio-line); background: var(--studio-surface); }
+    .tile:hover { border-color: var(--studio-accent); }
     .tile:focus-visible { outline: 2px solid #fac39f; outline-offset: 2px; }
-    .editor { min-height: 196px; padding: 24px; background: #22212b; }
+    .editor { min-height: 196px; padding: 24px; background: var(--studio-raised); }
     .editor:first-child { background: #302431; }
     .editor h2 { font-size: clamp(24px,3vw,34px); letter-spacing: -.035em; }
-    .tile p { color: #c9c4cf; }
-    .tile span { color: #ffbd95; margin-top: auto; padding-top: 12px; font-weight: 700; }
+    .tile p { color: var(--studio-muted); }
+    .tile span { color: var(--studio-accent); margin-top: auto; padding-top: 12px; font-weight: 700; }
     .utilities .tile p { font-size: 13px; }
     @media(max-width: 700px) { .utilities { grid-template-columns: 1fr 1fr; } }
     @media(max-width: 520px) { .editors { grid-template-columns: 1fr; margin-top: 22px; } .editor { min-height: 155px; padding: 18px; } }
@@ -40,11 +40,11 @@
 <body>
   <div data-studio-nav></div>
   <main>
-    <h1>FoxFX Фотостудия</h1>
+    <h1>Jiggle Effect</h1>
     <p class="intro">Применяйте эффекты, редактируйте фото и передавайте результат между инструментами без скачивания.</p>
     <div class="editors">
-      <a class="tile editor" href="/foxfx/"><h2>FoxFX Studio</h2><p>20 эффектов для фото и видео, от ASCII и Matrix до VHS и Neon.</p><span>Открыть редактор ↗</span></a>
-      <a class="tile editor" href="/photo-effect/"><h2>Jiggle Effect</h2><p>Белый оптический узор, который создаёт иллюзию движения на фотографии.</p><span>Создать эффект ↗</span></a>
+      <a class="tile editor" href="/photo-effect/"><h2>Джигл-эффект</h2><p>Белый оптический узор, который создаёт иллюзию движения на фотографии.</p><span>Создать джигл-эффект →</span></a>
+      <a class="tile editor" href="/foxfx/"><h2>Фото- и видеоэффекты</h2><p>20 эффектов для фото и видео, от ASCII и Matrix до VHS и Neon.</p><span>Открыть редактор →</span></a>
     </div>
     <h2>Инструменты для фото</h2>
     <div class="utilities">
@@ -54,7 +54,8 @@
       <a class="tile" href="/photo-effect/remove-background/"><h3>Удалить фон</h3><p>Сохраните объект на прозрачном фоне.</p></a>
     </div>
   </main>
-  <script src="/photo-studio/workspace.js?v=1"></script>
+  <footer data-studio-footer></footer>
+  <script src="/photo-studio/workspace.js?v=2"></script>
   <script>FoxStudio.mount();</script>
 </body>
 </html>

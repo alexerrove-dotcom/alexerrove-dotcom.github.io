@@ -2,14 +2,15 @@
   'use strict';
 
   const tools = [
-    ['foxfx', 'FoxFX Studio', '/foxfx/'],
-    ['jiggle', 'Jiggle Effect', '/photo-effect/'],
+    ['jiggle', 'Джигл-эффект', '/photo-effect/'],
+    ['foxfx', 'Эффекты', '/foxfx/'],
     ['crop', 'Обрезка', '/photo-effect/crop/'],
     ['resize', 'Размер', '/photo-effect/resize/'],
     ['rotate', 'Поворот', '/photo-effect/rotate/'],
     ['background', 'Удалить фон', '/photo-effect/remove-background/']
   ];
   const storageName = 'fox-photo-studio';
+  const brandName = 'Jiggle Effect';
   const ttl = 10 * 60 * 1000;
   const params = new URLSearchParams(location.hash.slice(1));
   const incoming = params.get('photo');
@@ -77,8 +78,12 @@
     nav.setAttribute('aria-label', 'Инструменты фотостудии');
     const home = document.createElement('a');
     home.className = 'studio-brand';
-    home.textContent = 'FoxFX';
-    home.setAttribute('aria-label', 'FoxFX Фотостудия, главная');
+    const mark = document.createElement('img');
+    mark.className = 'studio-mark';
+    mark.src = '/photo-studio/icon.svg';
+    mark.alt = '';
+    home.append(mark, brandName);
+    home.setAttribute('aria-label', brandName + ', главная');
     home.href = '/';
     nav.append(home);
     const links = document.createElement('div');
@@ -92,6 +97,20 @@
     }
     nav.append(links);
     container.append(nav);
+    const footer = document.querySelector('[data-studio-footer]');
+    if (footer) {
+      footer.className = 'studio-footer';
+      footer.append(brandName);
+      for (const [label, url] of [
+        ['Инструкция', '/photo-effect/jiggle-effect-guide/'],
+        ['Конфиденциальность', '/photo-effect/privacy/']
+      ]) {
+        const link = document.createElement('a');
+        link.textContent = label;
+        link.href = url;
+        footer.append(link);
+      }
+    }
     return container;
   }
 

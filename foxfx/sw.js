@@ -1,6 +1,6 @@
-const CACHE = 'foxfx-5.1-studio';
+const CACHE = 'foxfx-5.1-jiggle';
 const scope = new URL(self.registration.scope);
-const assets = ['./', './index.html', './manifest.webmanifest', './icon.svg', './vendor/mp4-muxer.mjs', '/photo-studio/studio.css?v=1', '/photo-studio/workspace.js?v=1'];
+const assets = ['./', './index.html', './manifest.webmanifest', './icon.svg', './vendor/mp4-muxer.mjs', '/photo-studio/icon.svg', '/photo-studio/studio.css?v=2', '/photo-studio/workspace.js?v=2'];
 const appPaths = new Set(assets.map(path => new URL(path, scope).pathname));
 
 self.addEventListener('install', event => {

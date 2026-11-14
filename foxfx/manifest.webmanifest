@@ -1,15 +1,15 @@
 {
-  "name": "FoxFX Studio 5.1",
-  "short_name": "FoxFX",
-  "description": "GPU effects, photo, video and 3D editor",
+  "name": "Jiggle Effect",
+  "short_name": "Jiggle Effect",
+  "description": "Джигл-эффект и инструменты для обработки фото и видео",
   "start_url": "./",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#09090b",
-  "theme_color": "#09090b",
+  "background_color": "#111016",
+  "theme_color": "#111016",
   "icons": [
     {
-      "src": "./icon.svg",
+      "src": "/photo-studio/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
