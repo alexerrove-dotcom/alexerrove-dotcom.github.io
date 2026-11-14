@@ -574,7 +574,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
     if(loadedImage){resizeCanvas(sourceWidth,sourceHeight);sourceCtx.clearRect(0,0,source.width,source.height);sourceCtx.drawImage(loadedImage,0,0,source.width,source.height);adjustedDirty=true;dirty=true;return;}
     if(document.body.classList.contains('has-input'))drawDemo();
   }
-  const untintedEffects=new Set(['ascii','matrix','dithering','threshold','edges','contour','neon','duotone','dots','halftone']);
+  const untintedEffects=new Set(['ascii','matrix','wave','dithering','threshold','edges','contour','neon','duotone','dots','halftone']);
   function drawAdjusted(){
     if(externalCanvas){sourceCtx.clearRect(0,0,source.width,source.height);sourceCtx.drawImage(externalCanvas,0,0,source.width,source.height);}
     const media=exportVideo||video;
@@ -671,25 +671,25 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
       return;
     }
     if(s.effect==='matrix'){
-      fxCtx.drawImage(adjusted,0,0);
-      fxCtx.globalAlpha=ex.matrixBgOpacity??.3;
       fillBG();
-      fxCtx.globalAlpha=1;
       const cell=Math.max(6,ex.matrixCell||12),cw=Math.max(3,cell*.67+(ex.charSpacing||0)),ch=Math.max(4,cell+(ex.charSpacing||0));
       const chars=(effectGlyphs[ex.charSet]||effectGlyphs.STANDARD).trim();
       const span=h+ch*8, trail=(ex.matrixTrail||15)*ch;
+      const rain=colorParts(ex.matrixColor??'#00ff00');
+      const backgroundInk=ex.matrixBgOpacity??.3;
+      const threshold=ex.matrixThreshold??0;
       const direction=ex.matrixDirection==='Up'?-1:1;
       fxCtx.textBaseline='top';fxCtx.font=`${Math.round(cell)}px monospace`;
       for(let yy=0;yy<Math.ceil(h/ch);yy++)for(let xx=0;xx<Math.ceil(w/cw);xx++){
         const x=xx*cw,y=yy*ch,c=sample(x+cw/2,y+ch/2),l=lum(...c)/255;
-        if(l<.06)continue;
+        if(l<=threshold)continue;
         const offset=(t*.1*(ex.matrixSpeed||1)+random(xx+111)*span)%span;
         const head=direction===1?offset-4*ch:h-offset+4*ch;
         const distance=(head-y)*direction;
         const glow=distance>=0&&distance<trail?1-distance/trail:0;
-        const color=s.colorMode==='mono'?[255,255,255]:accent;
-        fxCtx.fillStyle=rgba(color,clamp((.04+l*.25+glow*.78)*(ex.matrixGlow??1),0,1));
-        fxCtx.fillText(chars[(xx*17+yy*13+Math.floor(t/85))%chars.length],x,y);
+        const alpha=clamp(l*(backgroundInk+glow*(ex.matrixGlow??1)),0,1);
+        fxCtx.fillStyle=rgba(rain,alpha);
+        fxCtx.fillText(chars[(xx*17+yy*13+Math.floor(t/85))%chars.length],x,y,cw);
       }
       return;
     }
@@ -715,11 +715,33 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
         else{const l=lum(...c)+bias,vv=l>=threshold*255?255:0;for(let k=0;k<3;k++)o[i+k]=s.colorMode==='accent'?accent[k]*vv/255:vv;}
         o[i+3]=255;}fxCtx.putImageData(out,0,0);return;
     }
-    if(s.effect==='halftone'||s.effect==='dots'){
+    if(s.effect==='dots'){
       fillBG();
-      const isHalftone=s.effect==='halftone';
-      const size=isHalftone?Math.max(3,(ex.halfSpacing||8)*2):Math.max(3,(ex.dotsSpacing||8)*2.3);
-      const angle=isHalftone?(ex.halfAngle??45)*Math.PI/180:0;
+      const pitch=Math.max(3,16*ex.dotSpacing*Math.min(1,Math.max(w,h)/900));
+      const hex=ex.dotGrid==='Hexagonal Grid',rise=hex?pitch*Math.sqrt(3)/2:pitch;
+      const foreground=s.colorMode==='mono'?'#ffffff':rgb(accent);
+      for(let row=0;row<=Math.ceil(h/rise);row++){
+        const y=row*rise+rise/2,offset=hex&&row%2?0:pitch/2;
+        for(let x=offset;x<w+pitch/2;x+=pitch){
+          const c=sample(x,y),level=lum(...c)/255;
+          const radius=Math.sqrt(ex.dotsInvert?1-level:level)*pitch*.5*ex.dotSize;
+          if(radius<.16)continue;
+          fxCtx.fillStyle=s.colorMode==='original'?rgb(c):foreground;
+          if(ex.dotShape==='Square'){fxCtx.fillRect(x-radius,y-radius,radius*2,radius*2);continue;}
+          fxCtx.beginPath();
+          if(ex.dotShape==='Diamond'){
+            fxCtx.moveTo(x,y-radius);fxCtx.lineTo(x+radius,y);fxCtx.lineTo(x,y+radius);fxCtx.lineTo(x-radius,y);
+            fxCtx.closePath();
+          }else fxCtx.arc(x,y,radius,0,Math.PI*2);
+          fxCtx.fill();
+        }
+      }
+      return;
+    }
+    if(s.effect==='halftone'){
+      fillBG();
+      const size=Math.max(3,(ex.halfSpacing||8)*2);
+      const angle=(ex.halfAngle??45)*Math.PI/180;
       const co=Math.cos(angle),si=Math.sin(angle);
       const extentX=Math.abs(w*co)+Math.abs(h*si),extentY=Math.abs(w*si)+Math.abs(h*co);
       fxCtx.translate(w/2,h/2);
@@ -728,11 +750,11 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
         const xx=x+size/2,yy=y+size/2;
         const c=sample(w/2+xx*co-yy*si,h/2+xx*si+yy*co);
         const l=lum(...c)/255;
-        const radius=isHalftone?(ex.halfInvert?1-l:l)*size*.56*(ex.halfScale||1):(ex.dotsInvert?1-l:l)*size*step/17;
+        const radius=(ex.halfInvert?1-l:l)*size*.56*(ex.halfScale||1);
         if(radius<.12)continue;
         fxCtx.fillStyle=s.colorMode==='original'?rgb(c):s.colorMode==='mono'?'#ffffff':rgb(accent);
-        if(isHalftone&&ex.halfShape==='Square')fxCtx.fillRect(xx-radius,yy-radius,radius*2,radius*2);
-        else if(isHalftone&&ex.halfShape==='Line')fxCtx.fillRect(xx-radius,yy-radius*.18,radius*2,radius*.36);
+        if(ex.halfShape==='Square')fxCtx.fillRect(xx-radius,yy-radius,radius*2,radius*2);
+        else if(ex.halfShape==='Line')fxCtx.fillRect(xx-radius,yy-radius*.18,radius*2,radius*.36);
         else{fxCtx.beginPath();fxCtx.arc(xx,yy,radius,0,Math.PI*2);fxCtx.fill();}
       }
       fxCtx.setTransform(1,0,0,1,0,0);
@@ -748,29 +770,68 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
       fxCtx.imageSmoothingEnabled=true;
       return;
     }
-    if(s.effect==='threshold'||s.effect==='edges'||s.effect==='contour'||s.effect==='noise'){
+    if(s.effect==='noise'){
+      const out=fxCtx.createImageData(w,h),pixels=out.data;
+      const time=ex.noiseAnimate?t/1000*ex.noiseSpeed:0;
+      const scale=Math.max(2,Math.min(w,h)*ex.noiseScale/300);
+      const gridSize=4,gridW=Math.ceil(w/gridSize)+1,gridH=Math.ceil(h/gridSize)+1;
+      const flowX=new Float32Array(gridW*gridH),flowY=new Float32Array(gridW*gridH);
+      const gradient=(x,y,dx,dy)=>{
+        const angle=random(x*179+y*193)*Math.PI*2;
+        return Math.cos(angle)*dx+Math.sin(angle)*dy;
+      };
+      const interpolate=(a,b,f)=>a+(b-a)*f;
+      const ease=f=>f*f*f*(f*(f*6-15)+10);
+      const perlin=(x,y)=>{
+        const ix=Math.floor(x),iy=Math.floor(y),dx=x-ix,dy=y-iy;
+        return interpolate(
+          interpolate(gradient(ix,iy,dx,dy),gradient(ix+1,iy,dx-1,dy),ease(dx)),
+          interpolate(gradient(ix,iy+1,dx,dy-1),gradient(ix+1,iy+1,dx-1,dy-1),ease(dx)),
+          ease(dy)
+        );
+      };
+      const strength=ex.noiseAmount*scale*.7;
+      for(let y=0;y<gridH;y++)for(let x=0;x<gridW;x++){
+        const i=y*gridW+x,u=x*gridSize/scale,v=y*gridSize/scale;
+        for(let octave=0;octave<ex.noiseOctaves;octave++){
+          const f=2**octave;
+          flowX[i]+=perlin((u+time*.35)*f,(v+31)*f)*strength/f;
+          flowY[i]+=perlin((u+12)*f,(v-time*.28)*f)*strength/f;
+        }
+      }
+      const interpolateField=(field,i,dx,dy)=>interpolate(
+        interpolate(field[i],field[i+1],dx),
+        interpolate(field[i+gridW],field[i+gridW+1],dx),dy
+      );
+      for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+        const u=x/gridSize,v=y/gridSize,ix=Math.floor(u),iy=Math.floor(v),g=iy*gridW+ix;
+        const dx=interpolateField(flowX,g,u-ix,v-iy),dy=interpolateField(flowY,g,u-ix,v-iy);
+        const sx=clamp(Math.round(x+dx),0,w-1),sy=clamp(Math.round(y+dy),0,h-1);
+        const to=(y*w+x)*4,from=(sy*w+sx)*4;
+        const tone=ex.noiseDistortOnly?0:48*dx/scale;
+        for(let k=0;k<3;k++)pixels[to+k]=d[from+k]+tone;
+        pixels[to+3]=d[from+3];
+      }
+      fxCtx.putImageData(out,0,0);
+      return;
+    }
+    if(s.effect==='threshold'||s.effect==='edges'||s.effect==='contour'){
       const o=fxCtx.createImageData(w,h),out=o.data,threshold=s.thresholdValue*2.55;
       const gray=new Float32Array(w*h);
       for(let i=0;i<gray.length;i++)gray[i]=lum(d[i*4],d[i*4+1],d[i*4+2]);
       const background=colorParts(bg),radius=Math.max(1,Math.round(step/6));
       const foreground=s.colorMode==='accent'?accent:[255,255,255];
-      const grainCell=Math.max(1,Math.round(step/4)),grainTime=Math.floor(t/110)*199;
       for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-        const n=y*w+x,i=n*4,l=gray[n];let v=l;
+        const n=y*w+x,i=n*4,l=gray[n];
+        let v=0;
         if(s.effect==='threshold')v=(l>=threshold)!==!!ex.thresholdInvert?255:0;
-        else if(s.effect==='noise'){
-          const k=Math.floor(y/grainCell)*Math.ceil(w/grainCell)+Math.floor(x/grainCell);
-          v=(random(k*31+grainTime)-.5)*130*(ex.noiseAmount??1);
-        }else{
-          v=0;
-          if(x>=radius&&y>=radius&&x<w-radius&&y<h-radius){
-            const dx=radius,dy=radius*w;
-            const a=gray[n-dy-dx],b=gray[n-dy],c=gray[n-dy+dx],e=gray[n-dx],f=gray[n+dx],g=gray[n+dy-dx],j=gray[n+dy],k=gray[n+dy+dx];
-            const edge=Math.hypot(-a-2*e-g+c+2*f+k,-a-2*b-c+g+2*j+k);
-            v=s.effect==='contour'?(edge>=threshold*.8?clamp(edge*2):0):clamp((edge-threshold*.55)*1.5);
-          }
+        else if(x>=radius&&y>=radius&&x<w-radius&&y<h-radius){
+          const dx=radius,dy=radius*w;
+          const a=gray[n-dy-dx],b=gray[n-dy],c=gray[n-dy+dx],e=gray[n-dx],f=gray[n+dx],g=gray[n+dy-dx],j=gray[n+dy],k=gray[n+dy+dx];
+          const edge=Math.hypot(-a-2*e-g+c+2*f+k,-a-2*b-c+g+2*j+k);
+          v=s.effect==='contour'?(edge>=threshold*.8?clamp(edge*2):0):clamp((edge-threshold*.55)*1.5);
         }
-        for(let k=0;k<3;k++)out[i+k]=s.effect==='noise'?clamp(d[i+k]+v):background[k]+(foreground[k]-background[k])*v/255;
+        for(let k=0;k<3;k++)out[i+k]=background[k]+(foreground[k]-background[k])*v/255;
         out[i+3]=255;
       }
       fxCtx.putImageData(o,0,0);
@@ -807,9 +868,38 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
       }return;
     }
     if(s.effect==='wave'){
-      fillBG();const cell=Math.max(6,step*1.5);fxCtx.lineWidth=Math.max(.9,step*.15);fxCtx.strokeStyle=s.colorMode==='mono'?'#e2e2e2':rgba(accent,.82);
-      for(let y=0;y<h;y+=cell){fxCtx.beginPath();for(let x=0;x<w;x+=3){const l=lum(...sample(x,y))/255,drift=Math.sin(x/48+t/450+y/65)*3;
-          const yp=y+(l-.5)*cell*1.9*Number(ex.waveStrength??1)+drift;if(x===0)fxCtx.moveTo(x,yp);else fxCtx.lineTo(x,yp);}fxCtx.stroke();}return;
+      fillBG();
+      const vertical=ex.waveDirection==='Vertical';
+      const span=vertical?h:w,cross=vertical?w:h;
+      const count=ex.waveCount,spacing=cross/count;
+      const amplitude=ex.waveAmplitude*Math.min(1,cross/600);
+      const phase=ex.waveAnimate?t/650:0;
+      const stride=2;
+      fxCtx.lineCap='round';
+      fxCtx.lineWidth=ex.waveThickness;
+      for(let row=0;row<count;row++){
+        const lane=(row+.5)*spacing;
+        let previous=null;
+        for(let along=0;along<span;along+=stride){
+          const c=vertical?sample(lane,along):sample(along,lane);
+          const light=lum(...c)/255;
+          const signal=(light-.5)*amplitude;
+          const drift=ex.waveAnimate?Math.sin(phase+along/span*Math.PI*2*ex.waveFrequency)*spacing*.15:0;
+          const position=lane+signal*(.8+.2*Math.cos(along/span*Math.PI*2*ex.waveFrequency))+drift;
+          const point=vertical?[position,along]:[along,position];
+          if(previous){
+            const ink=s.colorMode==='original'?c:s.colorMode==='accent'?accent:[255,255,255];
+            fxCtx.strokeStyle=rgba(ink,.12+.88*light);
+            fxCtx.beginPath();
+            fxCtx.moveTo(...previous);
+            fxCtx.lineTo(...point);
+            fxCtx.stroke();
+          }
+          previous=point;
+        }
+      }
+      fxCtx.lineCap='butt';
+      return;
     }
     if(s.effect==='voronoi'){
       const out=fxCtx.createImageData(w,h),o=out.data,sz=Math.max(9,step*3),cols=Math.ceil(w/sz)+1,rows=Math.ceil(h/sz)+1,centers=[];
@@ -870,7 +960,10 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
     }
     fxCtx.drawImage(adjusted,0,0);
   }
-  const animatedEffects=new Set(['matrix','vhs','wave','noise']);
+  function animatedEffect(){
+    const ex=s.extra;
+    return s.intensity>0&&(s.effect==='matrix'||s.effect==='vhs'||(s.effect==='wave'&&ex.waveAnimate)||(s.effect==='noise'&&ex.noiseAnimate));
+  }
   function render(t,showCompare=true){
     if(!source.width)return;
     const media=exportVideo||video;
@@ -882,7 +975,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
     ctx.clearRect(0,0,w,h);
     ctx.fillStyle=s.bgColor;
     ctx.fillRect(0,0,w,h);
-    ctx.drawImage(adjusted,0,0);
+    if(s.intensity<100)ctx.drawImage(adjusted,0,0);
     if(s.intensity>0){
       paintEffects(cachedImg,t);
       ctx.globalAlpha=s.intensity/100;
@@ -943,7 +1036,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   }
   function frame(t){
     if(frozenPreview||!document.body.classList.contains('has-input')){animationFrame=requestAnimationFrame(frame);return;}
-    const animated=animatedEffects.has(s.effect)||(s.extra.postGrain&&s.extra.grainIntensity>0);
+    const animated=animatedEffect()||(s.extra.postGrain&&s.extra.grainIntensity>0);
     const playing=isVideo&&!video.paused;
     if(dirty||((animated||playing)&&t-lastRender>40)){
       lastRender=t;dirty=false;
@@ -1216,7 +1309,7 @@ const $=id=>document.getElementById(id), api=window.FoxAPI;
 if(!api){console.error('FX engine unavailable');return;}
 const labels={ascii:'ASCII',dithering:'Dithering',halftone:'Halftone',matrix:'Matrix Rain',dots:'Dots',contour:'Contour','pixel-sort':'Pixel Sort',blockify:'Blockify',threshold:'Threshold',edges:'Edge Detection',crosshatch:'Crosshatch',wave:'Wave Lines',noise:'Noise Field',voronoi:'Voronoi',vhs:'VHS',duotone:'Duotone',chromatic:'Chromatic',posterize:'Posterize',crt:'CRT',neon:'Neon'};
 const X=api.s.extra;
-const base={charSet:'STANDARD',charSpacing:0,outputWidth:0,ditherAlgo:'Ordered Bayer',ditherIntensity:1,ditherMatrix:8,ditherModulation:false,halfShape:'Circle',halfScale:1,halfSpacing:8,halfAngle:45,halfInvert:false,matrixCell:12,matrixSpeed:1,matrixTrail:15,matrixDirection:'Down',matrixGlow:1,matrixBgOpacity:.3,vhsDist:.5,vhsNoise:.3,vhsBleed:.5,vhsScan:.3,vhsTrack:.2,procInvert:false,procBrightnessMap:1,procEdge:0,procBlur:0,procQuantize:0,procShape:0,postBloom:false,postGrain:false,grainIntensity:35,grainSize:2,grainSpeed:50,postChromatic:false,postScanlines:false,postVignette:false,postCRT:false,postPhosphor:false,gamma:1,sharpness:0,dotsSpacing:8,dotsInvert:false,thresholdInvert:false,waveStrength:1,noiseAmount:1,chromaticShift:8,posterizeLevels:5,crtSpacing:4,crtScan:.28,crtVignette:.85,neonRadius:5,neonGlow:.7};
+const base={charSet:'STANDARD',charSpacing:0,outputWidth:0,ditherAlgo:'Ordered Bayer',ditherIntensity:1,ditherMatrix:8,ditherModulation:false,halfShape:'Circle',halfScale:1,halfSpacing:8,halfAngle:45,halfInvert:false,matrixCell:12,matrixSpeed:1,matrixTrail:15,matrixDirection:'Down',matrixGlow:1,matrixBgOpacity:.3,matrixColor:'#00ff00',matrixThreshold:0,vhsDist:.5,vhsNoise:.3,vhsBleed:.5,vhsScan:.3,vhsTrack:.2,procInvert:false,procBrightnessMap:1,procEdge:0,procBlur:0,procQuantize:0,procShape:0,postBloom:false,postGrain:false,grainIntensity:35,grainSize:2,grainSpeed:50,postChromatic:false,postScanlines:false,postVignette:false,postCRT:false,postPhosphor:false,gamma:1,sharpness:0,dotShape:'Circle',dotGrid:'Square Grid',dotSize:1,dotSpacing:1,dotsInvert:false,thresholdInvert:false,waveCount:50,waveAmplitude:20,waveFrequency:1,waveThickness:.5,waveDirection:'Horizontal',waveAnimate:false,noiseScale:50,noiseAmount:1,noiseOctaves:4,noiseSpeed:1,noiseAnimate:false,noiseDistortOnly:false,chromaticShift:8,posterizeLevels:5,crtSpacing:4,crtScan:.28,crtVignette:.85,neonRadius:5,neonGlow:.7};
 let fileReady=false,format='png';
 const range=(name,key,min,max,step,def,unit='',compat=false)=>({name,key,min,max,step,def,unit,kind:'range',compat});
 const choice=(name,key,options,def,compat=false)=>({name,key,options,def,kind:'choice',compat});
@@ -1225,16 +1318,16 @@ const effectControls={
  ascii:[range('Scale','scale',1,12,1,2),range('Spacing','charSpacing',-4,12,.5,0),range('Output Width','outputWidth',0,180,1,0),choice('Character Set','charSet',api.characterSets,'STANDARD')],
  dithering:[choice('Algorithm','ditherAlgo',['Ordered Bayer','Floyd-Steinberg'],'Ordered Bayer'),range('Intensity','ditherIntensity',0,2,.1,1),choice('Matrix Size','ditherMatrix',[['2x2 (Small)','2'],['4x4 (Medium)','4'],['8x8 (Large)','8']],'8'),toggle('Modulation','ditherModulation')],
  halftone:[choice('Shape','halfShape',['Circle','Square','Line'],'Circle'),range('Dot Scale','halfScale',.2,2,.1,1),range('Spacing','halfSpacing',3,25,1,8),range('Angle','halfAngle',0,180,1,45,'°'),toggle('Invert','halfInvert')],
- matrix:[choice('Character Set','charSet',api.characterSets,'STANDARD'),range('Cell Size','matrixCell',6,32,1,12),range('Spacing','charSpacing',-4,12,.5,0),range('Speed','matrixSpeed',.1,4,.1,1),range('Trail Length','matrixTrail',2,35,1,15),choice('Direction','matrixDirection',['Down','Up'],'Down'),range('Glow','matrixGlow',0,3,.1,1),range('BG Opacity','matrixBgOpacity',0,1,.1,.3)],
- dots:[range('Size','scale',2,22,1,7),range('Spacing','dotsSpacing',1,25,1,8),toggle('Invert','dotsInvert')],
+ matrix:[choice('Character Set','charSet',api.characterSets,'STANDARD'),range('Cell Size','matrixCell',6,32,1,12),range('Spacing','charSpacing',-4,12,.5,0),range('Speed','matrixSpeed',.1,4,.1,1),range('Trail Length','matrixTrail',2,35,1,15),choice('Direction','matrixDirection',['Down','Up'],'Down'),range('Glow','matrixGlow',0,3,.1,1),range('BG Opacity','matrixBgOpacity',0,1,.1,.3),range('Threshold','matrixThreshold',0,1,.05,0),{name:'Rain Color',key:'matrixColor',kind:'color',def:'#00ff00'}],
+ dots:[choice('Shape','dotShape',['Circle','Square','Diamond'],'Circle'),choice('Grid Type','dotGrid',['Square Grid','Hexagonal Grid'],'Square Grid'),range('Size','dotSize',.5,2,.1,1),range('Spacing','dotSpacing',.5,2,.1,1),toggle('Invert','dotsInvert')],
  contour:[range('Thickness','scale',2,24,1,8),range('Threshold','thresholdValue',0,100,1,50,'%',true)],
  'pixel-sort':[range('Segment Size','scale',2,28,1,10),range('Threshold','thresholdValue',0,100,1,50,'%',true)],
  blockify:[range('Block Size','scale',2,38,1,10)],
  threshold:[range('Threshold','thresholdValue',0,100,1,50,'%',true),toggle('Invert','thresholdInvert')],
  edges:[range('Sensitivity','thresholdValue',0,100,1,50,'%',true),range('Line Size','scale',2,24,1,8)],
  crosshatch:[range('Line Spacing','scale',2,24,1,8),range('Threshold','thresholdValue',0,100,1,50,'%',true)],
- wave:[range('Line Spacing','scale',2,25,1,8),range('Wave Strength','waveStrength',0,3,.1,1)],
- noise:[range('Grain Scale','scale',2,24,1,8),range('Noise Amount','noiseAmount',0,2,.1,1)],
+ wave:[range('Line Count','waveCount',10,150,5,50),range('Amplitude','waveAmplitude',5,50,1,20),range('Frequency','waveFrequency',.5,3,.1,1),range('Line Thickness','waveThickness',.4,3,.1,.5),choice('Direction','waveDirection',['Horizontal','Vertical'],'Horizontal'),toggle('Animate','waveAnimate')],
+ noise:[range('Scale','noiseScale',10,100,5,50),range('Intensity','noiseAmount',0,3,.1,1),range('Octaves','noiseOctaves',1,8,1,4),range('Speed','noiseSpeed',.1,3,.1,1),toggle('Animate','noiseAnimate'),toggle('Distort Only','noiseDistortOnly')],
  voronoi:[range('Cell Size','scale',2,26,1,8)],
  vhs:[range('Distortion','vhsDist',0,1,.1,.5),range('Noise','vhsNoise',0,1,.1,.3),range('Color Bleed','vhsBleed',0,1,.1,.5),range('Scanlines','vhsScan',0,1,.1,.3),range('Tracking Error','vhsTrack',0,1,.1,.2)],
  chromatic:[range('Channel Shift','chromaticShift',0,32,1,8,' px')],
@@ -1268,8 +1361,22 @@ function validatedSettings(raw){
     if(d.key==='ditherMatrix'&&['Bayer 4x4','Bayer 8x8'].includes(values.ditherAlgo))continue;
     if(!Object.hasOwn(base,d.key)||value===undefined)continue;
     if(d.kind==='toggle'&&typeof value==='boolean')normalized.extra[d.key]=value;
-    if(d.kind==='range'&&typeof value==='number'&&Number.isFinite(value))normalized.extra[d.key]=Math.max(d.min,Math.min(d.max,value));
+    if(d.kind==='color'&&typeof value==='string'&&/^#[a-f0-9]{6}$/i.test(value))normalized.extra[d.key]=value;
+    if(d.kind==='range'&&typeof value==='number'&&Number.isFinite(value)){
+      const v=Math.max(d.min,Math.min(d.max,value));
+      normalized.extra[d.key]=d.step>=1?Math.round(v):v;
+    }
     if(d.kind==='choice'&&d.options.some(o=>String(Array.isArray(o)?o[1]:o)===String(value)))normalized.extra[d.key]=d.key==='ditherMatrix'?Number(value):value;
+  }
+  if(raw.effect==='dots'){
+    if(values.dotSize===undefined&&Number.isFinite(raw.scale))normalized.extra.dotSize=Math.max(.5,Math.min(2,raw.scale/8));
+    if(values.dotSpacing===undefined&&Number.isFinite(values.dotsSpacing))normalized.extra.dotSpacing=Math.max(.5,Math.min(2,values.dotsSpacing/8));
+  }
+  if(raw.effect==='wave'&&values.waveAmplitude===undefined&&Number.isFinite(values.waveStrength)){
+    normalized.extra.waveAmplitude=Math.max(5,Math.min(50,Math.round(values.waveStrength*20)));
+  }
+  if(raw.effect==='matrix'&&values.matrixColor===undefined&&/^#[a-f0-9]{6}$/i.test(raw.accentColor||'')&&raw.accentColor!=='#ffffff'){
+    normalized.extra.matrixColor=raw.accentColor;
   }
   if(raw.effect==='ascii'&&Number.isFinite(values.asciiScale))normalized.scale=Math.max(2,Math.min(48,Math.round(values.asciiScale*4)));
   return normalized;
@@ -1382,7 +1489,7 @@ window.addEventListener('foxfx-effect',()=>{renderSettings();updateFormat()});
 function applyReferencePreset(key){
   const defs={
     terminal:{effect:'ascii',accentColor:'#a6f59b',colorMode:'accent',contrast:25},
-    matrix:{effect:'matrix',accentColor:'#00ff66',colorMode:'accent'},
+    matrix:{effect:'matrix',extra:{matrixColor:'#00ff66'}},
     retro:{effect:'vhs',contrast:15,extra:{postCRT:true}},
     detail:{effect:'ascii',scale:8,contrast:15,extra:{charSet:'DETAILED'}},
     minimal:{effect:'threshold',colorMode:'mono'},
