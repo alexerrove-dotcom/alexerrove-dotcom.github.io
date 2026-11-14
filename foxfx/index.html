@@ -21,7 +21,14 @@
 #durationRow{display:flex;align-items:center;justify-content:space-between;margin:8px 0}
 .stage-bottom.secondary-tools button{min-height:30px;white-space:nowrap}
 @media(max-width:760px){.stage-bottom.secondary-tools{flex-wrap:wrap;height:auto}.workspace{flex-shrink:0}.effect{min-height:38px}}
-</style></head><body>
+</style><link rel="stylesheet" href="/photo-studio/studio.css?v=1">
+<style>
+    body { display:flex; flex-direction:column; min-height:100dvh; }
+    body > .app { flex:1; height:0; }
+    @media (max-width:760px) { body > .app { flex:auto; height:auto; } }
+    </style>
+    </head><body>
+<div data-studio-nav></div>
 <div class="app">
   <aside class="sidebar source-panel" id="sourcePanel">
     <div class="brand">Fox<span>FX</span><span class="brand-sub"> / EFFECTS STUDIO</span></div>
@@ -1608,4 +1615,14 @@ window.Fox3D={loadFile,stop,cancelPending,exportScene,get active(){return active
 })();
 
 </script>
+<script src="/photo-studio/workspace.js?v=1"></script>
+<script>FoxStudio.connect({
+  current: 'foxfx', fileInput: document.getElementById('fileInput'),
+  result: () => {
+    FoxAPI.renderAt(performance.now());
+    return FoxStudio.canvasFile(FoxAPI.getCanvas(), `foxfx-${FoxAPI.s.effect}.png`);
+  },
+  ready: () => document.body.classList.contains('has-input') && !FoxAPI.frozen,
+  events: ['foxfx-source','foxfx-export']
+});</script>
 </body></html>

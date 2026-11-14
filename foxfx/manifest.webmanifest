@@ -3,7 +3,7 @@
   "short_name": "FoxFX",
   "description": "GPU effects, photo, video and 3D editor",
   "start_url": "./",
-  "scope": "./",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#09090b",
   "theme_color": "#09090b",

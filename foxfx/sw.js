@@ -1,6 +1,6 @@
-const CACHE = 'foxfx-5.1';
+const CACHE = 'foxfx-5.1-studio';
 const scope = new URL(self.registration.scope);
-const assets = ['./', './index.html', './manifest.webmanifest', './icon.svg', './vendor/mp4-muxer.mjs'];
+const assets = ['./', './index.html', './manifest.webmanifest', './icon.svg', './vendor/mp4-muxer.mjs', '/photo-studio/studio.css?v=1', '/photo-studio/workspace.js?v=1'];
 const appPaths = new Set(assets.map(path => new URL(path, scope).pathname));
 
 self.addEventListener('install', event => {

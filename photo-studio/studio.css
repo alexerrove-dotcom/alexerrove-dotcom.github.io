@@ -1,0 +1,95 @@
+[data-studio-nav] {
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+  background: #101118;
+  color: #f3f2f4;
+  border-bottom: 1px solid #30313d;
+  font: 500 13px/1.4 Inter, system-ui, sans-serif;
+}
+.studio-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: auto;
+  max-width: 1280px;
+  min-height: 56px;
+  padding: 6px 16px;
+}
+.studio-nav a {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.studio-nav .studio-brand {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #eca77d;
+  color: #22150f;
+  font-size: 16px;
+  font-weight: 850;
+  letter-spacing: -.04em;
+}
+.studio-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.studio-links a {
+  min-height: 36px;
+  color: #dbd9e0;
+  padding: 6px 9px;
+  border-radius: 6px;
+}
+.studio-links a:hover, .studio-links a[aria-current="page"] {
+  background: #2a2731;
+  color: #ffd3b8;
+}
+.studio-transfer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: min(1248px, calc(100% - 32px));
+  margin: 0 auto;
+  padding-bottom: 8px;
+}
+.studio-transfer[hidden], .studio-status:empty { display: none; }
+.studio-transfer select, .studio-transfer button {
+  color: #f3f2f4;
+  background: #232531;
+  min-height: 36px;
+  border: 1px solid #50515c;
+  border-radius: 7px;
+  padding: 5px 9px;
+  font: inherit;
+}
+.studio-transfer button:enabled { background: #eca77d; border-color: #eca77d; color: #22150f; cursor: pointer; }
+.studio-transfer button:disabled { opacity: .6; }
+.studio-status {
+  display: block;
+  width: min(1248px, calc(100% - 32px));
+  margin: auto;
+  padding-bottom: 8px;
+}
+[data-studio-nav] a:focus-visible, .studio-transfer :focus-visible {
+  outline: 2px solid #fac39f;
+  outline-offset: 2px;
+}
+[data-studio-nav] + header {
+  position: relative !important;
+  top: auto !important;
+  z-index: 2 !important;
+}
+#tool { scroll-margin-top: 115px; }
+@media (max-width: 620px) {
+  .studio-nav { padding: 5px 9px; gap: 6px; }
+  .studio-nav .studio-brand { font-size: 14px; padding: 6px 7px; }
+  .studio-links { gap: 2px; }
+  .studio-links a { font-size: 11px; min-height: 31px; padding: 4px 6px; }
+  .studio-transfer, .studio-status { width: calc(100% - 18px); }
+  #tool { scroll-margin-top: 145px; }
+}
