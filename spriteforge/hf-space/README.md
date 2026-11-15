@@ -8,6 +8,10 @@ sdk_version: 5.49.1
 app_file: app.py
 pinned: false
 short_description: Russian character sprite and animation generator
+preload_from_hub:
+  - frankjoshua/toonyou_beta6
+  - guoyww/animatediff-motion-adapter-v1-5-2
+  - Helsinki-NLP/opus-mt-ru-en
 ---
 
 # SpriteForge RU · independent AI sprite server
