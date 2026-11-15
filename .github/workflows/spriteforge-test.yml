@@ -1,0 +1,23 @@
+name: SpriteForge CPU smoke tests
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'spriteforge/**'
+      - '.github/workflows/spriteforge-test.yml'
+jobs:
+  demo-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU demo dependencies
+        run: python -m pip install -r spriteforge/backend/requirements.txt
+      - name: Compile and smoke test
+        working-directory: spriteforge/backend
+        run: |
+          python -m py_compile app.py
+          python -m unittest -v test_demo
