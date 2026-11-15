@@ -32,3 +32,10 @@ jobs:
           for (const [,js] of scripts) new Function(js);
           console.log('SpriteForge front-end JavaScript parsed successfully');
           NODE
+
+      - name: Browser E2E demo test
+        run: |
+          npm install --no-save playwright
+          npx playwright install chromium
+          python -m http.server 8765 --directory spriteforge >/tmp/spriteforge-http.log 2>&1 &
+          node spriteforge/test_frontend.mjs
