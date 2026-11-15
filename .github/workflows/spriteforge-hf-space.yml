@@ -36,7 +36,7 @@ jobs:
           api = HfApi(token=token)
           login = api.whoami()['name']
           space = login + '/spriteforge-ru'
-          api.create_repo(repo_id=space,repo_type='space',space_sdk='gradio',exist_ok=True)
+          api.create_repo(repo_id=space,repo_type='space',space_sdk='gradio',space_hardware='zero-a10g',exist_ok=True)
           api.upload_folder(repo_id=space,repo_type='space',folder_path='/tmp/spriteforge-space',commit_message='Deploy independent SpriteForge RU GPU generator')
           api.request_space_hardware(repo_id=space,hardware='zero-a10g')
           with open(os.environ['GITHUB_OUTPUT'],'a',encoding='utf8') as out:
