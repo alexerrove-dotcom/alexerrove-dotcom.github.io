@@ -21,3 +21,14 @@ jobs:
         run: |
           python -m py_compile app.py
           python -m unittest -v test_demo
+          python -m py_compile ../hf-space/app.py
+      - name: Check browser JavaScript syntax
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('spriteforge/index.html','utf8');
+          const scripts = [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/g)];
+          if (!scripts.length) throw new Error('No inline script found');
+          for (const [,js] of scripts) new Function(js);
+          console.log('SpriteForge front-end JavaScript parsed successfully');
+          NODE
