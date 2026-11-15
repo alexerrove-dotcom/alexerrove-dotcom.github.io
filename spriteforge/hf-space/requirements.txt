@@ -1,0 +1,15 @@
+gradio>=5.25,<6
+spaces>=0.33.2
+fastapi>=0.115,<1
+pillow>=10.3,<13
+pydantic>=2.7,<3
+torch>=2.3
+torchvision>=0.18
+diffusers>=0.31,<0.44
+transformers>=4.44,<5
+accelerate>=1.0,<2
+safetensors>=0.4
+rembg[cpu]>=2.0.61
+onnxruntime>=1.18
+sentencepiece>=0.2
+sacremoses>=0.1
