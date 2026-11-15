@@ -21,7 +21,7 @@
 <button class="preset" data-preset="Зелёный зомби в рваной одежде"><span class="preset-icon">🧟</span><span>Зомби</span></button>
 <button class="preset" data-preset="Маленький красный дракон с крыльями"><span class="preset-icon">🐉</span><span>Дракон</span></button>
 <button class="preset" data-preset="Робот с голубыми светящимися глазами"><span class="preset-icon">🤖</span><span>Робот</span></button>
-</div><p class="note" style="margin-top:16px">ИИ-модель запускается на подключённом GPU-сервере. GitHub Pages размещает интерфейс, но не выполняет тяжёлую генерацию самостоятельно.</p><label class="field" for="apiUrl">Адрес своего ИИ-сервера</label><input id="apiUrl" placeholder="https://ваш-сервер.example.com"><div class="muted" style="margin-top:6px">Если открыть интерфейс на том же сервере, оставь поле пустым.</div></aside>
+</div><p class="note" style="margin-top:16px">ИИ-модель запускается на подключённом GPU-сервере. GitHub Pages размещает интерфейс, но не выполняет тяжёлую генерацию самостоятельно.</p><label class="field" for="apiUrl">ИИ-сервер или Hugging Face Space</label><input id="apiUrl" placeholder="твой-логин/spriteforge-ru"><div class="muted" style="margin-top:6px">Укажи Space вида логин/spriteforge-ru или свой HTTPS API. <a style="color:var(--accent)" href="https://github.com/alexerrove-dotcom/alexerrove-dotcom.github.io/blob/main/spriteforge/hf-space/DEPLOY_RU.md" target="_blank" rel="noopener">Инструкция по бесплатному запуску</a>. Без сервера работает только браузерная демонстрация.</div></aside>
 <div class="panel"><h2>КОНСТРУКТОР <small class="sub">/ НАСТРОЙКИ</small></h2><label class="field" for="prompt">Описание персонажа</label><textarea id="prompt" placeholder="Например: рыжий лис с зелёным шарфом, большими ушами, пушистым хвостом и деревянной рогаткой">Рыжий лис с зелёным шарфом и рогаткой</textarea>
 <div class="fields"><div><label class="field" for="style">Художественный стиль</label><select id="style"><option value="16bit">16-битный</option><option value="retro">Ретро-консоль</option><option value="cozy">Уютный пиксель-арт</option><option value="dark">Тёмное фэнтези</option><option value="cute">Милый пиксель-арт</option><option value="cartoon">Мультфильм</option><option value="anime">Аниме</option><option value="chibi">Чиби</option><option value="vector">Плоский вектор</option><option value="toon3d">3D-мульт</option><option value="painted">Рисованный</option><option value="comic">Комикс</option></select></div><div><label class="field" for="view">Ракурс</label><select id="view"><option value="side">Сбоку</option><option value="front">Спереди</option><option value="top">Сверху</option><option value="iso">Изометрия</option></select></div><div><label class="field" for="facing">Направление</label><select id="facing"><option value="right">Вправо</option><option value="left">Влево</option><option value="up">Вверх</option><option value="down">Вниз</option><option value="all4">4 направления</option><option value="all8">8 направлений</option></select></div><div><label class="field" for="size">Размер кадра</label><select id="size"><option value="16">16 × 16</option><option value="32">32 × 32</option><option value="64" selected>64 × 64</option><option value="96">96 × 96</option><option value="128">128 × 128</option><option value="256">HD · 256 × 256</option></select></div></div>
 <label class="field">Анимация</label><div class="actions" id="actions"><button class="chip selected" data-action="idle">Ожидание</button><button class="chip" data-action="walk">Ходьба</button><button class="chip" data-action="run">Бег</button><button class="chip" data-action="jump">Прыжок</button><button class="chip" data-action="attack">Атака</button><button class="chip" data-action="cast">Магия</button><button class="chip" data-action="hurt">Урон</button><button class="chip" data-action="death">Смерть</button><button class="chip" data-action="fly">Полёт</button></div><label class="field" for="customAction">Своя анимация (необязательно)</label><input id="customAction" placeholder="Например: достаёт меч и делает выпад">
@@ -61,14 +61,56 @@ if($('grid').checked){ctx.strokeStyle='#ffffff33';ctx.lineWidth=1;for(let x=0;x<
 raf=requestAnimationFrame(drawPreview);
 function accept(data,prompt){current=data;previewImage=new Image();previewImage.src=data.sheet;frameIndex=0;$('previewCanvas').classList.remove('hide');$('placeholder').classList.add('hide');$('runBadge').textContent=data.engine==='demo'?'ДЕМО, БЕЗ ИИ':'ИИ ГОТОВ';$('dlSheet').disabled=false;$('dlGif').disabled=!data.gif;$('dlZip').disabled=!data.zip;$('dlAtlas').disabled=!data.atlas;history.unshift({data,prompt});history=history.slice(0,6);renderLibrary();setStatus('Готово: '+data.frames+' кадров, '+data.cell_size+' px, '+(data.directions||1)+' направлений.', 'success')}
 async function fileData(file){if(!file)return null;return await new Promise((res,rej)=>{const reader=new FileReader();reader.onload=()=>res(reader.result);reader.onerror=rej;reader.readAsDataURL(file)})}
+
+function offlineDemo(p){
+const dirs=p.facing==='all8'?['down','sw','left','nw','up','ne','right','se']:p.facing==='all4'?['down','left','right','up']:[p.facing];
+const sz=p.size,out=document.createElement('canvas'),tmp=document.createElement('canvas');out.width=sz*p.frames;out.height=sz*dirs.length;tmp.width=64;tmp.height=64;const c=out.getContext('2d'),t=tmp.getContext('2d');c.imageSmoothingEnabled=false;t.imageSmoothingEnabled=false;
+const fox=/лис|fox/i.test(p.prompt),zombie=/зомб|zomb/i.test(p.prompt),robot=/робот|robot/i.test(p.prompt),dragon=/дракон|dragon/i.test(p.prompt);
+const fur=fox?'#e48d3f':(zombie||dragon)?'#789f62':robot?'#8dabc4':'#eac392',coat=fox?'#4a9562':robot?'#526d8e':'#84668a';
+const atlas={meta:{image:'sprite_sheet.png',size:{w:out.width,h:out.height}},frames:{},animations:{}};
+dirs.forEach((dir,d)=>{atlas.animations[dir+'_'+p.action]=[];for(let f=0;f<p.frames;f++){
+t.clearRect(0,0,64,64);const phase=f*2*Math.PI/p.frames,swing=Math.sin(phase),move=/run|walk|бег|ходьба/i.test(p.action),jump=/jump|прыж/i.test(p.action),attack=/attack|атака/i.test(p.action),dy=jump?-Math.round(Math.sin(f/(p.frames-1)*Math.PI)*12):move?-Math.round(Math.abs(swing)*2):0,step=move?Math.round(swing*6):0;
+t.save();if(['left','nw','sw'].includes(dir)){t.translate(64,0);t.scale(-1,1)}
+const b=(x,y,w,h,col)=>{t.fillStyle=col;t.fillRect(x,y+dy,w,h)};
+if(fox||dragon){b(43,36+Math.round(swing*2),14,8,fur);b(49,35+Math.round(swing*2),8,5,fox?'#fff0c9':fur)}
+b(20-step,46,11,12,'#343d4c');b(35+step,46,11,12,'#343d4c');
+b(20,29,25,22,'#303645');b(21,30,23,19,coat);
+b(16-step,32,8,17,fur);b(42+(attack?6:step),30-(attack?8:0),8,17,fur);
+if(fox){b(18,12,9,17,fur);b(36,12,9,17,fur);b(22,18,21,20,fur);b(39,28,11,6,'#f8e2b4');b(47,28,4,4,'#303039');b(37,25,3,3,'#25222a');b(20,35,22,5,'#2f835c')}
+else{b(20,15,24,23,fur);b(37,25,4,4,robot?'#40ffff':'#242a31');if(robot){b(20,15,24,4,'#43546a');b(27,27,7,4,'#40ffff')}}
+if(attack){b(48,14,3,23,'#bc9c69');b(47,8,5,12,'#d0dce9')}
+t.restore();c.drawImage(tmp,f*sz,d*sz,sz,sz);
+const name=dir+'_'+p.action+'_'+String(f).padStart(2,'0')+'.png';atlas.frames[name]={frame:{x:f*sz,y:d*sz,w:sz,h:sz},duration:125};atlas.animations[dir+'_'+p.action].push(name)
+}});
+return {sheet:out.toDataURL('image/png'),gif:null,zip:null,atlas:'data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(atlas,null,2)),frames:p.frames,cell_size:sz,columns:p.frames,directions:dirs.length,engine:'demo'};
+}
+function extractSpace(input){
+const m=input.match(/^(?:https:\/\/huggingface\.co\/spaces\/)?([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/?$/);
+return m?m[1]:null;
+}
+async function requestSprite(p){
+const host=api(),space=extractSpace(host);
+if(space){
+const {Client}=await import('https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js');
+const client=await Client.connect(space);
+const response=await client.predict(p.engine==='demo'?'/demo':'/generate',[JSON.stringify(p)]);
+if(!response?.data?.[0])throw Error('Space не вернул изображение. Проверь квоту ZeroGPU.');
+return response.data[0];
+}
+if(!host && p.engine==='demo')return offlineDemo(p);
+if(!host && location.hostname==='alexerrove-dotcom.github.io')throw Error('ИИ-сервер ещё не подключён. Создай Hugging Face Space и введи его адрес в левом поле.');
+if(host&&!/^https:\/\//.test(host)&&!/^(http:\/\/localhost|http:\/\/127\.0\.0\.1)/.test(host))throw Error('Для внешнего ИИ-сервера нужен HTTPS адрес.');
+const resp=await fetch((host||'')+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});
+const data=await resp.json().catch(()=>({detail:'Сервер вернул некорректный ответ'}));
+if(!resp.ok)throw Error(typeof data.detail==='string'?data.detail:JSON.stringify(data.detail));
+return data;
+}
 $('generate').addEventListener('click',async()=>{const button=$('generate');if(!$('prompt').value.trim()){setStatus('Опиши персонажа.','error');return}
 button.disabled=true;button.textContent='✦ ГЕНЕРАЦИЯ…';setStatus('Запрос отправлен. Для настоящего ИИ может потребоваться несколько минут.');
 try{
 const refFile=$('ref').files[0];if(refFile && refFile.size>8*1024*1024)throw Error('Образец больше 8 МБ');
 const payload={prompt:$('prompt').value.trim(),style:$('style').value,view:$('view').value,facing:$('facing').value,size:Number($('size').value),frames:count,action:$('customAction').value.trim()||action,engine:$('engine').value,reference:await fileData(refFile)};
-const res=await fetch(api()+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-const data=await res.json().catch(()=>({detail:'Сервер вернул некорректный ответ'}));
-if(!res.ok)throw Error(typeof data.detail==='string'?data.detail:JSON.stringify(data.detail));
+const data=await requestSprite(payload);
 accept(data,payload.prompt);
 }catch(e){setStatus('Не удалось создать: '+e.message+'. Проверь адрес ИИ-сервера и его доступность.','error');$('runBadge').textContent='ОШИБКА'}
 finally{button.disabled=false;button.textContent='✦ СОЗДАТЬ СПРАЙТ-ЛИСТ'}
