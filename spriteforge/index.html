@@ -44,6 +44,14 @@ const setStatus=(message,type)=>{const e=$('status');e.textContent=message;e.cla
 const api=()=>($('apiUrl').value.trim().replace(/\/+$/,''));
 $('apiUrl').value=localStorage.getItem('sf-api')||'';
 $('apiUrl').addEventListener('change',()=>localStorage.setItem('sf-api',api()));
+fetch('./config.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(cfg=>{
+  if(cfg&&typeof cfg.space_id==='string'&&extractSpace(cfg.space_id)&&!api()&&!localStorage.getItem('sf-api')){
+    $('apiUrl').value=cfg.space_id;
+    $('runBadge').textContent='ИИ-СЕРВЕР ПОДКЛЮЧЁН';
+    setStatus('Подключён сервер '+cfg.space_id+'. Можно генерировать спрайты.');
+  }
+}).catch(()=>{});
+
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(n=>n.classList.toggle('active',n===b));document.querySelectorAll('.view').forEach(v=>v.classList.toggle('hide',v.id!=='view-'+b.dataset.tab));}));
 document.querySelectorAll('.preset').forEach(b=>b.addEventListener('click',()=>{$('prompt').value=b.dataset.preset;document.querySelectorAll('.preset').forEach(n=>n.style.borderColor=n===b?'var(--accent)':'');}));
 document.querySelectorAll('#actions button').forEach(b=>b.addEventListener('click',()=>{action=b.dataset.action;document.querySelectorAll('#actions button').forEach(n=>n.classList.toggle('selected',n===b))}));
