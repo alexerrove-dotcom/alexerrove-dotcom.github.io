@@ -14,6 +14,7 @@ try {
   if(!(await page.locator('#dlSheet').isEnabled()))throw Error('Sprite PNG export disabled');
   if(!(await page.locator('#dlAtlas').isEnabled()))throw Error('JSON atlas export disabled');
   if(!(await page.locator('#previewCanvas').isVisible()))throw Error('Canvas preview not visible');
+  await page.waitForFunction(()=>{const c=document.querySelector('#previewCanvas');const a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let n=0;for(let i=3;i<a.length;i+=4)if(a[i]>0)n++;return n>30},null,{timeout:5000});
   const visible=await page.evaluate(()=>{
     const c=document.querySelector('#previewCanvas');
     const a=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
