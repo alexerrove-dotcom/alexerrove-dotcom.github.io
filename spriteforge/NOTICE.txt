@@ -1,0 +1,16 @@
+SpriteForge RU V9 — Notices
+
+On-device image generation: SD-Turbo © Stability AI.
+Model license: https://huggingface.co/stabilityai/sd-turbo/blob/main/LICENSE.md
+Powered by Stability AI. Use is subject to the Stability AI Community License.
+
+Browser worker library: web-txt2img by lacerbi (MIT)
+https://github.com/lacerbi/web-txt2img
+
+Text translation (when available): Xenova/opus-mt-ru-en
+https://huggingface.co/Xenova/opus-mt-ru-en
+Underlying Helsinki-NLP OPUS-MT model; check its model card for license terms.
+
+The site does not host GPUs, make paid inference calls or require user login.
+First use downloads open model weights from model hosts.
+Image motion is local 2D raster deformation, not neural video generation.
