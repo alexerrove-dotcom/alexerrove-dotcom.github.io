@@ -96,7 +96,7 @@ footer a{color:#d5e2ff}
 <header><div class="wrap nav"><div class="mark">SF</div><div><div class="logo">SpriteForge <em>RU</em></div><div class="navsmall">Персонажи и анимации для игр</div></div><span class="navtag">Без регистрации</span></div></header>
 <main class="wrap">
  <section class="hero">
-  <div class="overline">Нейростудия · V15</div>
+  <div class="overline">Нейростудия · V15.1</div>
   <h1>Персонаж и покадровая анимация по описанию.</h1>
   <p>Описание учитывается вместе с художественными правилами по твоим примерам: цельный персонаж, чистые контуры, выразительное лицо. Затем FLUX.2 Klein создаёт лист движений, используя исходного героя как образец.</p>
  </section>
@@ -109,7 +109,7 @@ footer a{color:#d5e2ff}
    <p class="hint">Стиль и ракурс можно указать прямо в описании: «реализм», «аниме», «мультфильм», «сбоку», «спереди».</p>
    <button id="createButton" type="submit" class="btn primary create">Создать персонажа</button>
   </form>
-  <div id="createStatus" class="status" role="status" aria-live="polite" data-kind="info">Готов к генерации через FLUX.2 Klein на публичном Hugging Face GPU. Вход в SpriteForge не нужен, но у анонимных пользователей Hugging Face есть дневная квота.</div>
+  <div id="createStatus" class="status" role="status" aria-live="polite" data-kind="info">Готов к генерации. В V15.1 исправлено чтение ошибок Hugging Face: при сбое сайт покажет причину, а не только сообщение об отсутствии изображения.</div>
   <div id="createProgress" class="progress" hidden></div>
   <button id="cancelButton" class="btn cancel" type="button" hidden>Отменить генерацию</button>
  </section>
@@ -127,7 +127,7 @@ footer a{color:#d5e2ff}
  <section class="panel section" id="animationPanel" aria-labelledby="animationTitle">
   <div class="step-label">Шаг 2</div>
   <h2 id="animationTitle">Выбери анимацию</h2>
-  <p>ИИ перерисует восемь поз героя на одном листе. Это новая генерация кадров, а не растягивание одной картинки. Обработка происходит на публичной Hugging Face GPU. В анонимном режиме доступ ограничен квотой: полный комплект из шести действий может не поместиться в один день.</p>
+  <p>ИИ перерисует восемь поз героя на одном листе. Это новая генерация кадров, а не растягивание одной картинки. Обработка происходит на публичной Hugging Face GPU. В анонимном режиме лимит ZeroGPU составляет 2 минуты GPU-времени в сутки. Если время закончилось после создания героя, нейросетевая анимация не запустится до сброса квоты.</p>
   <div id="motions" class="motions" role="group" aria-label="Движения персонажа">
    <button type="button" class="motion" data-action="idle" disabled>Ожидание</button>
    <button type="button" class="motion selected" data-action="walk" disabled>Ходьба</button>
@@ -162,14 +162,14 @@ footer a{color:#d5e2ff}
   </div>
  </section>
 </main>
-<footer><div class="wrap">SpriteForge RU V15 · Публичная модель <a href="https://huggingface.co/spaces/black-forest-labs/FLUX.2-klein-4B" target="_blank" rel="noopener noreferrer">FLUX.2 Klein 4B на Hugging Face</a>. Загрузка модели на телефон не требуется. Изображения и текст отправляются публичному сервису. Анонимный доступ ограничен квотой GPU и может потребовать ожидания; безлимитная работа не гарантируется. Автоматическая проверка не заменяет профессиональную оценку качества персонажа и анимации.</div></footer>
+<footer><div class="wrap">SpriteForge RU V15.1 · Публичная модель <a href="https://huggingface.co/spaces/black-forest-labs/FLUX.2-klein-4B" target="_blank" rel="noopener noreferrer">FLUX.2 Klein 4B на Hugging Face</a>. Загрузка модели на телефон не требуется. Изображения и текст отправляются публичному сервису. Анонимный доступ ограничен квотой GPU и может потребовать ожидания; безлимитная работа не гарантируется. Автоматическая проверка не заменяет профессиональную оценку качества персонажа и анимации.</div></footer>
 <script src="./local-generator.js"></script>
 <script type="module">
 /* SpriteForge V11 — one prompt, one Generate button, optional animation below.
  * Image generation is processed by a public Hugging Face ZeroGPU demo.
  * Sprite sheets use the same locked input image and are generated locally.
  */
-import {generate,cancelCurrent} from "./hf-engine-v15.js?v=15";
+import {generate,cancelCurrent} from "./hf-engine-v15.js?v=15.1";
 const $=id=>document.getElementById(id);
 const form=$("characterForm"),input=$("description"),
   create=$("createButton"),createStatus=$("createStatus"),
