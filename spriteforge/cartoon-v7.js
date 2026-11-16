@@ -43,7 +43,7 @@ function viewOf(view,direction,mode){
  if(mode==="all4"||mode==="all8")return directions[direction]||"front";
  if(view==="back"||view==="front")return view;
  if(view==="side")return directions[direction]||"profile";
- if(view==="iso")return directions[direction]||"quarter";
+ if(view==="iso")return "quarter";
  return directions[direction]||"front";
 }
 function drawNeck(g,colors,headX=0){
