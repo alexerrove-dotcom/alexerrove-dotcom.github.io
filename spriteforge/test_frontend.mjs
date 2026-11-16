@@ -32,7 +32,7 @@ try{
    if(!d)throw Error("V3 semantic designer not loaded");
    const fox=d.parse("Рыжий лис в зелёном шарфе с рогаткой",123);
    if(fox.kind!=="fox"||!fox.scarf||fox.scarf===fox.main)throw Error("Material colors leaked: "+JSON.stringify(fox));
-   if(!window.SpriteForgeIllustrator?.version?.startsWith("5."))throw Error("Turnaround V5 renderer missing");
+   if(!window.SpriteForgeIllustrator?.version?.startsWith("6."))throw Error("Turnaround V6 renderer missing");
    if(!window.SpriteForgeFaceV4||!window.SpriteForgePoseV4)throw Error("Missing V4 anatomy rig");
    const pose=window.SpriteForgePoseV4;
    for(const name of ["walk","run"]){
@@ -53,6 +53,24 @@ try{
    if(Math.abs(pose.sample("attack",2,8).attackAngle-pose.sample("attack",5,8).attackAngle)<.1)throw Error("Attack has no windup or release");
    const knee=pose.solveKnee(-12,42,20,88,32,36,.8);
    if(!Number.isFinite(knee.x)||!Number.isFinite(knee.y))throw Error("IK solver returned an invalid knee");
+   const human=d.parse("Мужчина в коричневой куртке-бомбере, белой футболке, синих джинсах, белых кроссовках, темные волосы",73821);
+   if(human.kind!=="human")throw Error("Human reference prompt not parsed");
+   if(!human.design.wardrobe.pants||!human.design.wardrobe.shoes||!human.design.wardrobe.clothing)throw Error("Human outfit colors missing: "+JSON.stringify(human.design.wardrobe));
+   const humanViews=["front","profile","back"].map((v,i)=>window.SpriteForgeIllustrator.render(human,"idle",0,8,["down","right","up"][i],"painted",256,["front","side","back"][i]));
+   if(new Set(humanViews.map(c=>c.toDataURL())).size!==3)throw Error("Front, profile and back are not unique geometries");
+   const widths=humanViews.map(cv=>{
+     const g=cv.getContext("2d"),d=g.getImageData(0,0,cv.width,cv.height).data;let lo=cv.width,hi=-1;
+     for(let y=0;y<cv.height;y++)for(let x=0;x<cv.width;x++){
+       if(d[(y*cv.width+x)*4+3]>90){lo=Math.min(lo,x);hi=Math.max(hi,x)}
+     }return hi-lo+1;
+   });
+   if(!(widths[1]<widths[0]*.94))throw Error("Human profile shoulders not narrower: "+widths.join(","));
+   const ratings=window.SpriteForgeLearning;
+   if(!ratings||!Array.isArray(ratings.vector(123)))throw Error("Local preference learner unavailable");
+   const st=ratings.rate({kind:"human",style:"painted",seed:73821},1);
+   if(st.samples<1||ratings.stats("human","painted").likes<1)throw Error("Offline learning did not save feedback");
+   const seed=ratings.choose("Мужчина в коричневой куртке","painted","side");
+   if(!Number.isInteger(seed))throw Error("Learner failed to choose next variant");
    const foxTop=window.SpriteForgeIllustrator.render(fox,"run",3,8,"down","painted",128,"top");
    const foxSide=window.SpriteForgeIllustrator.render(fox,"run",3,8,"right","painted",128,"side");
    if(foxTop.toDataURL()===foxSide.toDataURL())throw Error("Top-down view duplicates side view");
@@ -108,6 +126,9 @@ try{
  if(options!==6)throw Error("Expected six action preview options, got "+options);
  await page.locator('#previewAction').selectOption('2');
  if((await page.locator('#previewAction').inputValue())!=='2')throw Error("Cannot select run animation");
+ if(!(await page.locator('#feedbackPanel').isVisible()))throw Error("Local feedback buttons missing");
+ await page.click('#feedbackGood');
+ if(!(await page.locator('#learningStatus').innerText()).includes("оценок"))throw Error("Feedback not acknowledged");
  await page.click('[data-tab=pixel]');
  if(!(await page.locator('#pixelCanvas').isVisible()))throw Error('Pixel editor not visible');
  await page.setViewportSize({width:393,height:852});
@@ -120,5 +141,5 @@ try{
  const mobileMetrics=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth}));
  if(mobileMetrics.scrollWidth>mobileMetrics.width+8)throw Error('Mobile horizontal overflow: '+JSON.stringify(mobileMetrics));
  if(errs.length)throw Error('JS errors: '+errs.join('; '));
- console.log('PASS V4: offline reload, semantic colors, seeded variants, real top-down, 4 distinct species, ZIP, 36-frame 6-action pack, action selector, mobile layout and editor');
+ console.log('PASS V6: offline reload, semantic colors, seeded variants, real top-down, 4 distinct species, ZIP, 36-frame 6-action pack, action selector, mobile layout and editor');
 }finally{await browser.close()}
