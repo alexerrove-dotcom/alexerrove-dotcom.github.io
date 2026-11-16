@@ -7,9 +7,27 @@
 import {createClient} from "./webgpu/bundle.js";
 import {translatePrompt} from "./prompt-translator-v9.js";
 import {prepareCharacter,composeSprites} from "./neural-rig-v11.js";
-import {characterPrompt} from "./art-direction-v14.js";
+
 
 let client=null,loadPromise=null,locked=null,lockedKey=null,current=null;
+function shortPrompt(text,style,view){
+ const render={
+  realistic:"photorealistic character concept",
+  semi:"semi-realistic game character",
+  cartoon:"professional hand-drawn 2D cartoon game character",
+  anime:"detailed anime game character",
+  storybook:"beautiful illustrated animation character",
+  painted:"hand-painted character illustration",
+  toon3d:"polished stylized 3D game character",
+  "16bit":"retro pixel game sprite",
+  retro:"pixel art game character"
+ }[style]||"beautiful illustrated game character";
+ const angle={front:"front view",back:"back view",side:"right-facing side view",iso:"three-quarter view"}[view]||"side view";
+ // SD-Turbo's CLIP truncates at ~77 tokens. Prioritize the requested
+ // character description and keep the art instructions concise.
+ const subject=String(text).replace(/ ### [^]*$/,"").replace(/\s+/g," ").trim().split(" ").slice(0,37).join(" ");
+ return [subject,render,"one full body character only",angle,"standing pose, clean white backdrop, complete shoes and hands"].join(", ");
+}
 const msg=(cb,text)=>cb?.({message:text});
 function hash(text){let n=2166136261;for(const c of String(text||"")){n^=c.charCodeAt(0);n=Math.imul(n,16777619)}return n>>>0}
 function seedFor(p){return p.seed!==undefined&&p.seed!==null&&Number.isFinite(Number(p.seed))?(Number(p.seed)>>>0):hash(p.prompt)}
@@ -62,7 +80,7 @@ export async function generate(p,cb){
  if(translated.warning)msg(cb,translated.warning);
  const c=await init(cb);
  msg(cb,"Нейросеть SD-Turbo рисует нового героя на твоём устройстве. Запрос не отправляется на GPU-сервер.");
- const prompt=characterPrompt(translated.text,p.style,p.view);
+ const prompt=shortPrompt(translated.text,p.style,p.view);
  const operation=c.generate({prompt,seed,width:512,height:512},r=>{
   msg(cb,"Генерация · "+[r?.phase,r?.pct!=null?Math.round(r.pct)+"%":null,r?.message].filter(Boolean).join(" · "));
  },{busyPolicy:"reject"});
