@@ -1,7 +1,7 @@
-/* SpriteForge V15.1: network-first site assets for public Hugging Face ZeroGPU */
-const CACHE="spriteforge-offline-v25";
+/* SpriteForge V16: local on-device model default; cloud is optional and quota-limited. */
+const CACHE="spriteforge-offline-v26";
 const BASE=new URL("./",self.location.href).pathname;
-const PRELOAD=["./","./index.html","./local-generator.js","./hf-engine-v15.js","./neural-sheet-v12.js","./art-direction-v14.js","./model-picker-v14.js","./quality-v13.js","./neural-rig-v11.js","./neural-rig-v9.js","./prompt-translator-v9.js","./manifest.json","./icon.svg","./sw.js"];
+const PRELOAD=["./","./index.html","./local-generator.js","./provider-v16.js","./local-engine-v16.js","./hf-engine-v15.js","./neural-sheet-v12.js","./art-direction-v14.js","./model-picker-v14.js","./quality-v13.js","./neural-rig-v11.js","./neural-rig-v9.js","./prompt-translator-v9.js","./manifest.json","./icon.svg","./sw.js"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(PRELOAD)).then(()=>self.skipWaiting()));
 });
