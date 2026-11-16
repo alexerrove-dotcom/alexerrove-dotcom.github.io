@@ -58,7 +58,7 @@ function ornament(g,p,cycle,side,back){
  // The scarf is an actual distinct material. Its knot and folds move subtly.
  if(p.scarf){
   circle(g,16,-16,5.5,grad(g,12,-22,21,-9,shade(p.scarf,.27),shade(p.scarf,-.15)),outline,1.5);
-  stroke(g,[[20,-14],[27,1+Math.sin(cycle)*3]],shade(p.scarf,.38),1.8);
+  stroke(g,[[20,-14],[27,1+Math.sin(cycle.phase)*3]],shade(p.scarf,.38),1.8);
  }
  // Fabric seams, stitch marks and individual ornamenting.
  if(flags.patch||flags.rugged){rounded(g,-11,24,11,10,2,shade(coat,-.22),outline,1.1);for(let i=0;i<3;i++)stroke(g,[[-9+i*3,24],[-9+i*3,27]],"#d4bf99",1.1)}
