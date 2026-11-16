@@ -16,3 +16,13 @@ First use downloads open model weights from model hosts.
 Image motion is local 2D raster deformation, not neural video generation.
 
 V10: Online community-based image generation through AI Horde. Anonymous shared public key (ten zeros): https://aihorde.net/ . Russian prompt translation through MyMemory public API https://mymemory.translated.net/doc/spec.php . User descriptions are transmitted to these third-party services. There is no WebGPU model download or account requirement. Anonymous generation is queued, rate limited, and best effort; availability is not guaranteed.
+
+V15 (current): Public Hosted GPU at Hugging Face Spaces using FLUX.2 [klein] 4B by Black Forest Labs.
+Space: https://huggingface.co/spaces/black-forest-labs/FLUX.2-klein-4B
+Model: https://huggingface.co/black-forest-labs/FLUX.2-klein-4B
+Model weights: Apache 2.0 (see model card for use terms).
+Gradio JavaScript client: https://gradio.app/docs/js-client (open-source).
+Usage: free anonymous ZeroGPU with usage quotas (2 GPU minutes per unauthenticated user per day according to Hugging Face documentation, subject to change).
+Source images and text prompts are sent to Hugging Face Space. Gradio's client code is loaded from jsDelivr. The optional Russian-English translator uses MyMemory's public endpoint.
+No payment, registration, or API key is requested by SpriteForge. Hugging Face may reject anonymous requests after quota exhaustion; availability is not guaranteed.
+The previous AI Horde endpoint remains archived in repo source but is not used by the current website.
