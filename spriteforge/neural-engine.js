@@ -1,4 +1,4 @@
-/* SpriteForge RU V12 — neural sprite sheet animation guided by character image, anonymous and free.
+/* SpriteForge RU V13 — quality checked character and animation generation, anonymous and free.
  * API: AI Horde (https://aihorde.net), publicly documented anonymous API key.
  * This file contains no private user credentials. User prompt goes to AI Horde.
  * Movement is made from the same AI-generated character image, via neural-rig-v9.
@@ -6,6 +6,7 @@
 import {translatePrompt} from "./prompt-translator-v9.js";
 import {prepareCharacter,composeSprites} from "./neural-rig-v11.js";
 import {buildGuide,sheetPrompt,packAIFrames} from "./neural-sheet-v12.js";
+import {validateCharacterBlob,validateAnimationBlob} from "./quality-v13.js";
 
 const BASE="https://aihorde.net/api/v2";
 const AGENT="SpriteForgeRU:10.0:https://alexerrove-dotcom.github.io/spriteforge/";
@@ -112,7 +113,7 @@ async function startHorde(text,p,cb,opts={}){
    const extra=attempt===0?"":", fully clothed in the complete requested outfit, everyday fashion, family friendly game character concept art";
    const payload={
     prompt:opts.spritePrompt?(attempt?opts.spritePrompt.replace(" ### ",extra+" ### "):opts.spritePrompt):promptFor(text+extra,p),
-    params:{n:1,seed:String(candidateSeed),width:opts.source_image?768:512,height:opts.source_image?768:512,steps:opts.source_image?26:24,cfg_scale:7,sampler_name:"k_euler_a",karras:true,...(opts.source_image?{denoising_strength:.68}:{})},
+    params:{n:1,seed:String(candidateSeed),width:opts.source_image?768:512,height:opts.source_image?768:512,steps:opts.source_image?26:24,cfg_scale:7,sampler_name:"k_euler_a",karras:true,...(opts.source_image?{denoising_strength:opts.denoising??.44}:{})},
     ...(opts.source_image?{source_image:opts.source_image,source_processing:"img2img"}:{}),
     nsfw:false,censor_nsfw:true,
     r2:false,shared:false,slow_workers:true,allow_downgrade:true
@@ -194,14 +195,24 @@ export async function generate(p,cb){
   const english=locked._english||p.prompt;
   for(let i=0;i<actions.length;i++){
    const action=actions[i];
-   progress(cb,"ИИ рисует кадры "+(i+1)+"/"+actions.length+": "+action+". Изображение героя остаётся образцом внешности.");
+   progress(cb,"ИИ рисует кадры "+(i+1)+"/"+actions.length+": "+action+". Проверяем согласованность героя.");
    const guide=buildGuide(locked,action);
    const source_image=guide.toDataURL("image/webp",.86).split(",")[1];
    if(!source_image)throw Error("Не удалось подготовить образец поз для нейросети.");
    const prompt=sheetPrompt(english,p.style,action);
-   const result=await startHorde(english,{...fixed,action,seed:(seed+17*(i+1)+revision*977)>>>0},cb,
-     {source_image,spritePrompt:prompt});
-   images[action]=result.blob;
+   let accepted=null,reason="";
+   const limit=p.pack?1:2;
+   for(let attempt=0;attempt<limit;attempt++){
+    const result=await startHorde(english,
+      {...fixed,action,seed:(seed+17*(i+1)+revision*977+attempt*1073)>>>0},cb,
+      {source_image,spritePrompt:prompt,denoising:attempt===0?.43:.36});
+    const quality=await validateAnimationBlob(result.blob);
+    if(quality.ok){accepted=result.blob;break;}
+    reason=quality.reasons.join("; ");
+    if(attempt+1<limit)progress(cb,"Лист не прошёл проверку ("+reason+"). Генерируем повторно с меньшим изменением исходного героя…");
+   }
+   if(!accepted)throw Error("ИИ прислал некачественный спрайт-лист «"+action+"»: "+reason+". Он не будет ошибочно показан как готовая анимация. Попробуй повторить запрос или выбрать более простой стиль.");
+   images[action]=accepted;
   }
   const out=await packAIFrames(locked,images,fixed,cb);
   out.seed=seed;
@@ -210,8 +221,17 @@ export async function generate(p,cb){
  if(active)throw Error("Уже выполняется генерация. Отмените прежнюю, прежде чем запускать новую.");
  const translated=await translatePrompt(p.prompt,msg=>progress(cb,msg));
  if(translated.warning)progress(cb,translated.warning);
- const data=await startHorde(translated.text,fixed,cb);
- progress(cb,"Убираем однотонный фон и готовим экспорт…");
+ let data=null,characterIssue="";
+ for(let attempt=0;attempt<2;attempt++){
+  data=await startHorde(translated.text,{...fixed,seed:(seed+attempt*1399)>>>0},cb);
+  const verdict=await validateCharacterBlob(data.blob);
+  if(verdict.ok)break;
+  characterIssue=verdict.reasons.join("; ");
+  data=null;
+  if(attempt===0)progress(cb,"Изображение не прошло проверку: "+characterIssue+". Генерируем второй вариант с одним героем.");
+ }
+ if(!data)throw Error("Сервис дважды нарисовал неподходящего героя: "+characterIssue+". Результат не принят. Измени описание и попробуй снова.");
+ progress(cb,"Проверка одного персонажа пройдена. Убираем фон и готовим экспорт…");
  const ready=await prepareCharacter(data.blob);
  locked=ready;
  locked._english=translated.text;
