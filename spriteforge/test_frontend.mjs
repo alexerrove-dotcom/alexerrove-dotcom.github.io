@@ -33,6 +33,26 @@ try{
    const fox=d.parse("Рыжий лис в зелёном шарфе с рогаткой",123);
    if(fox.kind!=="fox"||!fox.scarf||fox.scarf===fox.main)throw Error("Material colors leaked: "+JSON.stringify(fox));
    if(!window.SpriteForgeIllustrator?.version?.startsWith("3."))throw Error("V3 renderer missing");
+   if(!window.SpriteForgeFaceV4||!window.SpriteForgePoseV4)throw Error("Missing V4 anatomy rig");
+   const pose=window.SpriteForgePoseV4;
+   for(const name of ["walk","run"]){
+     let steps=0;
+     for(let i=0;i<12;i++){
+       const p=pose.sample(name,i,12);
+       for(const foot of [p.feet.left,p.feet.right]){
+         if(foot.contact){
+           steps++;
+           const footHeight=p.bob+foot.y;
+           if(Math.abs(footHeight-88)>.001)throw Error("Planted foot drifts vertically: "+footHeight);
+         }
+       }
+     }
+     if(steps<6)throw Error(name+" has too few stance frames");
+   }
+   if(pose.sample("jump",4,8).bob!==0)throw Error("Jump animation must leave vertical movement to platformer physics");
+   if(Math.abs(pose.sample("attack",2,8).attackAngle-pose.sample("attack",5,8).attackAngle)<.1)throw Error("Attack has no windup or release");
+   const knee=pose.solveKnee(-12,42,20,88,32,36,.8);
+   if(!Number.isFinite(knee.x)||!Number.isFinite(knee.y))throw Error("IK solver returned an invalid knee");
    const foxTop=window.SpriteForgeIllustrator.render(fox,"run",3,8,"down","painted",128,"top");
    const foxSide=window.SpriteForgeIllustrator.render(fox,"run",3,8,"right","painted",128,"side");
    if(foxTop.toDataURL()===foxSide.toDataURL())throw Error("Top-down view duplicates side view");
@@ -100,5 +120,5 @@ try{
  const mobileMetrics=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth}));
  if(mobileMetrics.scrollWidth>mobileMetrics.width+8)throw Error('Mobile horizontal overflow: '+JSON.stringify(mobileMetrics));
  if(errs.length)throw Error('JS errors: '+errs.join('; '));
- console.log('PASS V3: offline reload, semantic colors, seeded variants, real top-down, 4 distinct species, ZIP, 36-frame 6-action pack, action selector, mobile layout and editor');
+ console.log('PASS V4: offline reload, semantic colors, seeded variants, real top-down, 4 distinct species, ZIP, 36-frame 6-action pack, action selector, mobile layout and editor');
 }finally{await browser.close()}
