@@ -106,15 +106,55 @@ if(payload.engine==='webgpu'){
 }
 throw Error('Неизвестный режим генерации');
 }
-$('generate').addEventListener('click',async()=>{const button=$('generate');if(!$('prompt').value.trim()){setStatus('Опиши персонажа.','error');return}
-button.disabled=true;button.textContent='✦ ГЕНЕРАЦИЯ…';setStatus($('engine').value==='webgpu'?'Подготавливаем локальную WebGPU-нейросеть…':'Создаём персонажа и анимации без сервера…');
-try{
-const payload={prompt:$('prompt').value.trim(),style:$('style').value,view:$('view').value,facing:$('facing').value,size:Number($('size').value),frames:count,action:$('customAction').value.trim()||action,seed:$('seed').value.trim()===''?undefined:Number($('seed').value),engine:$('engine').value,pack:$('pack').checked,reference:null};
-if(payload.pack&&payload.engine!=='local')throw Error('Полный пакет поддерживается только автономным генератором.');
-const data=await requestSprite(payload);
-accept(data,payload.prompt);
-}catch(e){setStatus('Не удалось создать: '+e.message,'error');$('runBadge').textContent='ОШИБКА'}
-finally{button.disabled=false;button.textContent=$('pack').checked?'✦ СОЗДАТЬ ПОЛНЫЙ ПАКЕТ':'✦ СОЗДАТЬ СПРАЙТ-ЛИСТ'}
+// Two-stage workflow: "create character" locks an immutable design blueprint.
+ // Every later animation uses the same exact prompt, style and deterministic seed.
+let lockedCharacter=null;
+function readCharacterBlueprint(){
+ const prompt=$('prompt').value.trim();
+ if(!prompt)throw Error('Сначала опиши внешность персонажа.');
+ return {prompt,style:$('style').value,view:$('view').value,facing:$('facing').value,
+  size:Number($('size').value),frames:8,action:'idle',
+  seed:$('seed').value.trim()===''?undefined:Number($('seed').value),
+  engine:$('engine').value,pack:false,reference:null};
+}
+function lockCharacter(blueprint,data){
+ const fixed=Object.freeze({...blueprint,seed:data.seed??blueprint.seed});
+ lockedCharacter=fixed;
+ const isLocal=fixed.engine==='local';
+ $('animateCharacter').disabled=!isLocal;
+ $('characterLocked').textContent=isLocal?
+   'Герой создан и закреплён · вариант №'+String(fixed.seed??'по описанию')+
+   '. Выбери действие и нажми «Анимировать». Изменения текста не изменят этого героя до нового создания.':
+   'Изображение нейросети готово. Надёжная покадровая анимация этого изображения пока не реализована: доступна только для автономных рисованных персонажей.';
+}
+$('generate').addEventListener('click',async()=>{
+ const button=$('generate');button.disabled=true;button.textContent='СОЗДАЁМ ПЕРСОНАЖА…';
+ try{
+  const blueprint=readCharacterBlueprint();
+  setStatus(blueprint.engine==='webgpu'?'Создаём изображение на видеокарте устройства…':'Рисуем внешность персонажа без сервера…');
+  const data=await requestSprite(blueprint);
+  accept(data,blueprint.prompt);
+  lockCharacter(blueprint,data);
+ }catch(e){setStatus('Не удалось создать персонажа: '+e.message,'error')}
+ finally{button.disabled=false;button.textContent='1. СОЗДАТЬ ПЕРСОНАЖА'}
+});
+$('animateCharacter').addEventListener('click',async()=>{
+ if(!lockedCharacter){setStatus('Сначала создай персонажа.','error');return}
+ const button=$('animateCharacter');
+ button.disabled=true;button.textContent='СОЗДАЁМ АНИМАЦИЮ…';
+ try{
+  if(lockedCharacter.engine!=='local')throw Error('Анимация нейросетевой картинки пока не поддерживается. Выбери автономный режим.');
+  const payload={...lockedCharacter,frames:count,action:$('customAction').value.trim()||action,
+    pack:$('pack').checked};
+  setStatus('Создаём '+(payload.pack?'пакет анимаций':'анимацию «'+payload.action+'»')+
+    ' для закреплённого героя…');
+  const data=await requestSprite(payload);
+  accept(data,lockedCharacter.prompt);
+  $('characterLocked').textContent='Анимация готова для закреплённого персонажа №'+
+    String(lockedCharacter.seed??'по описанию')+
+    '. Чтобы поменять внешность, нажми «Создать персонажа» ещё раз.';
+ }catch(e){setStatus('Не удалось анимировать персонажа: '+e.message,'error')}
+ finally{button.disabled=false;button.textContent=$('pack').checked?'2. АНИМИРОВАТЬ · ПОЛНЫЙ ПАКЕТ':'2. АНИМИРОВАТЬ ЭТОГО ПЕРСОНАЖА'}
 });
 function saveFeedback(vote){
  if(!current||current.engine!=='local-procedural'||!window.SpriteForgeLearning)return;
