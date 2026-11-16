@@ -24,7 +24,7 @@ function styleConfig(p){
  const red=/рыж|красн.{0,13}волос|red hair|ginger/i.test(str);
  const hair=w.hair||(red?"#cf5739":["#583e34","#8d6343","#3d3338","#c19b60"][seed%4]);
  const skin=w.skin||p.main||"#e6b999";
- const coat=w.clothing||w.shirt||(!explorer?p.coat:null)||(explorer?"#a38c76":"#648ba2");
+ const coat=w.clothing||w.shirt||(explorer?"#a38c76":p.coat||"#648ba2");
  const shoe= /красн.{0,15}(?:кед|кроссов|обув)|red sneakers|red shoes/i.test(str)?"#d54340":w.shoes||(explorer?"#d9473d":"#db6854");
  return {kid,explorer,hat,shorts,hair,skin,coat,pants:w.pants||(explorer?"#917e6e":"#626e8a"),shirt:w.shirt||"#f6e6cf",shoe,
   ink:"#65524c",eye:p.eye||"#3e3b3b",hatColor:w.hat||shade(coat,explorer?.14:-.09),pack:/рюкзак|сумк|backpack/i.test(str),
@@ -151,6 +151,10 @@ function leg(g,c,hip,foot,sg,profile){
   "#fffdf6",null);
  path(g,[[sx-3,fy-5],[sx+4,fy-4]],"#f5e9db",1.5);
 }
+function neck(g,c){
+ fill(g,z=>{z.moveTo(-9,-79);z.lineTo(9,-79);z.lineTo(9,-50);z.quadraticCurveTo(0,-44,-9,-51)},
+  grad(g,-8,-79,10,-48,shade(c.skin,.16),shade(c.skin,-.14)),shade(c.skin,-.32),.9);
+}
 function body(g,c,profile,quarter,back){
  const half=profile?17:quarter?25:30,hem=18;
  if(c.pack)fill(g,z=>{z.moveTo(-half-7,-46);z.lineTo(-half-12,7);z.quadraticCurveTo(-half-2,23,-half+9,10);z.lineTo(-half+9,-37)},
@@ -198,7 +202,7 @@ function render(p,action,index,total,direction,style,size,view,mode){
  const expressions=action==="expressions";
  if(expressions){
   g.save();g.translate(0,75);g.scale(1.65,1.65);
-  body(g,c,profile,quarter,back);face(g,c,v,E[index%E.length],false);g.restore();
+  body(g,c,profile,quarter,back);neck(g,c);face(g,c,v,E[index%E.length],false);g.restore();
  }else{
   g.translate(0,pose.bob);
   // Stable contact plane: foot positions explicitly cancel vertical torso bob.
@@ -212,6 +216,7 @@ function render(p,action,index,total,direction,style,size,view,mode){
   g.save();g.rotate(pose.type==="run"?-.09:pose.lean*.18);
   arm(g,c,pose,false,profile,quarter);
   body(g,c,profile,quarter,back);
+  neck(g,c);
   face(g,c,v,(p.design?.expression||"neutral"),pose.type==="idle"&&Math.sin(pose.phase)>0.96);
   arm(g,c,pose,true,profile,quarter);
   g.restore();
