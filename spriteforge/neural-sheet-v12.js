@@ -96,20 +96,24 @@ async function imageFrames(blob,size=256){
  const normalized=canvas(512,512);
  normalized.getContext("2d").drawImage(bitmap,0,0,512,512);
  bitmap.close?.();
- const out=[];
+ const cropped=[];
  for(let i=0;i<8;i++){
-  const cropped=canvas(128,256),c=cropped.getContext("2d");
-  c.drawImage(normalized,(i%4)*128,Math.floor(i/4)*256,128,256,0,0,128,256);
-  removeEdgeBackground(cropped);
-  const frame=canvas(size,size),g=frame.getContext("2d");
-  const b=alphaBounds(cropped);
-  const ratio=Math.min((size-22)/b.w,(size-18)/b.h);
+  const cut=canvas(128,256),g=cut.getContext("2d");
+  g.drawImage(normalized,(i%4)*128,Math.floor(i/4)*256,128,256,0,0,128,256);
+  removeEdgeBackground(cut);
+  cropped.push(cut);
+ }
+ const bounds=cropped.map(alphaBounds);
+ const widest=Math.max(...bounds.map(b=>b.w));
+ const tallest=Math.max(...bounds.map(b=>b.h));
+ const ratio=Math.min((size-22)/Math.max(1,widest),(size-18)/Math.max(1,tallest));
+ return cropped.map((cut,i)=>{
+  const b=bounds[i],frame=canvas(size,size),g=frame.getContext("2d");
   const w=b.w*ratio,h=b.h*ratio;
   g.imageSmoothingEnabled=true;
-  g.drawImage(cropped,b.x,b.y,b.w,b.h,(size-w)/2,size-h-7,w,h);
-  out.push(frame);
- }
- return out;
+  g.drawImage(cut,b.x,b.y,b.w,b.h,(size-w)/2,size-h-7,w,h);
+  return frame;
+ });
 }
 function occupancy(frames){
  let occupied=0;
