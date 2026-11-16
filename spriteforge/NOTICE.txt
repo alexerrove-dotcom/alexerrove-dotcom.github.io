@@ -35,3 +35,8 @@ V16 local-first quota-free inference (current):
 - Browser-generated animation is a local cutout rig (not AI-generated independent keyframes). The optional Hugging Face fallback has usage quotas.
 - A free public translator (MyMemory) may process Russian text before local image generation. When unavailable, basic local dictionary substitution is used. Image generation itself happens on device.
 - OpenAI / ChatGPT computing is not shared with this website; no OpenAI API is used.
+
+V17 (current): Cloud-first: OVHcloud anonymous Stable Diffusion XL (free, rate-limited 2 requests/minute/IP) at https://oai.endpoints.kepler.ai.cloud.ovh.net/v1/images/generations . API use and CORS support from third-party hosting are not guaranteed.
+When OVHcloud fails, SpriteForge tries the public Hugging Face FLUX.2 Klein Gradio Space (anonymous ZeroGPU daily quota) as fallback. No sign-in, app token or large local model download is required. Text and images are submitted to service operators.
+For animation, the same original character is transformed using an approximate local 2D cutout rig. These are not independently AI-generated clean frames; visual quality is limited.
+The model SD-Turbo WebGPU implementation remains in repo as an unused opt-in legacy module and is not imported by current V17 site. No gigabyte-scale weights are fetched by the current default page.
