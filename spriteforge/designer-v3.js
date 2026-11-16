@@ -85,6 +85,13 @@ for(const [name,re] of Object.entries(PARTS)){
 }
 const bodyColor=wardrobe.fur;
 if(bodyColor)base.main=bodyColor;
+// Clothes do not determine skin color. Blue jeans must not produce blue faces.
+if(["human","knight","wizard","pirate","ninja","elf"].includes(base.kind)){
+ base.main="#cfa78b";
+ if(/смугл|тёмн.{0,12}кож|темн.{0,12}кож|dark skin|brown skin/i.test(s))base.main="#9b684d";
+ if(/светл.{0,12}кож|бледн|fair skin|pale skin/i.test(s))base.main="#ead0b7";
+ if(/зелен.{0,12}кож|green skin/i.test(s))base.main="#8ca976";
+}
 if(wardrobe.scarf)base.scarf=wardrobe.scarf;
 if(wardrobe.clothing)base.coat=wardrobe.clothing;
 if(wardrobe.armor && !wardrobe.clothing)base.coat=wardrobe.armor;
