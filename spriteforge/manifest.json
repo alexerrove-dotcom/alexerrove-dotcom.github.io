@@ -1,7 +1,7 @@
 {
-  "name": "SpriteForge RU — локальные игровые спрайты",
+  "name": "SpriteForge RU — ИИ-персонажи и анимация",
   "short_name": "SpriteForge",
-  "description": "Создание спрайтов и анимаций на устройстве без сервера.",
+  "description": "Создание персонажей и спрайт-листов с использованием публичных GPU Hugging Face; возможны ограничения квоты.",
   "lang": "ru",
   "start_url": "./",
   "scope": "./",
