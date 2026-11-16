@@ -55,6 +55,8 @@ try{
    const knee=pose.solveKnee(-12,42,20,88,32,36,.8);
    if(!Number.isFinite(knee.x)||!Number.isFinite(knee.y))throw Error("IK solver returned an invalid knee");
    const human=d.parse("Мужчина в коричневой куртке-бомбере, белой футболке, синих джинсах, белых кроссовках, темные волосы",73821);
+   const denim=d.parse("Молодой парень, синяя джинсовая куртка, белая футболка, джинсы, кроссовки",5204);
+   if(denim.kind!=="human"||denim.wings)throw Error("Denim mistaken for owl: "+denim.kind+" wings="+denim.wings);
    if(human.kind!=="human")throw Error("Human reference prompt not parsed");
    if(!human.design.wardrobe.pants||!human.design.wardrobe.shoes||!human.design.wardrobe.clothing)throw Error("Human outfit colors missing: "+JSON.stringify(human.design.wardrobe));
    const humanViews=["front","profile","back"].map((v,i)=>window.SpriteForgeIllustrator.render(human,"idle",0,8,["down","right","up"][i],"painted",256,["front","side","back"][i]));
