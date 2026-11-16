@@ -133,6 +133,7 @@ try{
  const options=await page.locator('#previewAction option').count();
  if(options!==6)throw Error("Expected six action preview options, got "+options);
  await page.locator('#previewAction').selectOption('2');
+ if((await page.locator('#previewAction').inputValue())!=='2')throw Error('Cannot select run animation in the six-action pack');
  // Changing the prompt after creation must not silently replace the character
  // during the second-stage animation.
  await page.locator('#pack').uncheck();
@@ -144,7 +145,7 @@ try{
  const lockedText=await page.locator('#characterLocked').innerText();
  if(lockedText.includes('дракон'))throw Error("Prompt edit replaced the locked character");
 
- if((await page.locator('#previewAction').inputValue())!=='2')throw Error("Cannot select run animation");
+ if((await page.locator('#previewAction').inputValue())!=='0')throw Error('Single-action preview must reset to row zero');
  if(!(await page.locator('#feedbackPanel').isVisible()))throw Error("Local feedback buttons missing");
  await page.click('#feedbackGood');
  if(!(await page.locator('#learningStatus').innerText()).includes("оценок"))throw Error("Feedback not acknowledged");
