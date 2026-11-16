@@ -273,7 +273,7 @@ const sz=Number(config.size)||64,frames=Number(config.frames)||8,dirs=dirsFor(co
 if(![16,32,64,96,128,256].includes(sz))throw Error("Недопустимый размер кадра");
 if(![6,8,12].includes(frames))throw Error("Поддерживается 6, 8 или 12 кадров");
 if(dirs.length*frames>96)throw Error("Слишком много кадров");
-const p=parse(prompt),sheet=createCanvas(sz*frames,sz*dirs.length),ctx=sheet.getContext("2d");ctx.imageSmoothingEnabled=false,files=[],atlas={meta:{image:"sprite_sheet.png",size:{w:sheet.width,h:sheet.height},frameSize:sz,engine:"local-procedural",transparent:true},frames:{},animations:{}};
+const p=parse(prompt),sheet=createCanvas(sz*frames,sz*dirs.length),ctx=sheet.getContext("2d");ctx.imageSmoothingEnabled=false;const atlas={meta:{image:"sprite_sheet.png",size:{w:sheet.width,h:sheet.height},frameSize:sz,engine:"local-procedural",transparent:true},frames:{},animations:{}};
 const allFrames=[];
 for(let di=0;di<dirs.length;di++){
 const key=dirs[di]+"_"+(config.action||"idle");atlas.animations[key]=[];
