@@ -32,6 +32,9 @@ jobs:
           for (const [,js] of scripts) new Function(js);
           console.log('SpriteForge front-end JavaScript parsed successfully');
           NODE
+          node --check spriteforge/designer-v3.js
+          node --check spriteforge/illustrator-v2.js
+          node --check spriteforge/illustrator-v3.js
           node --check spriteforge/local-generator.js
           node --check spriteforge/neural-engine.js
           node --check spriteforge/test_webgpu.mjs
