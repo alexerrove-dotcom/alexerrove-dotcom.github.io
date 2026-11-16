@@ -61,7 +61,7 @@ function canvasData(canvas){return canvas.toDataURL('image/png')}
 function drawPreview(now){
 if(current&&previewImage.complete&&previewImage.naturalWidth){
 const cv=$('previewCanvas'),ctx=cv.getContext('2d');const sz=current.cell_size,n=current.frames;
-if($('animate').checked && now-lastFrame>=1000/Math.max(1,Number($('fps').value)||8)){frameIndex=(frameIndex+1)%n;lastFrame=now}
+if($('animate').checked && now-lastFrame>=1000/Math.max(1,Number($('fps').value)||8)){const selected=current.actions?.[Number($('previewAction').value)||0]||'idle';const once=['attack','jump','death','hurt','cast'].includes(selected);frameIndex=once?Math.min(n-1,frameIndex+1):(frameIndex+1)%n;lastFrame=now}
 cv.width=sz;cv.height=sz;ctx.clearRect(0,0,sz,sz);ctx.imageSmoothingEnabled=false;
 let cols=current.columns||n;const actionRow=Number($('previewAction').value)||0,dirRow=Number($('previewDirection').value)||0;const row=(current.actions?.length?dirRow*current.actions.length+actionRow:0);ctx.drawImage(previewImage,(frameIndex%cols)*sz,row*sz,sz,sz,0,0,sz,sz);
 if($('grid').checked){ctx.strokeStyle='#ffffff33';ctx.lineWidth=1;for(let x=0;x<=sz;x+=Math.max(1,Math.floor(sz/8))){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,sz);ctx.moveTo(0,x);ctx.lineTo(sz,x);ctx.stroke()}}
@@ -79,6 +79,7 @@ function options(select,values){select.replaceChildren();for(const [label,value]
 options($('previewAction'),actions.map((a,i)=>[labels[a]||a,i]));
 options($('previewDirection'),dirs.map((d,i)=>[({right:'Вправо',left:'Влево',up:'Сзади',down:'Спереди',ne:'Северо-восток',nw:'Северо-запад',se:'Юго-восток',sw:'Юго-запад'}[d]||d),i]));
 $('previewControls').classList.toggle('hide',actions.length<2&&dirs.length<2);
+$('previewAction').onchange=()=>{frameIndex=0;lastFrame=0};$('previewDirection').onchange=()=>{frameIndex=0;lastFrame=0};
 $('dlSheet').disabled=false;$('dlGif').disabled=!data.gif;$('dlZip').disabled=!data.zip;$('dlAtlas').disabled=!data.atlas;
 history.unshift({data,prompt});history=history.slice(0,6);renderLibrary();
 setStatus('Готово: '+(data.totalFrames||data.frames)+' кадров, '+(data.actionCount||1)+' анимаций × '+(data.directions||1)+' направлений, '+data.cell_size+' px. Вариант '+(data.seed??'по описанию')+'.', 'success')
