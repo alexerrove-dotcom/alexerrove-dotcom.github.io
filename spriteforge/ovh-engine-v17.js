@@ -105,3 +105,5 @@ export async function cancelCurrent(){
  pending.ctl.abort();return true;
 }
 export function getStatus(){return{engine:"ovh",busy:!!pending,locked:!!locked,modelDownload:false,anonymousRpm:2}}
+
+export function getCurrentCharacter(){return locked}
