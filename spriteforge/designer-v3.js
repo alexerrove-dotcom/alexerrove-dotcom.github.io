@@ -5,7 +5,7 @@
 const SPECIES={
 fox:/лис|лисиц|fox/i,wolf:/волк|волч|wolf/i,cat:/кошк|кот(?:ик|а)?\b|cat\b/i,dog:/собак|щен|пёс|пес\b|dog/i,
 rabbit:/крол|зайц|зайк|rabbit|bunny/i,bear:/медвед|мишк|bear\b/i,squirrel:/белк|squirrel/i,mouse:/мыш|мышон|mouse\b/i,
-frog:/лягуш|жаб|frog/i,bird:/птиц|ворон|орёл|орел|сова|попуга|bird|owl|raven/i,
+frog:/лягуш|жаб|frog/i,bird:/птиц|ворон|орёл|орел|(?:^|[^а-яё])сов(?:а|у|ы|ой|е)(?:$|[^а-яё])|совён|совен|попуга|bird|owl|raven/i,
 dragon:/дракон|dragon/i,robot:/робот|андроид|robot/i,zombie:/зомб|zombie/i,skeleton:/скелет|skeleton/i,
 slime:/слизень|слизь|slime/i,knight:/рыцар|рыцарь|knight/i,wizard:/волшеб|маг\b|колдун|wizard|mage/i,
 pirate:/пират|pirate/i,ninja:/ниндзя|ninja/i,astronaut:/космонавт|astronaut/i,elf:/эльф|elf\b/i,
@@ -79,6 +79,10 @@ function parse(text,seedOverride){
 const s=String(text||"").trim().toLowerCase(),seed=Number.isFinite(+seedOverride)?((+seedOverride)>>>0):hash(s);
 const base=root.SpriteForgeLocal.parse(text);
 const f=Object.keys(SPECIES).find(k=>SPECIES[k].test(s));if(f)base.kind=f;
+ // The legacy renderer used a loose /сов/ pattern and could mistake
+ // "джинсовая куртка" for an owl. Restore derived anatomy after classification.
+ base.wings=/(?:крыл|wing)/i.test(s)||["bird","dragon"].includes(base.kind);
+ base.horns=/(?:рог|horn)/i.test(s)||base.kind==="dragon";
 const used=new Set();
 const wardrobe={};
 for(const [name,re] of Object.entries(PARTS)){
