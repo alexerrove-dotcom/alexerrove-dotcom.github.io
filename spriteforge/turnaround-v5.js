@@ -175,7 +175,7 @@ function headHuman(g,p,side,w){
 function headAnimal(g,p,side){
  // Reuse species-specific facial landmarks, but only after choosing true camera
  // orientation. The body geometry is independently drawn above.
- g.save();g.translate(0,-93);g.scale(.58,.58);
+ g.save();g.translate(0,-78);g.scale(.62,.62);
  root.SpriteForgeFaceV4.draw(g,p,side==="profile"||side==="quarter",side==="back",{action:"idle",index:0,total:8});
  g.restore();
 }
