@@ -9,7 +9,7 @@ frog:/лягуш|жаб|frog/i,bird:/птиц|ворон|орёл|орел|со�
 dragon:/дракон|dragon/i,robot:/робот|андроид|robot/i,zombie:/зомб|zombie/i,skeleton:/скелет|skeleton/i,
 slime:/слизень|слизь|slime/i,knight:/рыцар|рыцарь|knight/i,wizard:/волшеб|маг\b|колдун|wizard|mage/i,
 pirate:/пират|pirate/i,ninja:/ниндзя|ninja/i,astronaut:/космонавт|astronaut/i,elf:/эльф|elf\b/i,
-human:/человек|девуш|парен|мальчик|девочка|человеч|воин|солдат|human|warrior|boy|girl/i
+human:/человек|мужчин|мужик|девуш|парен|мальчик|девочка|человеч|воин|солдат|human|man\b|woman|warrior|boy|girl/i
 };
 const COLORS=[
 ["#e75b54",/красн|алый|багров|red|crimson|scarlet/i],
@@ -22,14 +22,17 @@ const COLORS=[
 ["#e6a6b7",/розов|pink/i],
 ["#e9e7df",/бел|снежн|white|ivory/i],
 ["#343d4d",/чёрн|черн|black|charcoal/i],
-["#a47a56",/корич|бур|brown/i],
+["#a47a56",/корич|каштан|бур|brown|chestnut/i],
 ["#9baab5",/серебр|серый|серебрист|silver|grey|gray/i],
 ["#c89b77",/беж|песоч|tan|beige/i]
 ];
 const PARTS={
 fur:/лис|лисиц|волк|волч|кот|кошк|собак|пёс|пес|зай|крол|медвед|белк|мыш|дракон|птиц|животн|шерст|мех|fur|fox|wolf|cat|dog|rabbit|bear|dragon|bird/i,
 scarf:/шарф|платок|scarf|bandana/i,
-clothing:/плащ|рубаш|куртк|кофт|свитер|жилет|костюм|плать|мант|туник|одежд|robe|jacket|shirt|dress|vest|coat|cloak|cape/i,
+clothing:/плащ|рубаш|куртк|бомбер|кофт|свитер|жилет|костюм|плать|мант|туник|одежд|robe|bomber|jacket|shirt|dress|vest|coat|cloak|cape/i,
+ pants:/джинс|штаны|брюк|бридж|леггин|jeans|denim|pants|trousers/i,
+ shoes:/кроссов|кед|ботин|туфл|обувь|sneakers|shoes|trainers/i,
+ shirt:/футбол|майк|tee|t-shirt/i,
 armor:/брон|доспех|латы|armou?r|plate/i,
 hat:/шляп|шапк|капюшон|шлем|корон|hat|hood|helmet|crown/i,
 boots:/ботин|сапог|обувь|boots|shoes/i,
