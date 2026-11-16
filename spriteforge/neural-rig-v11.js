@@ -116,6 +116,13 @@ function paintFrame(rig,action,i,n,size){
  ctx.restore();
  return frame;
 }
+// For V12 AI redrawing, this cutout is only a pose guide; generated frames
+// come from fresh neural image-to-image inference, not from these cutouts.
+export function createPoseGuide(character,action,count=8,size=256){
+ if(!character?.canvas)throw Error("Missing the original character");
+ const rig=buildRig(character);
+ return Array.from({length:count},(_,i)=>paintFrame(rig,action,i,count,size));
+}
 const pngData=cv=>cv.toDataURL("image/png");
 async function bytes(cv){
  const blob=await new Promise((resolve,reject)=>cv.toBlob(b=>b?resolve(b):reject(Error("Не удалось сохранить PNG")),"image/png"));
