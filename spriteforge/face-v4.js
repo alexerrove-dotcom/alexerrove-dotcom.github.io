@@ -94,9 +94,15 @@ if(side){
   oval(g,29,10,4,2.8,ink);
   curve(g,[[22,16],[26,19],[31,17]],ink,1.6);
  }
- eye(g,eyeX,eyeY,k==="rabbit"?6.3:k==="fox"?6.8:6.4,.55,mood.expr,mood.blink,ink,p.eye);
- if(mood.expr==="angry")curve(g,[[5,-25],[19,-22]],ink,2.8);
- if(mood.expr==="smile")curve(g,[[21,18],[29,22],[37,19]],ink,2.2);
+ eye(g,eyeX,eyeY,k==="rabbit"?7.1:k==="fox"?7.5:7,.55,mood.expr,mood.blink,ink,p.eye);
+ // Eyelid and eyebrow expression stay attached to one stable facial landmark.
+ if(mood.expr==="angry")curve(g,[[4,-26],[20,-23]],ink,2.8);
+ else if(mood.expr==="sleepy")curve(g,[[6,-21],[18,-19]],color(ink,.2),1.9);
+ else curve(g,[[6,-24],[16,-25],[21,-22]],color(fur,-.34),1.6);
+ if(mood.open){oval(g,30,20,4,4.2,color(ink,.05),ink,1.2);oval(g,29,22,2,1.2,"#d66f79")}
+ else if(mood.expr==="smile")curve(g,[[21,17],[29,22],[37,18]],ink,2.2);
+ // Nose bridge tint and cheek volume avoid a flat sticker-like mask.
+ oval(g,-12,5,7,4.1,color(fur,.12));
  if(p.freckles)for(const dx of [0,5,10])oval(g,-7+dx,9+dx%3,1.2,1.3,color(fur,-.34));
  if(k==="cat"||k==="mouse"){
  for(const o of [-4,1,6]){curve(g,[[25,13+o],[47,8+o*2]],ink,1.1)}
