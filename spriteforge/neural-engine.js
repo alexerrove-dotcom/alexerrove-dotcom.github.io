@@ -50,7 +50,7 @@ function promptFor(text,p){
  const style=STYLE[p.style]||STYLE.realistic;
  const angle=ANGLE[p.view]||ANGLE.front;
  const head="single full body "+text;
- const positive=[head,angle,"neutral standing A-pose","both feet and both hands fully visible","centered character on clean uniform white studio background",style,"high detail, one person, full length character art"].join(", ");
+ const positive=[head,angle,"neutral standing A-pose",isClearlyOrdinaryCharacterPrompt(text)?"fully clothed and wearing all specified garments":"professional game character design","both feet and both hands fully visible","centered character on clean uniform white studio background",style,"high detail, one person, full length character art"].join(", ");
  const negative="cropped feet, cropped head, cut off, multiple people, extra arms, extra legs, fused hands, distorted anatomy, text, watermark, blurry, low resolution, busy background";
  return positive+" ### "+negative;
 }
@@ -90,7 +90,7 @@ function isClearlyOrdinaryCharacterPrompt(description){
 }
 function isBlockedGeneration(gen){
  const meta=Array.isArray(gen?.gen_metadata)?gen.gen_metadata:[];
- return gen?.censored===true||gen?.state==="censored"||
+ return gen?.censored===true||gen?.state==="censored"||gen?.state==="csam"||
    meta.some(item=>item.type==="censorship");
 }
 async function startHorde(text,p,cb){
@@ -152,7 +152,7 @@ async function startHorde(text,p,cb){
    const blockedResults=generations.filter(isBlockedGeneration);
    if(!clean&&blockedResults.length){
     blocked++;
-    if(blockedResults.some(g=>(g.gen_metadata||[]).some(m=>m.value==="csam"))){
+    if(blockedResults.some(g=>g.state==="csam"||(g.gen_metadata||[]).some(m=>m.value==="csam"))){
      throw Error("Сервис заблокировал генерацию по правилам безопасности. Повторной попытки не будет.");
     }
     if(attempt+1<attempts){
