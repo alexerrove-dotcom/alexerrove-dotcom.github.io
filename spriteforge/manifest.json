@@ -1,0 +1,19 @@
+{
+  "name": "SpriteForge RU — локальные игровые спрайты",
+  "short_name": "SpriteForge",
+  "description": "Создание спрайтов и анимаций на устройстве без сервера.",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d1019",
+  "theme_color": "#ffcb63",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    }
+  ]
+}
