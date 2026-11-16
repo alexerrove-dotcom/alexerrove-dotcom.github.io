@@ -104,13 +104,13 @@ oval(g,47,15,6,4,ink);oval(g,46,13,2,1,"#fff");
 }else{
 oval(g,24,14,13,10,L,ink,1.9);oval(g,33,11,4,3,ink)
 }
-oval(g,14,-13,10,13,"#fff8e9",ink,2.4);oval(g,18,-13,5.3,9,p.eye);
-oval(g,19,-18,2.6,4,"white");line(g,[[5,-29],[17,-30],[23,-27]],tint(F,-.35),2.8);
+oval(g,14,-13,7,8.8,"#fff8e9",ink,2.1);oval(g,17,-13,3.6,5.5,p.eye);
+oval(g,18,-16,1.6,2.1,"white");line(g,[[6,-28],[17,-29],[22,-27]],tint(F,-.35),2.4);
 if(p.freckles){for(const n of [0,1,2])oval(g,5+n*5,8+n%2,1.5,1.3,tint(F,-.35))}
 }else{
-oval(g,-13,-11,9,12,"#fff8e9",ink,2.3);oval(g,14,-11,9,12,"#fff8e9",ink,2.3);
-oval(g,-10,-11,4.5,7,p.eye);oval(g,16,-11,4.5,7,p.eye);
-oval(g,-11,-15,2,3,"white");oval(g,15,-15,2,3,"white");
+oval(g,-13,-11,7,8,"#fff8e9",ink,2);oval(g,14,-11,7,8,"#fff8e9",ink,2);
+oval(g,-11,-11,3.4,5,p.eye);oval(g,15,-11,3.4,5,p.eye);
+oval(g,-12,-13,1.5,2,"white");oval(g,14,-13,1.5,2,"white");
 path(g,L,ink,c=>{c.moveTo(-15,6);c.quadraticCurveTo(0,1,19,6);c.quadraticCurveTo(25,19,4,24);c.quadraticCurveTo(-12,22,-15,6)},1.9);
 oval(g,4,10,5,4,ink);
 if(k==="cat")for(const sg of [-1,1]){line(g,[[4+sg*5,14],[sg*38,9]],ink,1.9);line(g,[[4+sg*5,19],[sg*36,21]],ink,1.8)}
@@ -210,16 +210,21 @@ if(p.bag){rounded(g,-38,8,19,30,5,grad(g,-34,8,-22,40,"#b89161","#6b493b"),ink,3
 if(p.armor){for(const x of [-28,27])oval(g,x,-18,8,11,tint(p.main,.28),ink,2)}
 if(p.kind==="skeleton"){for(const y of [-6,4,14])line(g,[[-18,y],[16,y]],"#d9ceb2",4)}
 }
-function feet(g,p,stride,bob,dir,run){
-const ink=tint(p.ink,-.22),pants=p.armor?tint(p.main,-.16):tint(p.coat,-.15),foot=p.kind==="robot"||p.armor?mix(p.coat,p.main,.4):p.main;
-const liftL=run?Math.max(0,stride/16)*13:Math.max(0,stride)*.32;
-const liftR=run?Math.max(0,-stride/16)*13:Math.max(0,-stride)*.32;
-for(const [sg,lift] of [[-1,liftL],[1,liftR]]){
-const start=sg*14,step=sg*stride,dx=start+step,fy=88-lift;
-joint(g,start,42,start+step*.30,66,dx,fy,15,pants,ink);
-oval(g,dx+5,fy+4,16,8,grad(g,dx-8,fy,dx+17,fy+8,tint(foot,.21),tint(foot,-.26)),ink,3);
-if(!p.armor)line(g,[[dx-7,fy],[dx+9,fy]],tint(foot,-.32),2);
-if(p.kind==="fox"||p.kind==="cat"||p.kind==="wolf"){for(let i=0;i<2;i++)line(g,[[dx+6+i*4,fy+5],[dx+7+i*4,fy+9]],tint(foot,-.48),1.3)}
+function feet(g,p,rig){
+const ink=tint(p.ink,-.22),pants=p.armor?tint(p.main,-.16):tint(p.coat,-.15),
+foot=p.kind==="robot"||p.armor?mix(p.coat,p.main,.4):p.main;
+for(const sign of [-1,1]){
+ const sx=sign*14,dx=sx+sign*rig.stride,flyTuck=rig.jump?16*Math.sin(Math.PI*rig.t):0;
+ const lift=(sign===-1?rig.leftLift:rig.rightLift)+flyTuck;
+ const fy=88-lift;
+ const kneeX=sx+(dx-sx)*.4+sign*(5+flyTuck*.3);
+ const kneeY=63-(flyTuck*.3);
+ joint(g,sx,42,kneeX,kneeY,dx,fy,15,pants,ink);
+ oval(g,dx+5,fy+4,16,8,grad(g,dx-8,fy,dx+17,fy+8,tint(foot,.21),tint(foot,-.26)),ink,3);
+ if(!p.armor)line(g,[[dx-7,fy],[dx+9,fy]],tint(foot,-.32),2);
+ if(["fox","cat","wolf"].includes(p.kind)){
+  for(let i=0;i<2;i++)line(g,[[dx+6+i*4,fy+5],[dx+7+i*4,fy+9]],tint(foot,-.48),1.3)
+ }
 }
 }
 function weapon(g,p,x,y,angle,phase){
@@ -254,79 +259,44 @@ line(g,[[2,22],[9,-57]],"#8e6745",8);path(g,"#aeb9c7",ink,c=>{c.moveTo(-37,-57);
 g.restore()
 }
 function makeFrame(p,action,i,total,direction,style){
- const pose=root.SpriteForgePoseV4?.sample(action,i,total);
- if(!pose)throw Error("SpriteForge pose rig v4 is missing");
- const a=pose.phase,t=pose.t;
- const isSide=["right","left","se","sw","ne","nw"].includes(direction),back=["up","nw","ne"].includes(direction),isLeft=["left","nw","sw"].includes(direction);
- const canvas=document.createElement("canvas");canvas.width=320;canvas.height=320;
- const g=canvas.getContext("2d");g.imageSmoothingEnabled=true;
- g.translate(144,159);const scale=p.giant?1.05:p.small?.9:1;g.scale(scale,scale);
- if(isLeft)g.scale(-1,1);
- if(pose.type==="death"){g.translate(0,t*17);g.rotate(t*1.05)}
- if(pose.type==="hurt"){g.translate(Math.sin(a*2.5)*4,0);g.rotate(.065*Math.sin(a*2.5))}
- g.translate(0,pose.bob);
- const ink=tint(p.ink,-.17), arms=p.main,pants=p.armor?tint(p.main,-.15):tint(p.coat,-.12);
- if(p.wings)wing(g,p,a);
- tail(g,p,a);
- // Two-bone legs, each ankle solved from a hip and a planted/swing foot.
- const left=pose.feet.left,right=pose.feet.right;
- function leg(hip,ankle,sg,far){
-  const knee=root.SpriteForgePoseV4.solveKnee(hip,42,ankle.x,ankle.y-5,32,36,sg===-1?-.75:.85);
-  const col=far?tint(pants,-.14):pants;
-  // Explicit two-bone segments meet exactly at the knee joint (no detached kneecap).
-  for(const [[ax,ay],[bx,by]] of [[[hip,42],[knee.x,knee.y]],[[knee.x,knee.y],[ankle.x,ankle.y-5]]]){
-    line(g,[[ax,ay],[bx,by]],ink,16.5);
-    line(g,[[ax,ay],[bx,by]],col,12);
-  }
-  oval(g,knee.x,knee.y,6.7,6.4,col,ink,1.7);
-  const foot=p.kind==="robot"||p.armor?mix(p.coat,p.main,.4):p.main;
-  const paint=grad(g,ankle.x-13,ankle.y-6,ankle.x+17,ankle.y+6,tint(foot,.26),tint(foot,-.23));
-  oval(g,ankle.x+4,ankle.y+2,14,7,paint,ink,2.4);
-  line(g,[[ankle.x-9,ankle.y+5],[ankle.x+14,ankle.y+5]],tint(foot,-.37),1.5);
-  if(["fox","cat","wolf","rabbit"].includes(p.kind))
-   for(let n=0;n<2;n++)line(g,[[ankle.x+5+n*4,ankle.y+4],[ankle.x+5+n*4,ankle.y+7]],tint(foot,-.4),1.1);
- }
- leg(-12,left,-1,true);leg(12,right,1,false);
- // The pelvis keeps its identity. Only the upper body leans in a sprint.
- g.save();
- g.translate(0,pose.crouch*.45);
- g.rotate(pose.lean);
- g.scale(1,pose.torso*(1+pose.squash));
- torso(g,p);
- const backSwing=pose.arm;
- const grip=(()=>{
-  if(pose.type==="attack")return {x:35+pose.attackReach,y:17+Math.sin(pose.attackAngle)*11,angle:pose.attackAngle};
-  if(pose.type==="jump")return {x:39,y:-8+pose.crouch*.28,angle:-.2};
-  if(pose.type==="cast")return {x:36+pose.attackReach,y:-24,angle:-.12};
-  if(pose.type==="run")return {x:29+backSwing*.45,y:13+Math.sin(a)*6,angle:.18};
-  if(pose.type==="walk")return {x:34+backSwing*.45,y:23,angle:-.07};
-  if(pose.type==="death")return {x:35,y:28+21*t,angle:1.25*t};
-  return {x:36,y:23+1.5*Math.sin(a),angle:-.07};
- })();
- const leftWrist={x:-35-backSwing*.66,y:27+backSwing*.28};
- const leftElbow={x:-31-backSwing*.27,y:6+backSwing*.22};
- joint(g,-22,-12,leftElbow.x,leftElbow.y,leftWrist.x,leftWrist.y,11,arms,ink);
- oval(g,leftWrist.x,leftWrist.y,8.5,8.5,grad(g,leftWrist.x-8,leftWrist.y-7,leftWrist.x+7,leftWrist.y+6,tint(arms,.25),tint(arms,-.18)),ink,2);
- if(p.scarf)scarf(g,p,a);
- // The same face is redrawn at the same coordinates: no frame-to-frame face warp.
- g.save();
- g.translate(0,-51+(pose.type==="idle"?.8*Math.sin(a):.15*Math.sin(a)));
- g.rotate(pose.type==="run"?.015*Math.sin(a):.012*Math.sin(a));
- if(root.SpriteForgeFaceV4){
-  root.SpriteForgeFaceV4.draw(g,p,isSide,back,{action,index:i,total,phase:a});
- }else head(g,p,isSide,back);
- g.restore();
- const elbow={x:28+backSwing*.22,y:4+(pose.type==="attack"?-9:0)};
- joint(g,23,-12,elbow.x,elbow.y,grip.x,grip.y,11,arms,ink);
- // Equipment is parented to the wrist, never independently animated.
- if(p.weapon)weapon(g,p,grip.x+4,grip.y-2,grip.angle,a);
- oval(g,grip.x,grip.y,8,9,grad(g,grip.x-7,grip.y-8,grip.x+6,grip.y+7,tint(arms,.24),tint(arms,-.20)),ink,2.1);
- if(pose.type==="cast"&&pose.t>.2&&pose.t<.9){
-  const charge=Math.sin(Math.PI*pose.t);
-  for(let j=0;j<6;j++){const angle=a+j*TAU/6;sparkle(g,grip.x+20*Math.cos(angle),grip.y-31+20*Math.sin(angle),2+charge*2,p.accent)}
- }
- g.restore();
- return canvas;
+const rig=root.SpriteForgeMotion?root.SpriteForgeMotion.pose(action,i,total):null;
+if(!rig)throw Error("SpriteForge Motion Rig missing");
+const {phase:a,frontHand,backHand}=rig;
+const side=["right","left","se","sw","ne","nw"].includes(direction);
+const back=["up","nw","ne"].includes(direction);
+const left=["left","nw","sw"].includes(direction);
+const canvas=document.createElement("canvas");canvas.width=320;canvas.height=320;
+const g=canvas.getContext("2d");g.imageSmoothingEnabled=true;
+g.translate(144,159);
+const scale=p.giant?1.05:p.small?.90:1;g.scale(scale,scale);
+if(left)g.scale(-1,1);
+if(rig.death){g.translate(0,rig.deathDrop);g.rotate(rig.bodyTilt)}
+if(rig.hurt){g.translate(Math.sin(a*3)*5,0);g.rotate(rig.bodyTilt)}
+g.translate(0,rig.bounce);
+const ink=tint(p.ink,-.17),arm=p.main;
+if(p.wings)wing(g,p,a);
+tail(g,p,a);
+feet(g,p,rig);
+g.save();g.rotate(rig.torsoLean);
+torso(g,p);
+g.restore();
+// Back hand drawn behind neck and head; both hands follow the same rig.
+joint(g,-22,-13,(-22+backHand.x)*.55,5,backHand.x,backHand.y,12,arm,ink);
+oval(g,backHand.x,backHand.y,9,9,grad(g,backHand.x-8,backHand.y-8,backHand.x+9,backHand.y+9,tint(arm,.23),tint(arm,-.16)),ink,2.3);
+if(p.scarf)scarf(g,p,a);
+g.save();g.translate(0,-51+1.5*Math.sin(a));g.rotate(rig.headNod);
+head(g,p,side,back);g.restore();
+// Front forearm, wrist and weapon stay attached to a shared joint.
+const elbowX=24+(frontHand.x-24)*.45;
+const elbowY=2+(frontHand.y-2)*.33;
+joint(g,23,-13,elbowX,elbowY,frontHand.x,frontHand.y,12,arm,ink);
+oval(g,frontHand.x,frontHand.y,9,10,grad(g,frontHand.x-8,frontHand.y-8,frontHand.x+9,frontHand.y+10,tint(arm,.32),tint(arm,-.21)),ink,2.6);
+if(p.weapon)weapon(g,p,frontHand.x+5,frontHand.y-3,rig.attack?-.45+Math.sin(a)*.23:-.08+Math.sin(a)*.05,a);
+if(rig.cast){for(let j=0;j<5;j++)sparkle(g,50+20*Math.cos(a+j*1.5),-15+23*Math.sin(a+j*1.5),2.5,p.accent)}
+if(["fox","wolf","cat"].includes(p.kind)){
+ for(const y of [-1,1]){const px=11+y*8;line(g,[[px,17],[px+3,20]],tint(p.coat,-.32),1.4)}
+}
+return canvas;
 }
 function toCell(full,size,style){
 const canvas=document.createElement("canvas");canvas.width=size;canvas.height=size;
