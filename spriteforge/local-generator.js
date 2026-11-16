@@ -86,9 +86,11 @@ function pickField(str,re,def){const m=str.match(re);return m?m[1]:def}
 function parse(prompt){
 const str=String(prompt||"").toLowerCase().slice(0,900);
 let kind=firstMatch(str,animalWords,"human"),p=palettes[kind],seed=hash(str);
-const main=chooseColor(str,seed,p[0]);
+// Color words close to clothing must not recolor the animal itself.
+const furDescription=str.replace(/(?:[a-zа-яё-]+\s+){0,2}(?:шарф\w*|scarf|плащ\w*|cloak|cape|куртк\w*|jacket|одежд\w*|шляп\w*|hat|брон\w*|armor|dress|robe|мантия|рубашк\w*)/gi," ");
+const main=chooseColor(furDescription,seed,p[0]);
 let coat=p[2],scarf=null,hat=false,cape=false,bag=false,armor=false,skirt=false,glasses=false;
-const scarfMention=str.match(/(?:шарф|scarf)[^.!,;]{0,25}|(?:красный|зелёный|синий|жёлтый|фиолетовый|оранжевый|red|green|blue|yellow|purple)[\s-]+(?:шарф|scarf)/i);
+const scarfMention=str.match(/(?:[а-яёa-z-]+\s+){0,2}(?:шарф\w*|scarf)|(?:шарф\w*|scarf)(?:\s+[а-яёa-z-]+){0,3}/i);
 if(/шарф|scarf/i.test(str))scarf=chooseColor(scarfMention?.[0]||str,seed,"#cf5249");
 const clothMention=str.match(/(?:плащ|куртк|броня|одежд|shirt|dress|robe)[^.!,;]{0,25}/i);
 if(clothMention)coat=chooseColor(clothMention[0],seed,coat);
@@ -278,7 +280,7 @@ const allFrames=[];
 for(let di=0;di<dirs.length;di++){
 const key=dirs[di]+"_"+(config.action||"idle");atlas.animations[key]=[];
 for(let i=0;i<frames;i++){
-const cell=renderCell(frameArt(p,config.action||"idle",i,frames,dirs[di],config.style),sz,config.style);
+const cell=global.SpriteForgeIllustrator ? global.SpriteForgeIllustrator.render(p,config.action||"idle",i,frames,dirs[di],config.style,sz) : renderCell(frameArt(p,config.action||"idle",i,frames,dirs[di],config.style),sz,config.style);
 ctx.drawImage(cell,i*sz,di*sz);allFrames.push([dirs[di],i,cell]);
 const name=key+"_"+String(i).padStart(2,"0")+".png";atlas.frames[name]={frame:{x:i*sz,y:di*sz,w:sz,h:sz},duration:Math.round(1000/8)};
 atlas.animations[key].push(name);
@@ -293,5 +295,5 @@ for(const [dir,i,cell] of allFrames){const bytes=await pngBytes(cell);names.push
 zip=URL.createObjectURL(makeZip(names));
 return {sheet:data,atlas:atlasUrl,zip,gif:null,frames,columns:frames,cell_size:sz,directions:dirs.length,engine:"local-procedural",description:p.kind,offline:true};
 }
-global.SpriteForgeLocal={generate,parse,makeZip,version:"1.0.0"};
+global.SpriteForgeLocal={generate,parse,makeZip,version:"2.0.0"};
 })(window);
