@@ -224,29 +224,28 @@ function topView(p,action,index,count,direction,style){
 }
 function character(p,action,index,total,direction,style,size,view){
  if(view==="top"){return finish(topView(p,action,index,total,direction,style),size,style)}
+ const rig=root.SpriteForgeMotion.pose(action,index,total);
  const src=root.SpriteForgeIllustratorV2.render(p,action,index,total,direction,"painted",320);
- const raw=canvas(320,320);const g=raw.getContext("2d");g.drawImage(src,0,0);
- const pose=root.SpriteForgePoseV4.sample(action,index,total),phase=pose.phase,t=pose.t;
+ const raw=canvas(320,320),g=raw.getContext("2d");g.drawImage(src,0,0);
+ const phase=rig.phase;
  g.save();g.translate(144,159);g.scale(p.giant?1.05:p.small?.9:1,p.giant?1.05:p.small?.9:1);
  if(["left","nw","sw"].includes(direction))g.scale(-1,1);
- if(pose.type==="death"){g.translate(0,t*17);g.rotate(t*1.05)}
- if(pose.type==="hurt"){g.translate(Math.sin(phase*2.5)*4,0);g.rotate(Math.sin(phase*2.5)*.065)}
- g.translate(0,pose.bob);
- g.translate(0,pose.crouch*.45);
- g.rotate(pose.lean);
- g.scale(1,pose.torso*(1+pose.squash));
- // Procedural costume and secondary-character detailing, anchored to local rig.
+ if(rig.death){g.translate(0,rig.deathDrop);g.rotate(rig.bodyTilt)}
+ if(rig.hurt){g.translate(Math.sin(phase*3)*5,0);g.rotate(rig.bodyTilt)}
+ g.translate(0,rig.bounce);
+ // Decorative layers are attached to the same torso/head coordinates as the body,
+ // so geometry does not duplicate or drift during transitions.
  ornament(g,p,{phase,action},direction,["up","nw","ne"].includes(direction));
  fur(g,p,["right","left","se","sw","ne","nw"].includes(direction),["up","nw","ne"].includes(direction),phase);
  equipment(g,p,phase,action);
  g.restore();
  materialPass(raw,p,style);
- // Fixed capture across all animation frames: no re-centering jitter.
  const cropped=canvas(260,260),c=cropped.getContext("2d");
  c.drawImage(raw,22,0,260,260,0,0,260,260);
  if(view==="iso"){
-  // A subtle projection of the same pose; not a true volume rendering.
-  const iso=canvas(260,260),h=iso.getContext("2d");h.translate(130,130);h.transform(1,.06,-.13,.88,0,0);h.drawImage(cropped,-130,-125);return finish(iso,size,style);
+  const iso=canvas(260,260),h=iso.getContext("2d");
+  h.translate(130,130);h.transform(1,.06,-.13,.88,0,0);
+  h.drawImage(cropped,-130,-125);return finish(iso,size,style);
  }
  return finish(cropped,size,style);
 }
