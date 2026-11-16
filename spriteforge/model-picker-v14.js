@@ -60,7 +60,7 @@ async function available(){
  return loading;
 }
 const normalized=x=>String(x).toLowerCase().replace(/\s+/g," ").trim();
-export async function chooseModel(style,lockedName){
+export async function chooseModel(style,lockedName,avoid=[]){
  if(lockedName&&typeof lockedName==="string")return lockedName;
  const active=await available();
  if(!active.length)return null;
@@ -68,7 +68,7 @@ export async function chooseModel(style,lockedName){
  const ranked=[];
  for(const m of active){
   const idx=prefer.findIndex(s=>normalized(m.name)===normalized(s));
-  if(idx<0)continue;
+  if(idx<0||avoid.includes(m.name))continue;
   // User wants quality, not a random fast model. Prefer target artistic
   // models while allowing availability and observed QA success to rank ties.
   const n=Number(m.count)||1;
