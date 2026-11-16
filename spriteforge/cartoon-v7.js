@@ -35,10 +35,13 @@ function palette(p){
  pattern:(p.seed>>>5)%4,faceType:(p.seed>>>11)%4,hairType:(p.seed>>>13)%5
  };
 }
-function viewOf(view,direction){
+function viewOf(view,direction,mode){
  const directions={up:"back",down:"front",left:"profile",right:"profile",nw:"quarter-back",ne:"quarter-back",sw:"quarter",se:"quarter"};
- if(view==="back"||view==="front")return view;
+ // A turnaround overrides the single-view selector. Otherwise 4/8 direction
+ // atlas would incorrectly contain four identical front-facing sprites.
  if(view==="top")return "top";
+ if(mode==="all4"||mode==="all8")return directions[direction]||"front";
+ if(view==="back"||view==="front")return view;
  if(view==="side")return directions[direction]||"profile";
  if(view==="iso")return directions[direction]||"quarter";
  return directions[direction]||"front";
@@ -217,10 +220,10 @@ function portrait(g,p,c,dir,index){
  jacket(g,c,false,false,false);drawNeck(g,c);face(g,p,c,dir==="back"?"back":dir==="profile"?"profile":"front",expr,expr==="blink");
  g.restore();
 }
-function render(p,action,index,total,direction,style,size,view){
- if(!HUMANS.has(p.kind)||view==="top")return previous.render(p,action,index,total,direction,style,size,view);
+function render(p,action,index,total,direction,style,size,view,mode){
+ if(!HUMANS.has(p.kind)||view==="top")return previous.render(p,action,index,total,direction,style,size,view,mode);
  const config=palette(p);
- const v=viewOf(view,direction);
+ const v=viewOf(view,direction,mode);
  const profile=v==="profile",quarter=v==="quarter"||v==="quarter-back",back=v==="back";
  const isLeft=["left","nw","sw"].includes(direction);
  const expr=action==="expressions";
@@ -228,7 +231,7 @@ function render(p,action,index,total,direction,style,size,view){
  const cv=document.createElement("canvas");cv.width=320;cv.height=320;
  const g=cv.getContext("2d");g.imageSmoothingEnabled=true;
  g.translate(156,178);
- if(isLeft&&profile)g.scale(-1,1);
+ if(isLeft&&(profile||quarter))g.scale(-1,1);
  // In expressions mode the eight frames represent genuinely different mouth/eye poses.
  if(expr){
   portrait(g,p,config,v,index);
