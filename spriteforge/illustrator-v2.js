@@ -147,6 +147,9 @@ function tail(g,p,phase){
 const K=p.kind,ink=tint(p.ink,-.2),base=p.main,hi=p.light,t=phase;
 if(["fox","wolf","squirrel","cat","dog","dragon","mouse","rabbit","bear"].includes(K)){
 g.save();g.translate(18,7);g.rotate(.15+Math.sin(t-.6)*.18);
+// Keep large fluffy tails subordinate to the silhouette instead of dwarfing the body.
+if(K==="fox"||K==="wolf")g.scale(.78,.84);
+else if(K==="squirrel")g.scale(.84,.94);
 if(["fox","wolf","squirrel"].includes(K)){
 path(g,grad(g,24,-24,91,39,tint(base,.32),tint(base,-.18)),ink,c=>{c.moveTo(0,0);c.bezierCurveTo(30,-11,49,-49,71,-34);c.quadraticCurveTo(86,-31,95,-12);c.quadraticCurveTo(83,5,60,20);c.quadraticCurveTo(29,38,0,13)},3.7);
 path(g,hi,null,c=>{c.moveTo(76,-30);c.quadraticCurveTo(92,-23,95,-12);c.quadraticCurveTo(83,5,60,20);c.quadraticCurveTo(66,2,76,-30)});
