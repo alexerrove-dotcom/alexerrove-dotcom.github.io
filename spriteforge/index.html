@@ -96,9 +96,9 @@ footer a{color:#d5e2ff}
 <header><div class="wrap nav"><div class="mark">SF</div><div><div class="logo">SpriteForge <em>RU</em></div><div class="navsmall">Персонажи и анимации для игр</div></div><span class="navtag">Без регистрации</span></div></header>
 <main class="wrap">
  <section class="hero">
-  <div class="overline">Нейростудия · V15.1</div>
+  <div class="overline">Нейростудия · V16</div>
   <h1>Персонаж и покадровая анимация по описанию.</h1>
-  <p>Описание учитывается вместе с художественными правилами по твоим примерам: цельный персонаж, чистые контуры, выразительное лицо. Затем FLUX.2 Klein создаёт лист движений, используя исходного героя как образец.</p>
+  <p>Нейросеть рисует персонажа на видеокарте твоего устройства. Нет регистрации и квоты на число попыток. При первом запуске нужно скачать модель (~2,6 ГБ), а результат зависит от доступной памяти и WebGPU.</p>
  </section>
  <section class="panel" aria-labelledby="createTitle">
   <div class="step-label">Шаг 1</div>
@@ -107,9 +107,11 @@ footer a{color:#d5e2ff}
    <label for="description">Кого нарисовать?</label>
    <textarea id="description" placeholder="Например: мужчина 30 лет в коричневой куртке, синих джинсах и белых кроссовках, реалистичный игровой стиль, вид сбоку">Мужчина 30 лет в коричневой куртке, синих джинсах и белых кроссовках, рисованный игровой персонаж, вид сбоку</textarea>
    <p class="hint">Стиль и ракурс можно указать прямо в описании: «реализм», «аниме», «мультфильм», «сбоку», «спереди».</p>
+   <p class="hint" style="color:#a8e3cd">Без квот запросов: локальная нейросеть SD-Turbo · после первой загрузки работает на GPU устройства. Для Android нужен Chrome с WebGPU и примерно 3 ГБ свободного места.</p>
+   <details style="margin-top:12px"><summary style="cursor:pointer;color:#aebdd2">Если локальный GPU не поддерживается</summary><label style="display:block;margin:9px 0 0"><input id="useCloud" type="checkbox"> Использовать Hugging Face (облачный режим, есть дневные квоты)</label></details>
    <button id="createButton" type="submit" class="btn primary create">Создать персонажа</button>
   </form>
-  <div id="createStatus" class="status" role="status" aria-live="polite" data-kind="info">Готов к генерации. В V15.1 исправлено чтение ошибок Hugging Face: при сбое сайт покажет причину, а не только сообщение об отсутствии изображения.</div>
+  <div id="createStatus" class="status" role="status" aria-live="polite" data-kind="info">Локальный режим готов к проверке. При первом запуске нейросеть скачает модель (~2,6 ГБ). Без квот на количество изображений, но требуются WebGPU, память и место для модели.</div>
   <div id="createProgress" class="progress" hidden></div>
   <button id="cancelButton" class="btn cancel" type="button" hidden>Отменить генерацию</button>
  </section>
@@ -127,7 +129,7 @@ footer a{color:#d5e2ff}
  <section class="panel section" id="animationPanel" aria-labelledby="animationTitle">
   <div class="step-label">Шаг 2</div>
   <h2 id="animationTitle">Выбери анимацию</h2>
-  <p>ИИ перерисует восемь поз героя на одном листе. Это новая генерация кадров, а не растягивание одной картинки. Обработка происходит на публичной Hugging Face GPU. В анонимном режиме лимит ZeroGPU составляет 2 минуты GPU-времени в сутки. Если время закончилось после создания героя, нейросетевая анимация не запустится до сброса квоты.</p>
+  <p>В локальном режиме доступны 8 кадров движения и полный комплект без серверной квоты. Сейчас это анимация исходного изображения с помощью 2D-рига; полноценная нейросетевая перерисовка каждого кадра работает только в дополнительном облачном режиме с ограничениями.</p>
   <div id="motions" class="motions" role="group" aria-label="Движения персонажа">
    <button type="button" class="motion" data-action="idle" disabled>Ожидание</button>
    <button type="button" class="motion selected" data-action="walk" disabled>Ходьба</button>
@@ -162,14 +164,14 @@ footer a{color:#d5e2ff}
   </div>
  </section>
 </main>
-<footer><div class="wrap">SpriteForge RU V15.1 · Публичная модель <a href="https://huggingface.co/spaces/black-forest-labs/FLUX.2-klein-4B" target="_blank" rel="noopener noreferrer">FLUX.2 Klein 4B на Hugging Face</a>. Загрузка модели на телефон не требуется. Изображения и текст отправляются публичному сервису. Анонимный доступ ограничен квотой GPU и может потребовать ожидания; безлимитная работа не гарантируется. Автоматическая проверка не заменяет профессиональную оценку качества персонажа и анимации.</div></footer>
+<footer><div class="wrap">SpriteForge RU V16 · Основной режим: SD-Turbo на устройстве через WebGPU. Количество локальных попыток не ограничено серверной квотой. Нужны память, поддерживаемый GPU и загрузка весов модели (~2,6 ГБ). <a href="https://huggingface.co/schmuell/sd-turbo-ort-web" target="_blank" rel="noopener noreferrer">Весы SD-Turbo</a> — некоммерческая лицензия. Резервный облачный вариант Hugging Face имеет квоты. Качество рисунков и анимаций не гарантируется.</div></footer>
 <script src="./local-generator.js"></script>
 <script type="module">
 /* SpriteForge V11 — one prompt, one Generate button, optional animation below.
- * Image generation is processed by a public Hugging Face ZeroGPU demo.
+ * Image generation runs on the device by default; optional cloud fallback has quotas.
  * Sprite sheets use the same locked input image and are generated locally.
  */
-import {generate,cancelCurrent} from "./hf-engine-v15.js?v=15.1";
+import {generate,cancelCurrent} from "./provider-v16.js?v=16";
 const $=id=>document.getElementById(id);
 const form=$("characterForm"),input=$("description"),
   create=$("createButton"),createStatus=$("createStatus"),
@@ -251,7 +253,7 @@ form.addEventListener("submit",async e=>{
  const request={prompt,style:inferStyle(prompt),view:inferView(prompt),
   facing:"right",size:256,frames:8,action:"idle",characterOnly:true,pack:false,engine:"horde"};
  setBusy(true,"generate");
- status(createStatus,"Создаём героя через FLUX.2 Klein на публичном GPU…","progress");
+ status(createStatus,document.getElementById("useCloud")?.checked?"Запрашиваем публичный GPU Hugging Face (с квотой)…":"Запускаем локальный WebGPU — без серверных квот…","progress");
  create.textContent="ИИ рисует персонажа…";
  try{
   const out=await generate(request,p=>status(createStatus,p.message||"Идёт генерация…","progress"));
@@ -259,7 +261,7 @@ form.addEventListener("submit",async e=>{
   charImg.src=out.source||out.sheet;
   charResult.hidden=false;
   animResult.hidden=true;animation=null;stopPreview();
-  status(createStatus,"Персонаж готов. Теперь выбери движение в блоке ниже.","success");
+  status(createStatus,(out.provider==="local"?"Персонаж создан на твоём GPU — без серверной квоты. ":"Персонаж создан в ограниченном облачном режиме. ")+"Теперь выбери движение ниже.","success");
   status(animStatus,"Персонаж закреплён. Выбери действие и нажми «Создать анимацию».","success");
   charResult.scrollIntoView({behavior:"smooth",block:"start"});
  }catch(err){
@@ -300,7 +302,7 @@ animate.addEventListener("click",async()=>{
    :result.frames+" последовательных кадров одного персонажа на одном листе.";
   animResult.hidden=false;
   playAnimation(result);
-  status(animStatus,"Лист прошёл предварительную автоматическую проверку кадров. "+(result.warnings?.length?"Проверь результат: "+result.warnings.join("; "):"Проверь согласованность лица, одежды и ног.")+" Доступны PNG, ZIP и JSON.","success");
+  status(animStatus,(result.provider==="local"?"Готово: локальный 2D-риг, без облачной квоты. ":"Готово: облачная нейросеть, кадры проверены автоматически. ")+(result.warnings?.length?"Проверь: "+result.warnings.join("; "):"Проверь лицо, одежду и ноги.")+" Доступны PNG, ZIP и JSON.","success");
   animResult.scrollIntoView({behavior:"smooth",block:"start"});
  }catch(err){status(animStatus,"Не удалось создать анимацию: "+(err?.message||String(err)),"error")}
  finally{
