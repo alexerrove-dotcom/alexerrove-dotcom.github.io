@@ -2,9 +2,9 @@
  * Everything needed for procedural inference is cached on this device.
  * Neither user prompts nor AI inference are sent to a server.
  */
-const CACHE="spriteforge-offline-v4";
+const CACHE="spriteforge-offline-v5";
 const BASE=new URL("./",self.location.href).pathname;
-const PRELOAD=["./","./index.html","./local-generator.js","./illustrator-v2.js","./manifest.json","./icon.svg","./sw.js"];
+const PRELOAD=["./","./index.html","./local-generator.js","./designer-v3.js","./illustrator-v2.js","./illustrator-v3.js","./manifest.json","./icon.svg","./sw.js"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(PRELOAD)).then(()=>self.skipWaiting()));
 });
