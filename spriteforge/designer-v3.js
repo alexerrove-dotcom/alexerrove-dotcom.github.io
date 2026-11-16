@@ -32,7 +32,8 @@ scarf:/шарф|платок|scarf|bandana/i,
 clothing:/плащ|рубаш|куртк|бомбер|кофт|свитер|жилет|костюм|плать|мант|туник|одежд|robe|bomber|jacket|shirt|dress|vest|coat|cloak|cape/i,
  pants:/джинс|штаны|брюк|бридж|леггин|jeans|denim|pants|trousers/i,
  shoes:/кроссов|кед|ботин|туфл|обувь|sneakers|shoes|trainers/i,
- shirt:/футбол|майк|tee|t-shirt/i,
+ shirt:/футбол|майк|рубаш|сорочк|tee|t-shirt|shirt/i,
+ skin:/кож|skin|complexion/i,
 armor:/брон|доспех|латы|armou?r|plate/i,
 hat:/шляп|шапк|капюшон|шлем|корон|hat|hood|helmet|crown/i,
 boots:/ботин|сапог|обувь|boots|shoes/i,
@@ -83,6 +84,9 @@ const wardrobe={};
 for(const [name,re] of Object.entries(PARTS)){
  const color=nearestColor(s,re,used);if(color)wardrobe[name]=color;
 }
+if(/русые волос|светлые волос|blond hair|blonde hair/i.test(s))wardrobe.hair="#cba46d";
+if(/чёрные волос|черные волос|тёмные волос|темные волос|dark hair|black hair/i.test(s))wardrobe.hair="#332b2b";
+if(/рыжие волос|red hair|ginger hair/i.test(s))wardrobe.hair="#a95b36";
 const bodyColor=wardrobe.fur;
 if(bodyColor)base.main=bodyColor;
 // Clothes do not determine skin color. Blue jeans must not produce blue faces.
@@ -91,6 +95,7 @@ if(["human","knight","wizard","pirate","ninja","elf"].includes(base.kind)){
  if(/смугл|тёмн.{0,12}кож|темн.{0,12}кож|dark skin|brown skin/i.test(s))base.main="#9b684d";
  if(/светл.{0,12}кож|бледн|fair skin|pale skin/i.test(s))base.main="#ead0b7";
  if(/зелен.{0,12}кож|green skin/i.test(s))base.main="#8ca976";
+ if(wardrobe.skin)base.main=wardrobe.skin;
 }
 if(wardrobe.scarf)base.scarf=wardrobe.scarf;
 if(wardrobe.clothing)base.coat=wardrobe.clothing;
