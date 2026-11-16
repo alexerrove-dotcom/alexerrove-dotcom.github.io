@@ -34,5 +34,7 @@ jobs:
           git add -f spriteforge/webgpu
           if ! git diff --cached --quiet; then
             git commit -m "Publish on-device WebGPU runtime [skip ci]"
-            git push
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
           fi
