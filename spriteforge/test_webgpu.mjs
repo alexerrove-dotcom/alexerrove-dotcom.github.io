@@ -3,7 +3,7 @@ const browser=await chromium.launch({headless:true,args:["--no-sandbox"]});
 const page=await browser.newPage({viewport:{width:1000,height:700}});
 const errors=[];page.on("pageerror",error=>errors.push(error.message));
 try{
-await page.goto("http://127.0.0.1:8765/",{waitUntil:"domcontentloaded",timeout:15000});
+await page.goto("http://127.0.0.1:8765/spriteforge/",{waitUntil:"domcontentloaded",timeout:15000});
 const capabilities=await page.evaluate(async()=>{
   const module=await import("./webgpu/bundle.js");
   if(typeof module.createClient!=="function")throw Error("Bundled WebGPU interface unavailable");
