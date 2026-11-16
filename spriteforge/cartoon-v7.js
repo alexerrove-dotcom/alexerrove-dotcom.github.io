@@ -217,7 +217,7 @@ function weapon(g,p,c,x,y,theta){
 function portrait(g,p,c,dir,index){
  const expr=["smile","laugh","surprise","neutral","sad","angry","blink","thinking"][index%8];
  g.save();g.translate(0,60);g.scale(1.68,1.68);
- jacket(g,c,false,false,false);drawNeck(g,c);face(g,p,c,dir==="back"?"back":dir==="profile"?"profile":"front",expr,expr==="blink");
+ jacket(g,c,false,false,false);drawNeck(g,c);g.save();g.translate(0,10);face(g,p,c,dir==="back"?"back":dir==="profile"?"profile":"front",expr,expr==="blink");g.restore();
  g.restore();
 }
 function render(p,action,index,total,direction,style,size,view,mode){
@@ -247,12 +247,16 @@ function render(p,action,index,total,direction,style,size,view,mode){
   if(pose.type==="idle"){fl.x=profile?-6:-15;fr.x=profile?6:15;}
   if(pose.type==="jump"){fl.y-=pose.crouch*.48;fr.y-=pose.crouch*.48;}
   if(pose.type==="death"){g.translate(0,Math.min(25,pose.crouch));g.rotate(pose.lean*.8)}
-  const lean=pose.type==="run"?-.085:pose.lean*.20;
+  const lean=pose.type==="run"?-.15:pose.type==="walk"?-.035:pose.lean*.20;
   // Neck and head lean with torso, never float above it.
   g.save();g.rotate(lean);
   const nearX=profile?12:quarter?22:29;
-  const nearHand={x:profile?18+arm*.28:nearX+7+arm*.25,y:2+(moving?-Math.cos(pose.phase)*5:0)};
-  const farHand={x:profile?-6:-(nearX+8)+arm*.2,y:4+(moving?Math.cos(pose.phase)*5:0)};
+  // Swing arms in counter-phase; the wrist follows the same sampled gait
+  // as the knees and toes, never a separate procedural animation.
+  const nearHand={x:profile?16-arm*.86:nearX+8-arm*.46,
+    y:3+(moving?-Math.cos(pose.phase)*(pose.type==="run"?12:8):0)};
+  const farHand={x:profile?-7+arm*.79:-(nearX+9)+arm*.40,
+    y:5+(moving?Math.cos(pose.phase)*(pose.type==="run"?11:7):0)};
   if(pose.type==="attack"){nearHand.x+=pose.attackReach*.38;nearHand.y-=8+Math.sin(pose.t*Math.PI)*15}
   if(pose.type==="jump"){nearHand.y=-26;farHand.y=-21}
   if(pose.type==="cast"){nearHand.y=-22;farHand.y=-17}
@@ -265,7 +269,10 @@ function render(p,action,index,total,direction,style,size,view,mode){
   sleeve(g,{x:-shoulder,y:-43},farHand,config.jacket,config.ink,false);
   jacket(g,config,profile,quarter,back);
   drawNeck(g,config);
+  g.save();g.translate(0,10);
+  if(config.child){g.translate(0,-92);g.scale(1.13,1.13);g.translate(0,92)}
   face(g,p,config,v,(p.design?.expression||"neutral"),pose.type==="idle"&&Math.sin(pose.phase)>0.95);
+  g.restore();
   if(p.scarf){line(g,[[-18,-63],[18,-63]],tint(p.scarf,-.12),5);line(g,[[16,-61],[23,-43]],p.scarf,6)}
   sleeve(g,{x:shoulder,y:-43},nearHand,config.jacket,config.ink,true);
   weapon(g,p,config,nearHand.x+6,nearHand.y,pose.type==="attack"?pose.attackAngle*.55:0);
@@ -283,9 +290,12 @@ function render(p,action,index,total,direction,style,size,view,mode){
  if(pixel){
   const n=Math.max(16,Math.min(size,style==="retro"?44:style==="16bit"?72:86));
   const temp=document.createElement("canvas");temp.width=n;temp.height=n;
-  temp.getContext("2d").drawImage(cv,0,0,n,n);
+  const crop=expr?{x:26,y:16,w:268,h:284}:{x:26,y:30,w:268,h:268};
+  temp.getContext("2d").drawImage(cv,crop.x,crop.y,crop.w,crop.h,0,0,n,n);
   a.imageSmoothingEnabled=false;a.drawImage(temp,0,0,size,size);
- }else{a.imageSmoothingEnabled=true;a.imageSmoothingQuality="high";a.drawImage(cv,0,0,size,size)}
+ }else{a.imageSmoothingEnabled=true;a.imageSmoothingQuality="high";
+  const crop=expr?{x:26,y:16,w:268,h:284}:{x:26,y:30,w:268,h:268};
+  a.drawImage(cv,crop.x,crop.y,crop.w,crop.h,0,0,size,size)}
  return out;
 }
 const previous=root.SpriteForgeIllustrator;
