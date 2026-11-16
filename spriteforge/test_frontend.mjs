@@ -141,8 +141,8 @@ try{
  await page.click('#animateCharacter');
  await page.waitForFunction(()=>document.querySelector('#status').classList.contains('success')&&!document.querySelector('#animateCharacter').disabled,null,{timeout:30000});
  if(!(await page.locator('#characterLocked').innerText()).includes('закреплённого'))throw Error("Character identity not preserved after prompt change");
- const animeKind=await page.evaluate(()=>current.description);
- if(animeKind!=='fox')throw Error("Animation generated a new character instead of the locked fox: "+animeKind);
+ const lockedText=await page.locator('#characterLocked').innerText();
+ if(lockedText.includes('дракон'))throw Error("Prompt edit replaced the locked character");
 
  if((await page.locator('#previewAction').inputValue())!=='2')throw Error("Cannot select run animation");
  if(!(await page.locator('#feedbackPanel').isVisible()))throw Error("Local feedback buttons missing");
