@@ -32,6 +32,9 @@ jobs:
           for (const [,js] of scripts) new Function(js);
           console.log('SpriteForge front-end JavaScript parsed successfully');
           NODE
+          node --check spriteforge/local-generator.js
+          node --check spriteforge/neural-engine.js
+          node --check spriteforge/test_webgpu.mjs
 
       - name: Browser E2E demo test
         run: |
@@ -39,3 +42,4 @@ jobs:
           npx playwright install chromium
           python -m http.server 8765 --directory spriteforge >/tmp/spriteforge-http.log 2>&1 &
           node spriteforge/test_frontend.mjs
+          node spriteforge/test_webgpu.mjs
