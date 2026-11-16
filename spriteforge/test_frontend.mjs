@@ -90,6 +90,15 @@ try{
  if((await page.locator('#previewAction').inputValue())!=='2')throw Error("Cannot select run animation");
  await page.click('[data-tab=pixel]');
  if(!(await page.locator('#pixelCanvas').isVisible()))throw Error('Pixel editor not visible');
+ await page.setViewportSize({width:393,height:852});
+ await page.click('[data-tab=ai]');
+ await page.locator('#pack').uncheck();
+ await page.fill('#prompt','Белый кролик в красном шарфе');
+ await page.click('#generate');
+ await page.waitForFunction(()=>document.querySelector('#status').classList.contains('success')&&!document.querySelector('#generate').disabled,null,{timeout:25000});
+ if(!(await page.locator('#previewCanvas').isVisible()))throw Error('Mobile preview invisible');
+ const mobileMetrics=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth}));
+ if(mobileMetrics.scrollWidth>mobileMetrics.width+8)throw Error('Mobile horizontal overflow: '+JSON.stringify(mobileMetrics));
  if(errs.length)throw Error('JS errors: '+errs.join('; '));
- console.log('PASS V3: offline reload, semantic colors, seeded variants, real top-down, 4 distinct species, ZIP, 36-frame 6-action animation bundle, interactive action preview and editor');
+ console.log('PASS V3: offline reload, semantic colors, seeded variants, real top-down, 4 distinct species, ZIP, 36-frame 6-action pack, action selector, mobile layout and editor');
 }finally{await browser.close()}
