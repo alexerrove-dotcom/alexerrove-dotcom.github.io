@@ -27,6 +27,26 @@ try{
    const c=document.querySelector('#previewCanvas'),pixels=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
    let n=0;for(let i=3;i<pixels.length;i+=4)if(pixels[i]>0)n++;return n>30;
  },null,{timeout:7000});
+ const qa=await page.evaluate(()=>{
+   const d=window.SpriteForgeDesigner;
+   if(!d)throw Error("V3 semantic designer not loaded");
+   const fox=d.parse("Рыжий лис в зелёном шарфе с рогаткой",123);
+   if(fox.kind!=="fox"||!fox.scarf||fox.scarf===fox.main)throw Error("Material colors leaked: "+JSON.stringify(fox));
+   if(!window.SpriteForgeIllustrator?.version?.startsWith("3."))throw Error("V3 renderer missing");
+   const foxTop=window.SpriteForgeIllustrator.render(fox,"run",3,8,"down","painted",128,"top");
+   const foxSide=window.SpriteForgeIllustrator.render(fox,"run",3,8,"right","painted",128,"side");
+   if(foxTop.toDataURL()===foxSide.toDataURL())throw Error("Top-down view duplicates side view");
+   const first=d.parse("Рыжий лис с шарфом",123),second=d.parse("Рыжий лис с шарфом",124);
+   if(first.seed===second.seed)throw Error("Variations ignored");
+   const unique=new Set();
+   for(const item of ["Зелёный дракон с крыльями","Рыцарь с мечом","Белый кролик","Зомби с арбалетом"]){
+     const p=d.parse(item),img=window.SpriteForgeIllustrator.render(p,"idle",0,8,"right","painted",128,"side");
+     unique.add(img.toDataURL());
+   }
+   if(unique.size!==4)throw Error("Different species produced identical sprites");
+   return {fox:fox.kind,seed:first.seed,views:"distinct",distinctSpecies:unique.size};
+ });
+ if(qa.distinctSpecies!==4)throw Error("V3 visual variety test failed");
  let first=await page.evaluate(()=>window.SpriteForgeLocal.parse(document.querySelector('#prompt').value).kind);
  if(first!=='fox')throw Error('Russian species parser failed: '+first);
  const z=await page.evaluate(()=>window.SpriteForgeLocal.parse('Зелёный зомби с арбалетом'));
@@ -43,5 +63,5 @@ try{
  await page.click('[data-tab=pixel]');
  if(!(await page.locator('#pixelCanvas').isVisible()))throw Error('Pixel editor not visible');
  if(errs.length)throw Error('JS errors: '+errs.join('; '));
- console.log('PASS: offline page reload, offline character generation, Russian parsing, distinct sprites, ZIP export and editor');
+ console.log('PASS V3: offline reload, semantic colors, variation seed, top-down view, 4 distinct species, ZIP export and editor');
 }finally{await browser.close()}
