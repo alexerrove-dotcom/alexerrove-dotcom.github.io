@@ -6,7 +6,7 @@ const page=await browser.newPage({viewport:{width:1200,height:920},acceptDownloa
 const errs=[];
 page.on('pageerror',e=>errs.push(e.message));
 try{
- await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded',timeout:15000});
+ await page.goto('http://127.0.0.1:8765/spriteforge/',{waitUntil:'domcontentloaded',timeout:15000});
  if(!(await page.title()).includes('SpriteForge'))throw Error('Site title missing');
  if((await page.inputValue('#engine'))!=='local')throw Error('The offline engine is not the default');
  if(!await page.evaluate(()=>!!window.SpriteForgeLocal))throw Error('Local generator module not loaded');
