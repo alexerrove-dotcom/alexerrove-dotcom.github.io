@@ -18,6 +18,15 @@ function drawHead(g,p,view,w,pose,ink){
  const skin=p.main||"#d1a58a",hair=w.hair||"#49362a";
  const face=col(skin,-.10),hairHi=col(hair,.20),hairDark=col(hair,-.20);
  const hx=side?14:quarter?18:20,top=-116,chin=-79;
+ if(p.design?.gender==="female"){
+  // Back hair volume is drawn behind the neck and jaw so the same cut reads
+  // correctly from front, profile and rear without changing identity.
+  form(g,q=>{q.moveTo(-hx-5,-113);q.quadraticCurveTo(-hx-8,-126,0,-129);
+    q.quadraticCurveTo(hx+9,-128,hx+6,-108);q.lineTo(hx+8,-67);
+    q.quadraticCurveTo(16,-63,7,-71);q.quadraticCurveTo(0,-69,-8,-72);
+    q.quadraticCurveTo(-hx-10,-64,-hx-9,-72);q.closePath()},
+    grad(g,-hx,-119,hx,-67,col(hair,.16),col(hair,-.24)),ink,1.2);
+ }
  // Neck is physically connected to the upper garment.
  form(g,q=>{q.moveTo(-8,-88);q.lineTo(-10,-62);q.quadraticCurveTo(0,-55,11,-63);q.lineTo(8,-89)},grad(g,-8,-87,13,-63,col(skin,.10),col(skin,-.22)),ink,1.2);
  if(side){
