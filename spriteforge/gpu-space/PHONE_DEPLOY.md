@@ -1,11 +1,18 @@
-# Deploy using only an Android phone
+# Запуск SpriteForge GPU только со смартфона
 
-1. Sign into https://huggingface.co on your phone (owner account needed).
-2. Go to https://huggingface.co/new-space and create a Space named `spriteforge-gpu`. If creating a Gradio/Docker CPU Space asks for a paid plan, create a **free static Space** first, use it as the public project for a GPU Grant request, and change its SDK after approval.
-3. Add the files from this folder to the Space's Files tab: `README.md`, `app.py`, `core.py`, and `requirements.txt`. Hugging Face supports file uploads directly in the mobile browser; no computer/terminal is required. On a free Static Space use `README_STATIC.md` instead of `README.md` until GPU allocation.
-4. Open the Space's **Settings → Hardware** section and use **Community GPU Grant**. Paste `GPU_GRANT_REQUEST.md` as the application. A GPU allocation is a decision by Hugging Face, not an automatic site setting.
-5. After approval, replace the static README with the Gradio README and ensure GPU hardware is selected. Only then will AI generation work. Share the resulting Space URL so the existing SpriteForge site can point to the approved GPU backend.
+Вся разработка, исходники, мобильный интерфейс и заявка на видеокарту уже находятся в GitHub.
 
-**Do not paste Hugging Face passwords, tokens, or payment details into ChatGPT.** No visitors to SpriteForge will need their own login.
+## Нужны только действия владельца аккаунта
 
-Original website: https://alexerrove-dotcom.github.io/spriteforge/
+1. На телефоне войди на https://huggingface.co/join (если аккаунта нет) или https://huggingface.co/login. Нельзя зарегистрироваться за тебя без твоего согласия.
+2. Открой https://huggingface.co/settings/tokens и создай токен с правом **write** (для отдельного репозитория Space). **Не отправляй этот токен в чат.**
+3. Открой GitHub: https://github.com/alexerrove-dotcom/alexerrove-dotcom.github.io/settings/secrets/actions/new — создай секрет **HF_TOKEN** и вставь туда токен.
+4. Открой https://github.com/alexerrove-dotcom/alexerrove-dotcom.github.io/actions/workflows/deploy-spriteforge-gpu.yml — нажми **Run workflow**. GitHub сам создаст для тебя бесплатный статический Space `spriteforge-gpu` и загрузит подготовленный код. Терминал или ПК не нужны.
+5. В новом Space на Hugging Face зайди в **Settings → Hardware → Community GPU Grant**, вставь текст из [GPU_GRANT_REQUEST.md](GPU_GRANT_REQUEST.md) и отправь заявку. Hugging Face самостоятельно решает, выдавать ли GPU.
+6. Если грант одобрят, выбери выделенную GPU-видеокарту в Space, вернись на страницу GitHub Actions и снова нажми **Run workflow**. Он автоматически заменит статическую страницу на рабочий Gradio-генератор.
+
+**Важно:** без одобренной видеокарты нельзя честно обещать рабочую нейросеть без лимита GPU. Посетителям сервиса не понадобятся аккаунты Hugging Face или загрузки моделей.
+
+**Проверки:** подготовлены CPU-тесты спрайт-листов, синтаксическая компиляция Python и автоматическая установка на Space. Выделенный GPU и качество 8 нейросетевых кадров еще не испытаны.
+
+[Основной сайт SpriteForge](https://alexerrove-dotcom.github.io/spriteforge/) · [Все исходники сервера](https://github.com/alexerrove-dotcom/alexerrove-dotcom.github.io/tree/main/spriteforge/gpu-space)
