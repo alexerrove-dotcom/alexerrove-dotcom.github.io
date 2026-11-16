@@ -40,4 +40,19 @@ const animImage=await page.evaluate(()=>{
   return cv.toDataURL("image/png").slice("data:image/png;base64,".length);
 });
 console.log("SPRITE_MOTION_PREVIEW_BASE64="+animImage);
+const humanContactSheet=await page.evaluate(()=>{
+ const prompt="Молодой парень, каштановые волосы, синяя джинсовая куртка, белая футболка, тёмно-синие джинсы, белые кроссовки";
+ const p=window.SpriteForgeDesigner.parse(prompt,5104);
+ const sz=192, cv=document.createElement("canvas");cv.width=sz*6;cv.height=sz*3;
+ const c=cv.getContext("2d");c.fillStyle="#edf0f2";c.fillRect(0,0,cv.width,cv.height);
+ const positions=[["front","down","front"],["profile","right","side"],["profile","left","side"],["back","up","back"],["quarter","se","iso"],["front","down","front"]];
+ positions.forEach(([v,d,mode],i)=>{
+   const cv2=window.SpriteForgeIllustrator.render(p,"idle",0,8,d,"cartoon",sz,mode,"right");
+   c.drawImage(cv2,i*sz,0);
+ });
+ for(let i=0;i<6;i++){const cv2=window.SpriteForgeIllustrator.render(p,"run",i,8,"right","cartoon",sz,"side","right");c.drawImage(cv2,i*sz,sz)}
+ for(let i=0;i<6;i++){const cv2=window.SpriteForgeIllustrator.render(p,"expressions",i,8,"down","cartoon",sz,"front","down");c.drawImage(cv2,i*sz,sz*2)}
+ return cv.toDataURL("image/png").slice("data:image/png;base64,".length);
+});
+console.log("SPRITE_CARTOON_PREVIEW_BASE64="+humanContactSheet);
 }finally{await browser.close()}
