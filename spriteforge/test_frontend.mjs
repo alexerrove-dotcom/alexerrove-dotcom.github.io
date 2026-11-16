@@ -76,8 +76,20 @@ try{
   return {animations:Object.keys(json.animations),frames:data.totalFrames,width:img.naturalWidth,height:img.naturalHeight};
  });
  if(packQa.animations.length!==6)throw Error("Full animation pack failed");
+ await page.selectOption('#facing','right');
+ await page.selectOption('#size','64');
+ await page.locator('#frameButtons [data-frames="6"]').click();
+ await page.locator('#pack').check();
+ await page.fill('#prompt','Рыжий лис с зелёным шарфом и рогаткой');
+ await page.click('#generate');
+ await page.waitForFunction(()=>document.querySelector('#status').classList.contains('success')&&!document.querySelector('#generate').disabled,null,{timeout:45000});
+ if(!(await page.locator('#previewControls').isVisible()))throw Error("Full pack preview picker is not visible");
+ const options=await page.locator('#previewAction option').count();
+ if(options!==6)throw Error("Expected six action preview options, got "+options);
+ await page.locator('#previewAction').selectOption('2');
+ if((await page.locator('#previewAction').inputValue())!=='2')throw Error("Cannot select run animation");
  await page.click('[data-tab=pixel]');
  if(!(await page.locator('#pixelCanvas').isVisible()))throw Error('Pixel editor not visible');
  if(errs.length)throw Error('JS errors: '+errs.join('; '));
- console.log('PASS V3: offline reload, semantic colors, seeded variants, real top-down, 4 distinct species, ZIP, 36-frame 6-action animation bundle and editor');
+ console.log('PASS V3: offline reload, semantic colors, seeded variants, real top-down, 4 distinct species, ZIP, 36-frame 6-action animation bundle, interactive action preview and editor');
 }finally{await browser.close()}
