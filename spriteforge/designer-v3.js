@@ -111,7 +111,7 @@ base.giant=base.giant||flags.giant;
 base.small=base.small||flags.small;
 base.seed=seed;
 const t=seed%9,eyeType=["oval","almond","wide","confident","oval","happy","sharp","wide","oval"][t];
-base.design={seed,flags,wardrobe,eyeType,bodyShape:(seed>>>5)%5,markings:flags.striped?"stripe":flags.spotted?"spots":["none","cheek","fur","none","fur","spots"][seed%6],
+base.design={seed,flags,wardrobe,gender:/женщин|девуш|девоч|woman\b|girl\b|female\b|lady\b|принцесс/i.test(s)?"female":"male",eyeType,bodyShape:(seed>>>5)%5,markings:flags.striped?"stripe":flags.spotted?"spots":["none","cheek","fur","none","fur","spots"][seed%6],
 layer:(seed>>>8)%5,theme:(seed>>>11)%7,faceDetail:(seed>>>14)%6,boots:!!flags.boots,hood:!!flags.hood,
 crown:!!flags.crown,mask:!!flags.mask,glow:!!flags.glowing,badge:!!flags.badge,
 expression:flags.angry?"angry":flags.smile?"smile":flags.sleepy?"sleepy":"neutral",
