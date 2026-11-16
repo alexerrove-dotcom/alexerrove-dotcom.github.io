@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#111620">
-<meta name="description" content="SpriteForge RU — генерация персонажей по тексту и создание игровых спрайт-листов с анимацией. Без регистрации, с бесплатной сетью GPU AI Horde.">
+<meta name="description" content="SpriteForge RU — генерация персонажей по тексту и создание игровых спрайт-листов с анимацией. Без входа на сайт, с публичным GPU Hugging Face.">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="manifest" href="./manifest.json">
 <title>SpriteForge RU — генератор персонажей и анимаций</title>
@@ -96,9 +96,9 @@ footer a{color:#d5e2ff}
 <header><div class="wrap nav"><div class="mark">SF</div><div><div class="logo">SpriteForge <em>RU</em></div><div class="navsmall">Персонажи и анимации для игр</div></div><span class="navtag">Без регистрации</span></div></header>
 <main class="wrap">
  <section class="hero">
-  <div class="overline">Нейростудия · V14</div>
+  <div class="overline">Нейростудия · V15</div>
   <h1>Персонаж и покадровая анимация по описанию.</h1>
-  <p>Описание учитывается вместе с художественными правилами по твоим примерам: цельный персонаж, чистые контуры, выразительное лицо. Затем генератор выбирает подходящую нейросеть и создаёт лист движений.</p>
+  <p>Описание учитывается вместе с художественными правилами по твоим примерам: цельный персонаж, чистые контуры, выразительное лицо. Затем FLUX.2 Klein создаёт лист движений, используя исходного героя как образец.</p>
  </section>
  <section class="panel" aria-labelledby="createTitle">
   <div class="step-label">Шаг 1</div>
@@ -109,7 +109,7 @@ footer a{color:#d5e2ff}
    <p class="hint">Стиль и ракурс можно указать прямо в описании: «реализм», «аниме», «мультфильм», «сбоку», «спереди».</p>
    <button id="createButton" type="submit" class="btn primary create">Создать персонажа</button>
   </form>
-  <div id="createStatus" class="status" role="status" aria-live="polite" data-kind="info">Готов к генерации. Описание отправляется бесплатной сети AI Horde. Возможна очередь.</div>
+  <div id="createStatus" class="status" role="status" aria-live="polite" data-kind="info">Готов к генерации через FLUX.2 Klein на публичном Hugging Face GPU. Вход в SpriteForge не нужен, но у анонимных пользователей Hugging Face есть дневная квота.</div>
   <div id="createProgress" class="progress" hidden></div>
   <button id="cancelButton" class="btn cancel" type="button" hidden>Отменить генерацию</button>
  </section>
@@ -127,7 +127,7 @@ footer a{color:#d5e2ff}
  <section class="panel section" id="animationPanel" aria-labelledby="animationTitle">
   <div class="step-label">Шаг 2</div>
   <h2 id="animationTitle">Выбери анимацию</h2>
-  <p>ИИ перерисует восемь поз героя на одном листе. Это новая генерация кадров, а не растягивание одной картинки. Обработка происходит на бесплатных видеокартах и может занять несколько минут. Полный комплект требует шесть последовательных запросов.</p>
+  <p>ИИ перерисует восемь поз героя на одном листе. Это новая генерация кадров, а не растягивание одной картинки. Обработка происходит на публичной Hugging Face GPU. В анонимном режиме доступ ограничен квотой: полный комплект из шести действий может не поместиться в один день.</p>
   <div id="motions" class="motions" role="group" aria-label="Движения персонажа">
    <button type="button" class="motion" data-action="idle" disabled>Ожидание</button>
    <button type="button" class="motion selected" data-action="walk" disabled>Ходьба</button>
@@ -162,14 +162,14 @@ footer a{color:#d5e2ff}
   </div>
  </section>
 </main>
-<footer><div class="wrap">SpriteForge RU · Генерация изображений на бесплатных GPU <a href="https://aihorde.net/" target="_blank" rel="noopener noreferrer">AI Horde</a>. Описание отправляется стороннему сервису. Очередь и фильтры внешнего ИИ могут ограничивать результат. ИИ-рисунки создаются через AI Horde. V14 закрепляет художественную модель, применяет правила по образцам и учитывает результаты автоматической проверки. Это не обучение весов нейросети. Качество отдельных кадров не гарантируется.</div></footer>
+<footer><div class="wrap">SpriteForge RU V15 · Публичная модель <a href="https://huggingface.co/spaces/black-forest-labs/FLUX.2-klein-4B" target="_blank" rel="noopener noreferrer">FLUX.2 Klein 4B на Hugging Face</a>. Загрузка модели на телефон не требуется. Изображения и текст отправляются публичному сервису. Анонимный доступ ограничен квотой GPU и может потребовать ожидания; безлимитная работа не гарантируется. Автоматическая проверка не заменяет профессиональную оценку качества персонажа и анимации.</div></footer>
 <script src="./local-generator.js"></script>
 <script type="module">
 /* SpriteForge V11 — one prompt, one Generate button, optional animation below.
- * All image generation goes through the existing anonymous AI Horde adapter.
+ * Image generation is processed by a public Hugging Face ZeroGPU demo.
  * Sprite sheets use the same locked input image and are generated locally.
  */
-import {generate,cancelCurrent} from "./neural-engine.js?v=14";
+import {generate,cancelCurrent} from "./hf-engine-v15.js?v=15";
 const $=id=>document.getElementById(id);
 const form=$("characterForm"),input=$("description"),
   create=$("createButton"),createStatus=$("createStatus"),
@@ -251,7 +251,7 @@ form.addEventListener("submit",async e=>{
  const request={prompt,style:inferStyle(prompt),view:inferView(prompt),
   facing:"right",size:256,frames:8,action:"idle",characterOnly:true,pack:false,engine:"horde"};
  setBusy(true,"generate");
- status(createStatus,"Создаём героя по описанию. Ищем свободную видеокарту…","progress");
+ status(createStatus,"Создаём героя через FLUX.2 Klein на публичном GPU…","progress");
  create.textContent="ИИ рисует персонажа…";
  try{
   const out=await generate(request,p=>status(createStatus,p.message||"Идёт генерация…","progress"));
