@@ -10,6 +10,7 @@ import {validateCharacterBlob,validateAnimationBlob} from "./quality-v13.js";
 import {characterPrompt} from "./art-direction-v14.js";
 
 const SPACE="black-forest-labs/FLUX.2-klein-4B";
+const ENGINE_VERSION="15.1";
 const CDN="https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
 let gradioLib=null,connecting=null,locked=null,lockedKey=null,activeJob=null,activeOperation=null,revision=0;
 let animationImages=new Map();
@@ -20,7 +21,7 @@ function seedFor(p){return Number.isFinite(Number(p.seed))&&p.seed!==undefined&&
 function identity(p,seed){return [p.prompt,p.style,p.view,seed].join("|")}
 function messageForError(error){
  const original=String(error?.message||error||"Unknown error");
- if(/gpu.*quota|quota.*gpu|quota.*exceed|limit.*reached|signin|sign in|login|authenticate|authorization|401|429/i.test(original))
+ if(/gpu.*quota|quota.*gpu|quota.*exceed|limit.*reached|daily.*limit|exceeded.*quota|gpu time|not enough quota|unauthenticated.*limit|signin|sign in|login|authenticate|authorization|401|429/i.test(original))
   return "Hugging Face исчерпал анонимный лимит GPU либо запросил вход. Бесплатный доступ ограничен. Повтори после сброса квоты. Детали: "+original.slice(0,230);
  if(/space.*sleep|503|502|504|unavailable|not reachable|overloaded|startup/i.test(original))
   return "Публичная видеокарта Hugging Face временно недоступна. Попробуй позднее. "+original.slice(0,170);
@@ -35,7 +36,7 @@ async function connect(cb){
    if(!gradioLib)gradioLib=await import(CDN);
    const Client=gradioLib.Client;
    if(!Client?.connect||!gradioLib.handle_file)throw Error("Библиотека Gradio загрузилась некорректно.");
-   return await Client.connect(SPACE);
+   return await Client.connect(SPACE,{events:["data","status"]});
   })().catch(err=>{connecting=null;throw err});
  }
  return connecting;
@@ -46,16 +47,24 @@ async function canvasBlob(canvas){
  });
 }
 function unwrapImage(result){
- const raw=result?.[0]?.image||result?.[0]||result?.output||result?.data?.[0]||result;
+ let raw=result;
+ // predict() returns {data:[file,seed]}, submit() yields [file,seed],
+ // and some Gradio versions wrap the result in {output:...}.
+ for(let i=0;i<5;i++){
+  if(Array.isArray(raw)){raw=raw[0];continue}
+  if(raw&&typeof raw==="object"&&raw.data){raw=raw.data;continue}
+  if(raw&&typeof raw==="object"&&raw.output){raw=raw.output;continue}
+  if(raw&&typeof raw==="object"&&raw.image){raw=raw.image;continue}
+  break;
+ }
  if(typeof raw==="string")return raw;
  if(raw?.url)return raw.url;
- if(raw?.image?.url)return raw.image.url;
  if(raw?.path){
   const name=raw.path;
   if(/^https:\/\//.test(name))return name;
   return "https://black-forest-labs-flux-2-klein-4b.hf.space/gradio_api/file="+encodeURIComponent(name);
  }
- throw Error("Hugging Face не вернул адрес готового изображения.");
+ throw Error("Gradio вернул ответ без файла изображения. Тип ответа: "+(raw===null?"null":typeof raw));
 }
 async function imageBlob(raw){
  const link=unwrapImage(raw);
@@ -98,18 +107,35 @@ async function infer(opts,cb){
   progress(cb,opts.guide?"Hugging Face перерисовывает восемь поз героя…":"FLUX.2 Klein 4B рисует нового героя…");
   const job=client.submit("/infer",payload);
   operation.job=job;activeJob=job;
-  let images=null;
+  let images=null,lastStage="",lastMessage="",lastCode="";
+  // Gradio's documented event field is "stage" (older clients used
+  // "status"). The previous version silently ignored stage:"error".
+  // This is a one-shot generation: exit after valid data to also avoid
+  // older @gradio/client iterators hanging after process_completed.
   for await (const event of job){
    if(operation.cancelled)throw Error("Генерация отменена.");
+   if(!event)continue;
    if(event.type==="status"){
-    if(event.status==="pending")progress(cb,"Ожидаем свободный Hugging Face GPU. "+(event.position!=null?"Очередь: "+event.position:""));
-    if(event.status==="generating")progress(cb,"FLUX.2 Klein рисует изображение на публичном GPU…");
-    if(event.status==="error")throw Error(event.message||"Gradio сообщил об ошибке генерации.");
+    const stage=event.stage||event.status||"";
+    lastStage=stage;
+    lastMessage=String(event.message||event.detail||lastMessage||"");
+    lastCode=String(event.code||lastCode||"");
+    if(stage==="pending")progress(cb,"Ожидаем свободный Hugging Face GPU. "+(event.position!=null?"Очередь: "+event.position:""));
+    if(stage==="generating")progress(cb,"FLUX.2 Klein рисует изображение на публичном GPU…");
+    if(stage==="error"||event.success===false){
+     const reason=lastMessage||lastCode||"Ошибка очереди ZeroGPU без подробностей";
+     throw Error("Hugging Face завершил запрос с ошибкой: "+reason);
+    }
    }
-   if(event.type==="data")images=event.data;
+   if(event.type==="data"){
+    images=event.data??event.output??null;
+    if(images)break;
+   }
   }
   if(operation.cancelled)throw Error("Генерация отменена.");
-  if(!images)throw Error("Hugging Face не отправил результат генерации. Возможно, лимит GPU исчерпан.");
+  if(!images)throw Error("Hugging Face завершил запрос без изображения (статус: "+(lastStage||"неизвестен")+
+    (lastMessage?", сообщение: "+lastMessage:"")+
+    (lastCode?", код: "+lastCode:"")+"). Возможен лимит ZeroGPU или ошибка обработки на сервере.");
   progress(cb,"Загружаем готовое изображение с Hugging Face…");
   return await imageBlob(images);
  }catch(err){throw Error(messageForError(err))}
