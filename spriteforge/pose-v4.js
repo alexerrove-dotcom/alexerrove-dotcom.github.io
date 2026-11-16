@@ -51,8 +51,8 @@ function sample(action,index,total){
  };
  if(type==="jump"){
   const tuck=key(t,[[0,0],[.2,6],[.4,28],[.59,26],[.8,9],[.93,0],[1,0]]);
-  feet.left={x:-16-tuck*.17,y:88+crouch-tuck*.55,lift:tuck,contact:false};
-  feet.right={x:16+tuck*.12,y:88+crouch-tuck*.55,lift:tuck,contact:false};
+  feet.left={x:-16-tuck*.17,y:88-tuck*.55,lift:tuck,contact:false};
+  feet.right={x:16+tuck*.12,y:88-tuck*.55,lift:tuck,contact:false};
  }
  if(type==="attack"){
   const step=key(t,[[0,0],[.25,-7],[.6,15],[.83,5],[1,0]]);
