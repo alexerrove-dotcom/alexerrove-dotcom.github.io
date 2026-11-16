@@ -270,7 +270,11 @@ function makeFrame(p,action,i,total,direction,style){
  function leg(hip,ankle,sg,far){
   const knee=root.SpriteForgePoseV4.solveKnee(hip,42,ankle.x,ankle.y-5,32,36,sg===-1?-.75:.85);
   const col=far?tint(pants,-.14):pants;
-  joint(g,hip,42,knee.x,knee.y,ankle.x,ankle.y-5,12.5,col,ink);
+  // Explicit two-bone segments meet exactly at the knee joint (no detached kneecap).
+  for(const [[ax,ay],[bx,by]] of [[[hip,42],[knee.x,knee.y]],[[knee.x,knee.y],[ankle.x,ankle.y-5]]]){
+    line(g,[[ax,ay],[bx,by]],ink,16.5);
+    line(g,[[ax,ay],[bx,by]],col,12);
+  }
   oval(g,knee.x,knee.y,6.7,6.4,col,ink,1.7);
   const foot=p.kind==="robot"||p.armor?mix(p.coat,p.main,.4):p.main;
   const paint=grad(g,ankle.x-13,ankle.y-6,ankle.x+17,ankle.y+6,tint(foot,.26),tint(foot,-.23));
