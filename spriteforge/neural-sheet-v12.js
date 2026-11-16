@@ -3,6 +3,7 @@
  * synthesized by community GPU via img2img. Frame quality/identity are NOT guaranteed.
  */
 import {createPoseGuide} from "./neural-rig-v11.js";
+import {animationPrompt} from "./art-direction-v14.js";
 const canvas=(w,h)=>{const c=document.createElement("canvas");c.width=w;c.height=h;return c};
 function alphaBounds(cv){
  const w=cv.width,h=cv.height,d=cv.getContext("2d",{willReadFrequently:true}).getImageData(0,0,w,h).data;
@@ -37,34 +38,8 @@ function actionVerb(action){
  };
  return descriptions[a]||descriptions.walk;
 }
-export function sheetPrompt(description,style,action){
- const art={realistic:"detailed realistic 2D game character illustration",
-  cartoon:"beautiful hand drawn 2D animated film character design with crisp outlines, soft highlights",
-  anime:"polished anime character animation, clean cel-shaded outlines",
-  chibi:"chibi 2D animation character, lively expression",
-  storybook:"premium painterly storybook cartoon character",
-  painted:"hand-painted 2D video game sprite art",
-  semi:"polished semi-realistic illustrated game character",
-  toon3d:"stylized three-dimensional animation frame render",
-  "16bit":"polished 16-bit pixel character art",
-  retro:"retro pixel animation",
-  cozy:"cozy 2D game character painting",
-  dark:"high-quality dark fantasy 2D character art",
-  vector:"clean vector-style 2D game sprite art",
-  comic:"colored comic character art"};
- const look=art[style]||art.cartoon;
- const positive=[
-  description,
-  look,
-  "exactly ONE SAME PERSON repeated in EIGHT PANELS, four columns and two rows",
-  "strict right facing profile, same face, same jacket, same pants and shoes in all frames",
-  "eight distinct keyframes of "+actionVerb(action),
-  "one full body figure in each cell, clear separation, no overlapping figures",
-  "consistent hand drawn animated feature film character, uniform white background"
- ].join(", ");
- const negative="different people, crowd, two people in one cell, different outfits, different art styles, touching figures, inconsistent faces, clone artifacts, collage photos, captions, text, cut off feet";
- return positive+" ### "+negative;
-}
+export function sheetPrompt(description,style,action){return animationPrompt(description,style,action)}
+
 function imageToCanvas(img){
  const cv=canvas(512,512),g=cv.getContext("2d");
  g.imageSmoothingEnabled=true;g.drawImage(img,0,0,512,512);
