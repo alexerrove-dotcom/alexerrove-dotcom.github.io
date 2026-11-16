@@ -106,8 +106,8 @@ function cuffsAndHands(g,skin,sx,sy,ex,ey,coat,ink,profile){
  stroke(g,[[sx,sy],[elbowX,elbowY],[ex,ey]],grad(g,sx-5,sy-8,ex+6,ey+9,col(coat,.20),col(coat,-.23)),profile?14:15);
  // Cloth folds and sleeve cuff; both follow the same wrist on every frame.
  oval(g,ex,ey-5,8,5,col(coat,-.22),ink,1);
- oval(g,ex,ey+5,6.2,9,grad(g,ex-7,ey,ex+7,ey+15,col(skin,.17),col(skin,-.12)),ink,1);
- for(let d=-3;d<=3;d+=3)stroke(g,[[ex+d,ey+5],[ex+d+1,ey+11]],col(skin,-.16),.6);
+ form(g,q=>{q.moveTo(ex-5.7,ey+2);q.lineTo(ex+4.6,ey+2);q.quadraticCurveTo(ex+7,ey+8,ex+6,ey+13);q.quadraticCurveTo(ex+4,ey+18,ex+1.5,ey+15);q.quadraticCurveTo(ex-1,ey+19,ex-3,ey+15);q.quadraticCurveTo(ex-7,ey+15,ex-7.3,ey+10);q.closePath()},grad(g,ex-7,ey,ex+7,ey+16,col(skin,.17),col(skin,-.15)),ink,1);
+ for(let d=-3;d<=3;d+=3)stroke(g,[[ex+d,ey+11],[ex+d+.6,ey+15]],col(skin,-.18),.6);
  stroke(g,[[sx-3,sy+13],[sx+3,sy+9]],col(coat,.23),1.3);
 }
 function garment(g,p,v,w,ink){
@@ -231,7 +231,7 @@ function render(p,action,index,total,d,style,size,view="side",mode="right"){
  g.save();g.scale(morph.shoulders,1);garment(g,p,v,w,ink);g.restore();
  jeanBackDetails(g,v,w,ink);
  // Foreground head contains the true front, profile or rear face.
- g.save();g.translate(0,-94);g.scale(morph.head,morph.head);g.translate(0,94);drawHead(g,p,v,w,pose,ink);g.restore();
+ g.save();g.translate(0,-85);g.scale(morph.head,morph.head);g.translate(0,94);drawHead(g,p,v,w,pose,ink);g.restore();
  cuffsAndHands(g,skin,shoulderX,-47,frontWrist.x,frontWrist.y,w.jacket,ink,profile);
  if(p.scarf){
   stroke(g,[[profile?-12:-22,-65],[profile?12:22,-65]],col(p.scarf,-.1),4.7);
