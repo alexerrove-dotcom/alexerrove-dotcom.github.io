@@ -27,4 +27,17 @@ const image=await page.evaluate(()=>{
 });
 if(errs.length)throw Error("Page JS errors: "+errs.join(";"));
 console.log("SPRITE_ART_PREVIEW_BASE64="+image);
+const animImage=await page.evaluate(()=>{
+  const prompt="Рыжий лис с зелёным шарфом и рогаткой",p=window.SpriteForgeDesigner.parse(prompt,1224);
+  const actions=["walk","run","jump","attack"];
+  const size=160,cv=document.createElement("canvas");
+  cv.width=8*size;cv.height=4*size;
+  const ctx=cv.getContext("2d");ctx.fillStyle="#f0f3f7";ctx.fillRect(0,0,cv.width,cv.height);
+  for(let row=0;row<actions.length;row++)for(let i=0;i<8;i++){
+    const sprite=window.SpriteForgeIllustrator.render(p,actions[row],i,8,"right","painted",size,"side");
+    ctx.drawImage(sprite,i*size,row*size);
+  }
+  return cv.toDataURL("image/png").slice("data:image/png;base64,".length);
+});
+console.log("SPRITE_MOTION_PREVIEW_BASE64="+animImage);
 }finally{await browser.close()}
