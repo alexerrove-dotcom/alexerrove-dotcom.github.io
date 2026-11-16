@@ -54,17 +54,15 @@ export function sheetPrompt(description,style,action){
   comic:"colored comic character art"};
  const look=art[style]||art.cartoon;
  const positive=[
- "A professional 2D game animation spritesheet, exactly EIGHT sequential animation frames arranged in FOUR COLUMNS and TWO ROWS",
- "eight separate full body drawings of precisely the SAME CHARACTER",
- description,
- "each of the eight tiles contains ONE character, clean separation, equal cell proportions, characters do not overlap across tiles",
- "strict right facing side view, identical costume colors, face, hairstyle and body proportions in all frames",
- "the eight sequential phases depict "+actionVerb(action),
- "every pose hand-drawn anew with believable anatomy, connected joints, good readable silhouette",
- "clean plain white backdrop in every cell, consistent lighting, large clear silhouettes",
- look
+  description,
+  look,
+  "exactly ONE SAME PERSON repeated in EIGHT PANELS, four columns and two rows",
+  "strict right facing profile, same face, same jacket, same pants and shoes in all frames",
+  "eight distinct keyframes of "+actionVerb(action),
+  "one full body figure in each cell, clear separation, no overlapping figures",
+  "consistent hand drawn animated feature film character, uniform white background"
  ].join(", ");
- const negative="single large person, one figure, giant head, overlapping figures, clone artifacts, multiple characters per frame, different people, changing clothes, floating limbs, cut off feet, detached arms, duplicate heads, text, words, watermark, panel captions, speech bubbles";
+ const negative="different people, crowd, two people in one cell, different outfits, different art styles, touching figures, inconsistent faces, clone artifacts, collage photos, captions, text, cut off feet";
  return positive+" ### "+negative;
 }
 function imageToCanvas(img){
