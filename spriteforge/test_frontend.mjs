@@ -60,8 +60,24 @@ try{
  await page.waitForFunction(()=>document.querySelector('#status').classList.contains('success')&&!document.querySelector('#generate').disabled,null,{timeout:20000});
  const image2=await page.evaluate(()=>document.querySelector('#previewCanvas').toDataURL('image/png'));
  if(image1===image2)throw Error('Prompts do not change character pixels');
+ const packQa=await page.evaluate(async()=>{
+  const data=await window.SpriteForgeLocal.generate({
+    prompt:"Рыжий лис в зелёном шарфе с рогаткой",seed:1234,
+    frames:6,size:64,style:"painted",view:"side",facing:"right",pack:true,action:"idle"
+  });
+  const json=JSON.parse(decodeURIComponent(data.atlas.split(",")[1]));
+  if(data.actionCount!==6||data.totalFrames!==36)throw Error("Animation bundle size wrong");
+  if(Object.keys(json.animations).length!==6||Object.keys(json.frames).length!==36)throw Error("Atlas has missing actions");
+  if(json.animations.right_attack.length!==6||json.animations.right_run.length!==6)throw Error("Required sequences missing");
+  const img=new Image();img.src=data.sheet;await img.decode();
+  if(img.naturalWidth!==384||img.naturalHeight!==384)throw Error("Atlas grid dimensions wrong");
+  if(!data.zip.startsWith("blob:"))throw Error("No standalone ZIP archive");
+  URL.revokeObjectURL(data.zip);
+  return {animations:Object.keys(json.animations),frames:data.totalFrames,width:img.naturalWidth,height:img.naturalHeight};
+ });
+ if(packQa.animations.length!==6)throw Error("Full animation pack failed");
  await page.click('[data-tab=pixel]');
  if(!(await page.locator('#pixelCanvas').isVisible()))throw Error('Pixel editor not visible');
  if(errs.length)throw Error('JS errors: '+errs.join('; '));
- console.log('PASS V3: offline reload, semantic colors, variation seed, top-down view, 4 distinct species, ZIP export and editor');
+ console.log('PASS V3: offline reload, semantic colors, seeded variants, real top-down, 4 distinct species, ZIP, 36-frame 6-action animation bundle and editor');
 }finally{await browser.close()}
