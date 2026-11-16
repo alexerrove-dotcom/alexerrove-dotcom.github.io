@@ -275,12 +275,12 @@ const sz=Number(config.size)||64,frames=Number(config.frames)||8,dirs=dirsFor(co
 if(![16,32,64,96,128,256].includes(sz))throw Error("Недопустимый размер кадра");
 if(![6,8,12].includes(frames))throw Error("Поддерживается 6, 8 или 12 кадров");
 if(dirs.length*frames>96)throw Error("Слишком много кадров");
-const p=parse(prompt),sheet=createCanvas(sz*frames,sz*dirs.length),ctx=sheet.getContext("2d");ctx.imageSmoothingEnabled=false;const atlas={meta:{image:"sprite_sheet.png",size:{w:sheet.width,h:sheet.height},frameSize:sz,engine:"local-procedural",transparent:true},frames:{},animations:{}};
+const p=(global.SpriteForgeDesigner?global.SpriteForgeDesigner.parse(prompt,config.seed):parse(prompt)),sheet=createCanvas(sz*frames,sz*dirs.length),ctx=sheet.getContext("2d");ctx.imageSmoothingEnabled=false;const atlas={meta:{image:"sprite_sheet.png",size:{w:sheet.width,h:sheet.height},frameSize:sz,engine:"local-procedural",transparent:true,seed:p.seed,view:config.view||"side",generatorVersion:"3.0.0"},frames:{},animations:{}};
 const allFrames=[];
 for(let di=0;di<dirs.length;di++){
 const key=dirs[di]+"_"+(config.action||"idle");atlas.animations[key]=[];
 for(let i=0;i<frames;i++){
-const cell=global.SpriteForgeIllustrator ? global.SpriteForgeIllustrator.render(p,config.action||"idle",i,frames,dirs[di],config.style,sz) : renderCell(frameArt(p,config.action||"idle",i,frames,dirs[di],config.style),sz,config.style);
+const cell=global.SpriteForgeIllustrator ? global.SpriteForgeIllustrator.render(p,config.action||"idle",i,frames,dirs[di],config.style,sz,config.view||"side") : renderCell(frameArt(p,config.action||"idle",i,frames,dirs[di],config.style),sz,config.style);
 ctx.drawImage(cell,i*sz,di*sz);allFrames.push([dirs[di],i,cell]);
 const name=key+"_"+String(i).padStart(2,"0")+".png";atlas.frames[name]={frame:{x:i*sz,y:di*sz,w:sz,h:sz},duration:Math.round(1000/8)};
 atlas.animations[key].push(name);
@@ -293,7 +293,7 @@ const pngBytes=async cv=>new Uint8Array(await (await new Promise((resolve,reject
 const names=[["sprite_sheet.png",await pngBytes(sheet)],["atlas.json",atlasText]];
 for(const [dir,i,cell] of allFrames){const bytes=await pngBytes(cell);names.push(["frames/"+dir+"_"+String(i).padStart(2,"0")+".png",bytes])}
 zip=URL.createObjectURL(makeZip(names));
-return {sheet:data,atlas:atlasUrl,zip,gif:null,frames,columns:frames,cell_size:sz,directions:dirs.length,engine:"local-procedural",description:p.kind,offline:true};
+return {sheet:data,atlas:atlasUrl,zip,gif:null,frames,columns:frames,cell_size:sz,directions:dirs.length,engine:"local-procedural",description:p.kind,offline:true,seed:p.seed,version:"3.0.0"};
 }
 global.SpriteForgeLocal={generate,parse,makeZip,version:"2.0.0"};
 })(window);
