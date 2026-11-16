@@ -16,7 +16,7 @@ function limb(g,sx,sy,ex,ey,thick,base,ink){
  const elbowX=sx+(ex-sx)*.42+(sx<0?-2:2),elbowY=sy+(ey-sy)*.46;
  const linepts=[[sx,sy],[elbowX,elbowY],[ex,ey]];
  stroke(g,linepts,ink,thick+3.7);stroke(g,linepts,base,thick);
- stroke(g,[[sx+2,sy+4],[elbowX+1,elbowY]],shade(base,.15),1.9);
+ if(typeof base==="string")stroke(g,[[sx+2,sy+4],[elbowX+1,elbowY]],shade(base,.15),1.9);
 }
 function pose(action,index,total){
  const p=root.SpriteForgePoseV4?.sample(action,index,total);
@@ -137,7 +137,7 @@ function headHuman(g,p,side,w){
  if(back){
   curve(g,c=>{c.moveTo(-hw-2,-104);c.quadraticCurveTo(-hw-5,-125,0,-127);
     c.quadraticCurveTo(hw+7,-128,hw+3,-103);c.lineTo(hw,-89);
-    c.quadraticCurveTo(8,-98,2,-92);c.quadraticCurveTo(-7,-100,-hw,-90);c.closePath()},
+    c.quadraticCurveTo(8,-83,2,-79);c.quadraticCurveTo(-7,-87,-hw,-80);c.closePath()},
     gradient(g,-hw,-122,hw,-90,shade(hair,.22),shade(hair,-.27)),ink,1.5);
   stroke(g,[[-11,-105],[1,-103],[14,-105]],shade(hair,.27),1.2);
   return;
@@ -237,7 +237,7 @@ function render(p,action,index,total,d,style,size,view="side",mode="right"){
   limb(g,-9,-50,2+poseData.arm*.32,4,13,shade(w.jacket,-.19),ink);
   oval(g,2+poseData.arm*.32,5,6,10,p.main,ink,1.5);
  }else{
-  const x=-31;
+  const x=quarter?-25:-31;
   limb(g,x,-49,x-9+poseData.arm*.3,4,16,shade(w.jacket,-.07),ink);
   oval(g,x-9+poseData.arm*.3,7,6.5,11,p.main,ink,1.4);
  }
@@ -251,7 +251,7 @@ function render(p,action,index,total,d,style,size,view="side",mode="right"){
   limb(g,10,-54,wrist+1,2,15,gradient(g,5,-58,25,17,shade(w.jacket,.18),shade(w.jacket,-.18)),ink);
   oval(g,wrist+2,8,7,10,shade(p.main,.04),ink,1.4);
  }else{
-  const x=31,shift=(poseData.arm||0)*.4;
+  const x=quarter?25:31,shift=(poseData.arm||0)*.4;
   limb(g,x,-51,x+10-shift,4,16,gradient(g,x-9,-50,x+16,16,shade(w.jacket,.20),shade(w.jacket,-.20)),ink);
   oval(g,x+10-shift,8,7,11,shade(p.main,.05),ink,1.4);
  }
