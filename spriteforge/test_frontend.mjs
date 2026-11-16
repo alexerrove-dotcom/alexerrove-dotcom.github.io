@@ -20,6 +20,7 @@ try{
  if((await page.inputValue("#engine"))!=="local")throw Error("Offline page reload failed");
  await page.click('#generate');
  try{await page.waitForFunction(()=>document.querySelector('#status').classList.contains('success'),null,{timeout:15000})}catch(e){throw Error('Generator failed: '+(await page.locator('#status').innerText())+' JS errors: '+errs.join('; '))}
+ if(!(await page.locator('#animateCharacter').isEnabled()))throw Error('Animation button not unlocked after creating hero');
  if(!(await page.locator('#dlSheet').isEnabled()))throw Error('PNG export disabled');
  if(!(await page.locator('#dlZip').isEnabled()))throw Error('ZIP export disabled');
  if(!(await page.locator('#dlAtlas').isEnabled()))throw Error('JSON export disabled');
@@ -32,7 +33,7 @@ try{
    if(!d)throw Error("V3 semantic designer not loaded");
    const fox=d.parse("Рыжий лис в зелёном шарфе с рогаткой",123);
    if(fox.kind!=="fox"||!fox.scarf||fox.scarf===fox.main)throw Error("Material colors leaked: "+JSON.stringify(fox));
-   if(!window.SpriteForgeIllustrator?.version?.startsWith("6."))throw Error("Turnaround V6 renderer missing");
+   if(!window.SpriteForgeIllustrator?.version?.startsWith("7."))throw Error("Cartoon V7 renderer missing");
    if(!window.SpriteForgeFaceV4||!window.SpriteForgePoseV4)throw Error("Missing V4 anatomy rig");
    const pose=window.SpriteForgePoseV4;
    for(const name of ["walk","run"]){
@@ -65,6 +66,11 @@ try{
      }return hi-lo+1;
    });
    if(!(widths[1]<widths[0]*.94))throw Error("Human profile shoulders not narrower: "+widths.join(","));
+   const allViews=["down","left","right","up"].map(d=>window.SpriteForgeIllustrator.render(human,"idle",0,8,d,"painted",256,"front","all4").toDataURL());
+   if(new Set(allViews).size!==4)throw Error("The 4-view atlas repeats identical front poses");
+   const moods=Array.from({length:8},(_,i)=>window.SpriteForgeIllustrator.render(human,"expressions",i,8,"down","painted",256,"front","down").toDataURL());
+   if(new Set(moods).size<6)throw Error("Emotion sheet does not produce distinct mouth and eye poses");
+
    const ratings=window.SpriteForgeLearning;
    if(!ratings||!Array.isArray(ratings.vector(123)))throw Error("Local preference learner unavailable");
    const st=ratings.rate({kind:"human",style:"painted",seed:73821},1);
@@ -121,10 +127,23 @@ try{
  await page.fill('#prompt','Рыжий лис с зелёным шарфом и рогаткой');
  await page.click('#generate');
  await page.waitForFunction(()=>document.querySelector('#status').classList.contains('success')&&!document.querySelector('#generate').disabled,null,{timeout:45000});
+ await page.click('#animateCharacter');
+ await page.waitForFunction(()=>document.querySelector('#status').classList.contains('success')&&!document.querySelector('#animateCharacter').disabled,null,{timeout:45000});
  if(!(await page.locator('#previewControls').isVisible()))throw Error("Full pack preview picker is not visible");
  const options=await page.locator('#previewAction option').count();
  if(options!==6)throw Error("Expected six action preview options, got "+options);
  await page.locator('#previewAction').selectOption('2');
+ // Changing the prompt after creation must not silently replace the character
+ // during the second-stage animation.
+ await page.locator('#pack').uncheck();
+ await page.fill('#prompt','Большой зелёный дракон с крыльями');
+ await page.locator('#actions button[data-action="run"]').click();
+ await page.click('#animateCharacter');
+ await page.waitForFunction(()=>document.querySelector('#status').classList.contains('success')&&!document.querySelector('#animateCharacter').disabled,null,{timeout:30000});
+ if(!(await page.locator('#characterLocked').innerText()).includes('закреплённого'))throw Error("Character identity not preserved after prompt change");
+ const animeKind=await page.evaluate(()=>current.description);
+ if(animeKind!=='fox')throw Error("Animation generated a new character instead of the locked fox: "+animeKind);
+
  if((await page.locator('#previewAction').inputValue())!=='2')throw Error("Cannot select run animation");
  if(!(await page.locator('#feedbackPanel').isVisible()))throw Error("Local feedback buttons missing");
  await page.click('#feedbackGood');
@@ -141,5 +160,5 @@ try{
  const mobileMetrics=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth}));
  if(mobileMetrics.scrollWidth>mobileMetrics.width+8)throw Error('Mobile horizontal overflow: '+JSON.stringify(mobileMetrics));
  if(errs.length)throw Error('JS errors: '+errs.join('; '));
- console.log('PASS V6: offline reload, semantic colors, seeded variants, real top-down, 4 distinct species, ZIP, 36-frame 6-action pack, action selector, mobile layout and editor');
+ console.log('PASS V7: offline reload, semantic colors, seeded variants, real top-down, 4 distinct species, ZIP, 36-frame 6-action pack, action selector, mobile layout and editor');
 }finally{await browser.close()}
