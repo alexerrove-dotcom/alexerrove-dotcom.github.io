@@ -294,7 +294,7 @@ for(let di=0;di<dirs.length;di++){
     const key=dirs[di]+"_"+action;atlas.animations[key]=[];
     for(let i=0;i<frames;i++){
       const cell=global.SpriteForgeIllustrator?
-        global.SpriteForgeIllustrator.render(p,action,i,frames,dirs[di],config.style,sz,config.view||"side"):
+        global.SpriteForgeIllustrator.render(p,action,i,frames,dirs[di],config.style,sz,config.view||"side",config.facing||"right"):
         renderCell(frameArt(p,action,i,frames,dirs[di],config.style),sz,config.style);
       ctx.drawImage(cell,i*sz,row*sz);
       allFrames.push([dirs[di],action,i,cell]);
