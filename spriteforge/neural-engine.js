@@ -28,7 +28,7 @@ const STYLE={
  cute:"cute cartoon game character, colorful clean illustration"
 };
 const ANGLE={front:"front view",side:"side view, facing right",back:"rear view",iso:"three quarter view",top:"top-down view"};
-let locked=null,lockedKey=null,active=null;
+let locked=null,lockedKey=null,active=null,animationRevision=0;
 function hash(text){let h=2166136261;for(const c of String(text)){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
 function seedOf(p){return Number.isFinite(Number(p.seed))&&p.seed!==undefined&&p.seed!==null?(Number(p.seed)>>>0):hash(p.prompt)}
 function identity(p,seed){return [p.prompt,p.style,p.view,seed].join("\u001f")}
@@ -190,6 +190,7 @@ export async function generate(p,cb){
   if(active)throw Error("Сначала дождитесь завершения предыдущей генерации.");
   const actions=p.pack?["idle","walk","run","jump","attack","death"]:[p.action||"walk"];
   const images={};
+  const revision=++animationRevision;
   const english=locked._english||p.prompt;
   for(let i=0;i<actions.length;i++){
    const action=actions[i];
@@ -198,7 +199,7 @@ export async function generate(p,cb){
    const source_image=guide.toDataURL("image/webp",.86).split(",")[1];
    if(!source_image)throw Error("Не удалось подготовить образец поз для нейросети.");
    const prompt=sheetPrompt(english,p.style,action);
-   const result=await startHorde(english,{...fixed,action,seed:(seed+17*(i+1))>>>0},cb,
+   const result=await startHorde(english,{...fixed,action,seed:(seed+17*(i+1)+revision*977)>>>0},cb,
      {source_image,spritePrompt:prompt});
    images[action]=result.blob;
   }
