@@ -1,201 +1,169 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#10131d"><link rel="manifest" href="./manifest.json"><link rel="icon" type="image/svg+xml" href="./icon.svg"><meta name="description" content="SpriteForge RU V10.1 — ИИ-генератор персонажей по тексту с анонимным доступом к AI Horde, анимацией и экспортом PNG и атласов для Godot.">
-<title>SpriteForge RU V10.1 — ИИ-генератор персонажей</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111620">
+<meta name="description" content="SpriteForge RU — генерация персонажей по тексту и создание игровых спрайт-листов с анимацией. Без регистрации, с бесплатной сетью GPU AI Horde.">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="manifest" href="./manifest.json">
+<title>SpriteForge RU — генератор персонажей и анимаций</title>
 <style>
-:root{color-scheme:dark;--bg:#0d1019;--panel:#171b28;--surface:#202637;--line:#333b4d;--txt:#eaf0fa;--muted:#96a2b9;--accent:#ffcb63;--good:#74e8b6;--radius:16px}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse 90% 65% at 10% 0%,#25243c 0,transparent 70%),var(--bg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--txt)}button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--txt);border-radius:9px;padding:10px 14px}button:hover{border-color:var(--accent)}button:disabled{opacity:.5;cursor:not-allowed}input,select,textarea{background:#0e1320;border:1px solid var(--line);border-radius:9px;padding:10px;color:var(--txt);min-width:0;width:100%}textarea{resize:vertical;min-height:103px}input[type=color]{padding:3px;width:52px;height:40px}input[type=checkbox]{width:auto}.top{border-bottom:1px solid var(--line);background:#121621dd;position:sticky;top:0;z-index:5;backdrop-filter:blur(14px)}.nav{max-width:1400px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 22px}.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px;letter-spacing:.3px}.mark{display:grid;place-items:center;color:#171b28;background:var(--accent);width:34px;height:34px;border-radius:9px;font-weight:1000}.tiny{font-size:12px;color:var(--muted)}.navright{font-size:12px;color:var(--good)}.wrap{max-width:1400px;margin:auto;padding:27px 22px 50px}.eyebrow{color:var(--accent);font-weight:800;letter-spacing:2px;font-size:11px}.heading{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:12px;margin-bottom:19px}.heading h1{font-size:clamp(24px,4vw,37px);letter-spacing:-1px;margin:4px 0}.heading p{color:var(--muted);margin:0}.tabs{display:flex;gap:8px;overflow:auto;padding:2px 0 19px}.tab{white-space:nowrap;border-radius:11px}.tab.active{background:var(--accent);border-color:var(--accent);color:#171920;font-weight:800}.layout{display:grid;grid-template-columns:260px minmax(350px,1.1fr) minmax(330px,1fr);gap:15px;align-items:start}.panel{background:linear-gradient(145deg,#1a2030,#141925);border:1px solid var(--line);border-radius:var(--radius);padding:19px;min-width:0;box-shadow:0 18px 46px #07081125}.panel h2{margin:0 0 17px;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:5px}.sub{font-size:11px;color:var(--accent);letter-spacing:1.2px}.preset-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.preset{min-height:105px;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:7px}.preset-icon{font-size:36px;line-height:1}.preset span:last-child{font-size:12px;color:var(--muted)}label.field{display:block;margin:13px 0 5px;font-size:12px;color:#bac4d8;font-weight:700}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}.actions{display:flex;gap:6px;flex-wrap:wrap}.chip{padding:7px 10px;font-size:12px}.chip.selected{border-color:var(--accent);background:#3d3528;color:#ffe7b1}.triple{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.triple button{padding:9px 4px}.primary{background:linear-gradient(110deg,#ffbd4e,#f9d887);border-color:#ffcb63;color:#23202a;font-weight:900}.full{width:100%;margin-top:16px;padding:13px}.muted{color:var(--muted);font-size:12px}.preview{border:1px solid #424958;border-radius:12px;min-height:290px;position:relative;display:grid;place-items:center;overflow:hidden;background-color:#222839;background-image:linear-gradient(45deg,#303647 25%,transparent 25%),linear-gradient(-45deg,#303647 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#303647 75%),linear-gradient(-45deg,transparent 75%,#303647 75%);background-size:22px 22px;background-position:0 0,0 11px,11px -11px,-11px 0}.preview canvas{image-rendering:pixelated;max-width:90%;max-height:260px;object-fit:contain}.preview-placeholder{text-align:center;color:#b1bccc;padding:25px;max-width:280px}.preview-placeholder b{display:block;color:var(--txt);margin-top:8px}.status{background:#101727;border:1px solid var(--line);padding:11px;border-radius:9px;font-size:12px;margin:13px 0;color:var(--muted);min-height:42px;overflow-wrap:anywhere}.status.error{border-color:#a95364;color:#ffafbe}.status.success{border-color:#377b62;color:#b0f3d1}.download{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.download button{font-size:12px}.hide{display:none!important}.section{max-width:1050px}.section .panel{margin-bottom:14px}.toolrow{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:10px 0}.canvas-box{overflow:auto;background-color:#252a37;background-image:linear-gradient(45deg,#353b49 25%,transparent 25%),linear-gradient(-45deg,#353b49 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#353b49 75%),linear-gradient(-45deg,transparent 75%,#353b49 75%);background-size:18px 18px;background-position:0 0,0 9px,9px -9px,-9px 0;border:1px solid var(--line);border-radius:11px;padding:15px;display:flex;justify-content:center}#pixelCanvas{width:min(512px,100%);aspect-ratio:1;image-rendering:pixelated;touch-action:none;cursor:crosshair;border:1px solid #8792a180}.foot{border-top:1px solid var(--line);padding:20px;text-align:center;color:var(--muted);font-size:12px}.flex{display:flex;gap:10px;align-items:center}.note{font-size:12px;color:var(--muted);background:#111827;padding:10px;border-radius:8px}.switch{display:flex;align-items:center;gap:7px;font-size:12px}.result-thumb{max-width:100%;max-height:150px;image-rendering:pixelated}.library{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}.library>button{text-align:left;overflow:hidden}.library img{width:100%;height:95px;object-fit:contain;image-rendering:pixelated;background:#242b39;border-radius:7px}.engine-tag{font-size:11px;color:var(--good);margin-left:auto}.more{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}.more .panel{font-size:13px}.more h3{margin:0 0 8px}.more p{color:var(--muted);margin:0}@media(max-width:1120px){.layout{grid-template-columns:225px 1fr}.resultpanel{grid-column:1 / -1}.more{grid-template-columns:1fr 1fr}}@media(max-width:700px){.wrap{padding:18px 12px}.nav{padding:11px 13px}.layout{grid-template-columns:1fr}.panel{padding:15px}.resultpanel{grid-column:auto}.more{grid-template-columns:1fr}.preset-list{grid-template-columns:repeat(4,1fr)}.preset{min-height:90px}.preset-icon{font-size:28px}.preset span:last-child{font-size:10px}.heading h1{font-size:27px}}
+:root{color-scheme:dark;--bg:#0e111a;--panel:#1a2030;--panel2:#171c29;--edge:#30394d;--txt:#f6f7fb;--muted:#aab5c9;--gold:#ffd079;--blue:#86b4f9;--good:#75dfb5;--red:#ffb0b7}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;color:var(--txt);background:radial-gradient(ellipse 100% 550px at 50% -100px,#252c46 0%,#111722 63%,transparent 100%),var(--bg);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+button,textarea{font:inherit}
+button{cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.48;cursor:not-allowed}
+button:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.wrap{width:min(100% - 32px,1020px);margin:auto}
+header{border-bottom:1px solid #2d3548;background:#151b27ee;backdrop-filter:blur(12px)}
+.nav{display:flex;align-items:center;gap:13px;padding:17px 0}
+.mark{width:43px;height:43px;flex:none;display:grid;place-items:center;border-radius:12px;background:linear-gradient(145deg,#ffe39b,#f6ba55);color:#2b2419;font-size:20px;font-weight:900;letter-spacing:-1px}
+.logo{font-size:21px;font-weight:850;letter-spacing:-.8px}
+.logo em{font-style:normal;color:var(--gold)}
+.navsmall{font-size:12px;color:var(--muted)}
+.navtag{margin-left:auto;color:var(--good);font-size:12px;border:1px solid #3f6c61;border-radius:40px;padding:6px 11px;white-space:nowrap}
+main{padding:31px 0 50px}
+h1{font-size:clamp(27px,4.4vw,44px);line-height:1.13;letter-spacing:-1.4px;margin:5px 0 14px}
+h2{font-size:clamp(19px,2.8vw,25px);line-height:1.22;margin:0 0 7px;letter-spacing:-.45px}
+p{margin:0;color:var(--muted)}
+.hero{max-width:750px;margin:0 0 24px}
+.overline{font-weight:850;text-transform:uppercase;letter-spacing:2px;color:var(--gold);font-size:11px;margin:0 0 10px}
+.panel{background:linear-gradient(145deg,#1d2334,#141a26);border:1px solid var(--edge);border-radius:20px;padding:24px;box-shadow:0 18px 55px #060a1229}
+.section{margin-top:23px}
+label[for=description]{display:block;font-weight:800;font-size:15px;margin-bottom:10px}
+textarea{width:100%;height:144px;min-height:120px;resize:vertical;border-radius:13px;background:#0d1422;border:1px solid #4b5a70;color:var(--txt);padding:17px;line-height:1.6}
+textarea::placeholder{color:#8492a9}
+.hint{font-size:13px;margin-top:9px}
+.btn{border:1px solid #48576e;background:#202a3c;color:var(--txt);padding:13px 19px;border-radius:12px;font-weight:750}
+.btn:hover:not(:disabled){border-color:#ffd079}
+.primary{background:linear-gradient(120deg,#fac36a,#ffe39e);color:#25212a;border-color:transparent;font-weight:900}
+.primary:hover:not(:disabled){filter:brightness(1.05)}
+.create{margin-top:18px;width:100%;min-height:54px;font-size:17px}
+.status{margin-top:14px;padding:12px 14px;background:#101a2b;border:1px solid #354259;border-radius:12px;color:#c8d4e5;font-size:14px;overflow-wrap:anywhere}
+.status[data-kind=error]{border-color:#a4566c;color:#ffd0da}
+.status[data-kind=success]{border-color:#437c70;color:#a8f6d7}
+.status[data-kind=progress]{border-color:#6b7288;color:#e7edf7}
+.progress{width:100%;height:4px;margin-top:13px;border-radius:20px;overflow:hidden;background:#343f53}
+.progress:after{content:"";display:block;width:38%;height:100%;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:travel 1.35s ease-in-out infinite}
+@keyframes travel{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+.cancel{margin-top:9px;width:100%;padding:10px}
+.step-label{font-weight:850;font-size:12px;color:var(--gold);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:7px}
+.char-grid{display:grid;grid-template-columns:280px 1fr;gap:22px;align-items:center}
+.character-card{display:grid;place-items:center;min-height:284px;background-color:#252d3c;border:1px solid #455166;border-radius:14px;overflow:hidden;background-image:linear-gradient(45deg,#303b4d 25%,transparent 25%),linear-gradient(-45deg,#303b4d 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#303b4d 75%),linear-gradient(-45deg,transparent 75%,#303b4d 75%);background-size:22px 22px;background-position:0 0,0 11px,11px -11px,-11px 0}
+.character-card img{width:min(100%,268px);max-height:280px;object-fit:contain}
+.meta{margin:12px 0 20px;font-size:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row .btn{flex:1 1 170px}
+.motions{display:flex;gap:8px;flex-wrap:wrap;margin:19px 0 13px}
+.motion{border-radius:999px;padding:11px 16px;border:1px solid #4b5b72;background:#202a3e;color:#dee8f7;min-width:92px}
+.motion.selected{border-color:var(--gold);background:#483b2d;color:#ffe5ad;font-weight:800}
+.motion[disabled]{opacity:.42}
+.animate-submit{width:100%;min-height:52px}
+.detail{font-size:13px;margin:9px 0 0}
+.result-grid{display:grid;grid-template-columns:290px minmax(0,1fr);gap:20px;align-items:start;margin-top:20px}
+.preview-card{background:#111a29;border:1px solid #344259;border-radius:14px;padding:14px;text-align:center}
+.preview-card canvas{width:100%;max-width:258px;image-rendering:auto;background-image:linear-gradient(45deg,#263146 25%,transparent 25%),linear-gradient(-45deg,#263146 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#263146 75%),linear-gradient(-45deg,transparent 75%,#263146 75%);background-size:22px 22px;background-position:0 0,0 11px,11px -11px,-11px 0;border-radius:8px}
+.caption{font-size:13px;color:var(--muted);margin-top:7px}
+.sheet-scroll{width:100%;max-height:740px;overflow:auto;border-radius:13px;border:1px solid #3a455b;background-color:#252d3c;background-image:linear-gradient(45deg,#303b4d 25%,transparent 25%),linear-gradient(-45deg,#303b4d 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#303b4d 75%),linear-gradient(-45deg,transparent 75%,#303b4d 75%);background-size:22px 22px;background-position:0 0,0 11px,11px -11px,-11px 0}
+.sheet-scroll img{display:block;width:1024px;height:auto;max-width:none;image-rendering:auto}
+.downloads{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+.downloads .btn{flex:1 1 180px}
+footer{border-top:1px solid #30384b;padding:22px 0 32px;font-size:12px;color:#a0acc0}
+footer a{color:#d5e2ff}
+[hidden]{display:none!important}
+@media (max-width:700px){
+ .wrap{width:min(100% - 26px,1020px)}
+ main{padding-top:23px}
+ .panel{padding:17px;border-radius:16px}
+ .nav{padding:12px 0}
+ .logo{font-size:19px}
+ .navtag{font-size:10px;padding:4px 7px}
+ .char-grid,.result-grid{grid-template-columns:1fr}
+ .character-card{min-height:240px}
+ .character-card img{max-height:236px}
+ .row .btn{flex-basis:100%}
+ .preview-card canvas{max-width:246px}
+ .motion{min-width:0;padding:10px 13px}
+ .sheet-scroll{max-height:680px}
+}
+@media (prefers-reduced-motion:reduce){.progress:after{animation-duration:3s}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-<header class="top"><div class="nav"><div class="logo"><span class="mark">SF</span><div>SpriteForge <span style="color:var(--accent)">RU</span><div class="tiny" style="font-weight:400">Собственная студия игровых спрайтов</div></div></div><span class="navright">● НЕЗАВИСИМЫЙ ПРОЕКТ</span></div></header>
+<header><div class="wrap nav"><div class="mark">SF</div><div><div class="logo">SpriteForge <em>RU</em></div><div class="navsmall">Персонажи и анимации для игр</div></div><span class="navtag">Без регистрации</span></div></header>
 <main class="wrap">
-<div class="heading"><div><span class="eyebrow">SPRITE STUDIO / 01</span><h1>ИИ создаёт персонажа по твоему запросу</h1><p>Напиши описание, выбери стиль, получи нового героя. Нейросеть рисует нового персонажа на бесплатных видеокартах сообщества AI Horde — без входа, платных токенов и загрузки модели на телефон.</p></div></div>
-<div class="tabs" role="tablist"><button class="tab active" data-tab="ai">✦ Генератор спрайтов</button><button class="tab" data-tab="pixel">✎ Пиксель-редактор</button><button class="tab" data-tab="gif">▣ GIF → спрайт-лист</button><button class="tab" data-tab="pack">▦ Сборщик листов</button><button class="tab" data-tab="lib">◈ Моя библиотека</button></div>
-<section id="view-ai" class="view"><div class="layout">
-<aside class="panel"><h2>ПРИМЕРЫ ОПИСАНИЙ <small class="sub">/ 9</small></h2><div class="note" style="margin-bottom:12px"><strong>Шаг 1. Создай нового персонажа</strong><div class="muted">Введи любое описание. Нейросеть рисует его заново, а не выбирает готовую болванку. Результат зависит от самой модели, её ограничений и твоего запроса.</div></div><div class="preset-list">
-<button class="preset" data-preset="Рыжий лис в зелёном шарфе с рогаткой"><span class="preset-icon">🦊</span><span>Лис с рогаткой</span></button>
-<button class="preset" data-preset="Рыцарь в серебряных доспехах с мечом"><span class="preset-icon">⚔️</span><span>Рыцарь</span></button>
-<button class="preset" data-preset="Лесная волшебница с посохом и плащом"><span class="preset-icon">🧙</span><span>Волшебница</span></button>
-<button class="preset" data-preset="Зелёный зомби в рваной одежде"><span class="preset-icon">🧟</span><span>Зомби</span></button>
-<button class="preset" data-preset="Маленький красный дракон с крыльями"><span class="preset-icon">🐉</span><span>Дракон</span></button>
-<button class="preset" data-preset="Робот с голубыми светящимися глазами"><span class="preset-icon">🤖</span><span>Робот</span></button>
-<button class="preset" data-view="side" data-facing="right" data-style="storybook" data-size="256" data-action="walk" data-preset="Мальчик, юный исследователь, рыжие волосы, бежевая панама, рубашка сафари цвета хаки, шорты, красные кеды и белые носки"><span class="preset-icon">🎒</span><span>Юный исследователь · V8</span></button>
-<button class="preset" data-view="front" data-facing="right" data-style="realistic" data-size="256" data-preset="Мужчина около 30 лет, коричневая куртка-бомбер, белая футболка, синие джинсы, белые кроссовки, короткие темные волосы, аккуратная щетина"><span class="preset-icon">👤</span><span>Мужчина · реализм</span></button>
-<button class="preset" data-view="front" data-facing="right" data-style="realistic" data-size="256" data-preset="Женщина в синей куртке, черные джинсы, белая футболка, коричневые волосы"><span class="preset-icon">🧍</span><span>Женщина · реализм</span></button>
-</div><p class="note" style="margin-top:16px">Версия 10.1: новый персонаж создаётся на бесплатных видеокартах сообщества AI Horde. Не требуется WebGPU и скачивание нейросети. Возможны очередь и ограничения сервиса. Анимация создаётся из одного изображения методом локальной 2D-деформации.</p><div class="status success" style="margin-top:12px">● Бесплатный облачный ИИ · без регистрации и токенов · при перегрузке возможна очередь.</div><input id="apiUrl" type="hidden" value=""></aside>
-<div class="panel"><h2>КОНСТРУКТОР <small class="sub">/ НАСТРОЙКИ</small></h2><label class="field" for="prompt">Описание персонажа</label><textarea id="prompt" placeholder="Например: мужчина 30 лет в куртке, джинсах и белых кроссовках">Мужчина около 30 лет в коричневой куртке-бомбере, белой футболке, синих джинсах и белых кроссовках</textarea>
-<div class="fields"><div><label class="field" for="style">Художественный стиль</label><select id="style"><option value="16bit">16-битный</option><option value="retro">Ретро-консоль</option><option value="cozy">Уютный пиксель-арт</option><option value="dark">Тёмное фэнтези</option><option value="cute">Милый пиксель-арт</option><option value="cartoon">Мультфильм</option><option value="anime">Аниме</option><option value="chibi">Чиби</option><option value="vector">Плоский вектор</option><option value="toon3d">3D-мульт</option><option value="realistic" selected>Фотореализм</option><option value="semi">Полуреалистичный</option><option value="painted">Рисованный</option><option value="storybook">Иллюстративный мультфильм</option><option value="comic">Комикс</option></select></div><div><label class="field" for="view">Ракурс</label><select id="view"><option value="side">Профиль (строго сбоку)</option><option value="front" selected>Спереди</option><option value="back">Сзади</option><option value="iso">3/4</option><option value="top">Сверху</option></select></div><div><label class="field" for="facing">Начальное направление</label><select id="facing"><option value="right">Вправо</option><option value="left">Влево</option><option value="up">Вверх</option><option value="down">Вниз</option></select></div><div><label class="field" for="size">Размер кадра</label><select id="size"><option value="16">16 × 16</option><option value="32">32 × 32</option><option value="64">64 × 64</option><option value="96">96 × 96</option><option value="128">128 × 128</option><option value="256" selected>HD · 256 × 256</option></select></div></div>
-<div class="note" style="margin:14px 0 8px"><strong>Шаг 2. Анимация выбранного героя</strong><div class="muted">Используется исходная картинка, созданная нейросетью. Ходьба и бег — деформация изображения: не новая генерация другого человека.</div></div><label class="field">Анимация</label><div class="actions" id="actions"><button class="chip selected" data-action="idle">Ожидание</button><button class="chip" data-action="walk">Ходьба</button><button class="chip" data-action="run">Бег</button><button class="chip" data-action="jump">Прыжок</button><button class="chip" data-action="attack">Атака</button><button class="chip" data-action="cast">Магия</button><button class="chip" data-action="hurt">Урон</button><button class="chip" data-action="death">Смерть</button><button class="chip" data-action="fly">Полёт</button><button class="chip" data-action="expressions">Эмоции (люди)</button></div><label class="field" for="customAction">Своя команда (поддерживаются бег, ходьба, прыжок, атака, магия, смерть)</label><input id="customAction" placeholder="Например: бег или прыжок">
-<label class="field">Число кадров</label><div class="triple" id="frameButtons"><button data-frames="6">6 кадров</button><button class="chip selected" data-frames="8">8 кадров</button><button data-frames="12">12 кадров</button></div>
-<div class="fields"><div><label class="field" for="engine">Режим</label><select id="engine"><option value="horde" selected>Бесплатный ИИ · AI Horde (без регистрации)</option></select></div><div><label class="field">Подробности</label><div class="note">Генерация на видеокартах добровольцев. Не требует мощного телефона и API-ключа. Очередь может занимать минуты. Для безопасных описаний предусмотрен повтор при ошибке фильтра.</div><input id="ref" type="hidden"></div></div>
-<label class="field" for="seed">Вариант внешности персонажа</label><div class="toolrow"><input id="seed" type="number" min="0" max="4294967295" placeholder="По описанию — постоянный результат" style="flex:1;min-width:145px"><button id="remix" type="button">Новая вариация</button></div><div class="muted">Новая вариация меняет случайный seed: нейросеть создаст нового персонажа, но может поменять некоторые детали.</div><label class="switch" style="margin-top:13px;display:flex"><input id="pack" type="checkbox"> <b>Полный комплект:</b> ожидание, ходьба, бег, прыжок, атака, смерть</label><p class="muted" style="margin:6px 0 0">Все кадры создаются из одного исходного изображения. Отдельные ракурсы нужно генерировать заново.</p><button id="generate" class="primary full">1. СОЗДАТЬ ПЕРСОНАЖА</button><div id="characterLocked" class="muted" style="margin:10px 0">Создай персонажа нейросетью, затем выбери движение.</div><button id="animateCharacter" class="primary full" disabled>2. АНИМИРОВАТЬ ЭТОГО ПЕРСОНАЖА</button><button id="cancelGenerate" type="button" disabled style="width:100%;margin-top:8px;border-color:#96515b">Отменить запрос к ИИ</button></div>
-<aside class="panel resultpanel"><h2>РЕЗУЛЬТАТ <span id="runBadge" class="engine-tag">ОЖИДАНИЕ</span></h2><div class="preview"><canvas id="previewCanvas" width="256" height="256" class="hide"></canvas><div id="placeholder" class="preview-placeholder">✦<b>Здесь появится новый герой</b>Опиши героя и нажми «Создать»: он появится здесь после обработки на бесплатном сервере ИИ.</div></div><div id="previewControls" class="toolrow hide"><label>Действие <select id="previewAction" style="width:150px"></select></label><label>Ракурс <select id="previewDirection" style="width:130px"></select></label></div><div class="toolrow"><label class="switch"><input id="animate" type="checkbox" checked> Анимация</label><label class="switch"><input id="grid" type="checkbox"> Сетка</label><label class="switch">FPS <input id="fps" style="width:67px" type="number" min="1" max="30" value="8"></label></div><div id="status" class="status success" role="status">Готов к генерации. Описание будет отправлено в AI Horde и в бесплатный сервис перевода; регистрация не нужна.</div><div id="feedbackPanel" class="hide" style="margin-bottom:12px"><div class="toolrow"><button id="feedbackGood" type="button">Хорошая модель</button><button id="feedbackBad" type="button">Плохая модель</button></div><div id="learningStatus" class="muted">Оцени модель, чтобы улучшать следующие варианты на этом устройстве.</div></div><div class="download"><button id="dlSheet" disabled>↓ PNG спрайт-лист</button><button id="dlGif" disabled>↓ Анимация GIF</button><button id="dlZip" disabled>↓ Кадры ZIP</button><button id="dlAtlas" disabled>↓ JSON атлас</button><button id="dlSource" disabled>↓ PNG персонажа 512 px</button></div><p class="muted">PNG персонажа 512×512, листы анимаций и ZIP — кадры, исходное изображение и JSON для Godot. Генерация картинки — публичные модели AI Horde; движение — локальная 2D-деформация. GIF-экспорт пока недоступен.</p></aside>
-</div><div class="more"><div class="panel"><h3>Персонажи с индивидуальностью</h3><p>Материалы, узоры, шрамы, аксессуары, цветовые сочетания и вариации по описанию.</p></div><div class="panel"><h3>Экспорт для Godot</h3><p>Листы PNG, покадровый архив ZIP и атлас JSON.</p></div><div class="panel"><h3>Без логинов и токенов</h3><p>Ключи и логин не нужны. Изображения рисуются на видеокартах добровольцев. Если фильтр ошибочно заблокирует обычного одетого персонажа, сайт автоматически повторит запрос один раз.</p></div></div></section>
-<section id="view-pixel" class="view hide section"><div class="panel"><h2>ПИКСЕЛЬ-РЕДАКТОР <span class="sub">/ ЛОКАЛЬНО</span></h2><p class="muted">Работает прямо в браузере, без аккаунта и подключения ИИ.</p><div class="toolrow"><label>Размер <select id="pixelSize" style="width:90px"><option>16</option><option selected>32</option><option>64</option></select></label><label>Цвет <input type="color" id="pixelColor" value="#ffbc5c"></label><button id="brush" class="chip selected">Карандаш</button><button id="eraser" class="chip">Ластик</button><label class="switch"><input type="checkbox" id="mirror"> Зеркально</label><button id="pixelClear">Очистить</button><button id="pixelSave" class="primary">Скачать PNG</button></div><div class="canvas-box"><canvas id="pixelCanvas" width="32" height="32"></canvas></div></div></section>
-<section id="view-gif" class="view hide section"><div class="panel"><h2>GIF → СПРАЙТ-ЛИСТ <span class="sub">/ КОНВЕРТЕР</span></h2><p class="muted">Выбери анимированный GIF: браузер извлечёт кадры и создаст единый прозрачный PNG. В Chrome/Android используется встроенный ImageDecoder.</p><input id="gifInput" type="file" accept="image/gif"><div class="toolrow"><button id="gifConvert" class="primary">Преобразовать GIF</button><button id="gifSave" disabled>Скачать PNG</button></div><p id="gifStatus" class="status">GIF не выбран.</p><div class="canvas-box"><canvas id="gifCanvas" style="max-width:100%;image-rendering:pixelated"></canvas></div></div></section>
-<section id="view-pack" class="view hide section"><div class="panel"><h2>СБОРЩИК СПРАЙТ-ЛИСТОВ <span class="sub">/ PNG → АТЛАС</span></h2><p class="muted">Загрузи кадры PNG/JPEG/WebP; их порядок задаётся именами файлов. Кадры будут уложены в одинаковые ячейки.</p><input id="packInput" type="file" accept="image/png,image/jpeg,image/webp" multiple><div class="toolrow"><label>Колонок <input id="packCols" style="width:90px" type="number" min="1" max="100" value="6"></label><button id="packBuild" class="primary">Собрать спрайт-лист</button><button id="packSave" disabled>Скачать PNG</button><button id="packJson" disabled>Скачать JSON</button></div><p id="packStatus" class="status">Ожидаются изображения.</p><div class="canvas-box"><canvas id="packCanvas" style="max-width:100%;image-rendering:pixelated"></canvas></div></div></section>
-<section id="view-lib" class="view hide section"><div class="panel"><h2>МОЯ БИБЛИОТЕКА <span class="sub">/ ТЕКУЩИЙ СЕАНС</span></h2><p class="muted">Последние генерации сохраняются в памяти вкладки. Для постоянной облачной библиотеки понадобится база данных и авторизация.</p><div class="library" id="library"><p class="muted">Пока пусто.</p></div></div></section>
-</main><footer class="foot">SpriteForge RU — независимый проект. Генерация на бесплатной сети добровольцев <a href="https://aihorde.net/" target="_blank" rel="noopener noreferrer" style="color:inherit">AI Horde</a>. Описание отправляется сервисам AI Horde и MyMemory для обработки. Без аккаунтов и платных токенов, но без гарантии постоянной доступности или сроков ожидания.</footer>
+ <section class="hero">
+  <div class="overline">Нейростудия · V11</div>
+  <h1>Опиши персонажа. Получи рисунок и анимацию.</h1>
+  <p>Сначала создаётся один новый герой по твоему описанию, затем из него собираются кадры выбранного движения в спрайт-лист, как на твоём примере.</p>
+ </section>
+ <section class="panel" aria-labelledby="createTitle">
+  <div class="step-label">Шаг 1</div>
+  <h2 id="createTitle">Создать персонажа</h2>
+  <form id="characterForm">
+   <label for="description">Кого нарисовать?</label>
+   <textarea id="description" placeholder="Например: мужчина 30 лет в коричневой куртке, синих джинсах и белых кроссовках, реалистичный игровой стиль, вид сбоку">Мужчина 30 лет в коричневой куртке, синих джинсах и белых кроссовках, рисованный игровой персонаж, вид сбоку</textarea>
+   <p class="hint">Стиль и ракурс можно указать прямо в описании: «реализм», «аниме», «мультфильм», «сбоку», «спереди».</p>
+   <button id="createButton" type="submit" class="btn primary create">Создать персонажа</button>
+  </form>
+  <div id="createStatus" class="status" role="status" aria-live="polite" data-kind="info">Готов к генерации. Описание отправляется бесплатной сети AI Horde. Возможна очередь.</div>
+  <div id="createProgress" class="progress" hidden></div>
+  <button id="cancelButton" class="btn cancel" type="button" hidden>Отменить генерацию</button>
+ </section>
+ <section id="characterResult" class="panel section" hidden>
+  <div class="step-label">Готовый персонаж</div>
+  <div class="char-grid">
+   <div class="character-card"><img id="characterImage" alt="Созданный искусственным интеллектом персонаж"></div>
+   <div>
+    <h2>Персонаж создан</h2>
+    <p class="meta">Это исходный рисунок. Он сохраняется для последующего создания анимаций — нового человека вместо него генератор не подставляет.</p>
+    <div class="row"><button id="downloadCharacter" class="btn" type="button">Скачать персонажа PNG</button></div>
+   </div>
+  </div>
+ </section>
+ <section class="panel section" id="animationPanel" aria-labelledby="animationTitle">
+  <div class="step-label">Шаг 2</div>
+  <h2 id="animationTitle">Выбери анимацию</h2>
+  <p>Получишь готовую последовательность кадров на одном листе. Можно выбрать одно действие или весь комплект.</p>
+  <div id="motions" class="motions" role="group" aria-label="Движения персонажа">
+   <button type="button" class="motion" data-action="idle" disabled>Ожидание</button>
+   <button type="button" class="motion selected" data-action="walk" disabled>Ходьба</button>
+   <button type="button" class="motion" data-action="run" disabled>Бег</button>
+   <button type="button" class="motion" data-action="jump" disabled>Прыжок</button>
+   <button type="button" class="motion" data-action="attack" disabled>Атака</button>
+   <button type="button" class="motion" data-action="death" disabled>Смерть</button>
+   <button type="button" class="motion" data-action="pack" disabled>Весь комплект</button>
+  </div>
+  <button id="animateButton" type="button" class="btn primary animate-submit" disabled>Создать анимацию</button>
+  <div id="animationStatus" class="status" role="status" aria-live="polite" data-kind="info">Сначала создай персонажа в поле выше.</div>
+  <div id="animationProgress" class="progress" hidden></div>
+  <div id="animationResult" hidden>
+   <div class="result-grid">
+    <div class="preview-card">
+     <h2>Просмотр движения</h2>
+     <canvas id="animationCanvas" width="256" height="256" aria-label="Анимированный просмотр персонажа"></canvas>
+     <p class="caption">Анимация автоматически повторяется</p>
+    </div>
+    <div>
+     <h2>Спрайт-лист</h2>
+     <p class="detail" id="sheetDetails">Кадры одного персонажа, собранные в один PNG.</p>
+     <div class="sheet-scroll"><img id="sheetImage" alt="Спрайт-лист выбранной анимации"></div>
+     <p class="caption">На телефоне лист можно прокручивать влево и вправо.</p>
+    </div>
+   </div>
+   <div class="downloads">
+    <button type="button" class="btn primary" id="downloadSheet">Скачать спрайт-лист PNG</button>
+    <button type="button" class="btn" id="downloadZip">Скачать кадры ZIP</button>
+    <button type="button" class="btn" id="downloadJson">Скачать атлас JSON</button>
+   </div>
+  </div>
+ </section>
+</main>
+<footer><div class="wrap">SpriteForge RU · Генерация изображений на бесплатных GPU <a href="https://aihorde.net/" target="_blank" rel="noopener noreferrer">AI Horde</a>. Описание отправляется стороннему сервису. Очередь и фильтры внешнего ИИ могут ограничивать результат. Анимация создаётся покадровым 2D-ригом из оригинального изображения, а не новой нейросетевой отрисовкой каждого кадра.</div></footer>
 <script src="./local-generator.js"></script>
-<script src="./designer-v3.js"></script>
-<script src="./pose-v4.js"></script>
-<script src="./rig-v4.js"></script>
-<script src="./face-v4.js"></script>
-<script src="./illustrator-v2.js"></script>
-<script src="./illustrator-v3.js"></script>
-<script src="./turnaround-v5.js"></script>
-<script src="./turnaround-v6.js"></script>
-<script src="./cartoon-v7.js"></script>
-<script src="./storybook-v8.js"></script>
-<script src="./learning-v6.js"></script>
-<script>
-(function(){
-'use strict';
-const $=id=>document.getElementById(id);
-$('remix').addEventListener('click',()=>{$('seed').value=String(Math.floor(Math.random()*4294967295));setStatus('Новый вариант выбран. Нажми «Создать персонажа».');});
-$('pack').addEventListener('change',()=>{$('animateCharacter').textContent=$('pack').checked?'2. АНИМИРОВАТЬ · ПОЛНЫЙ ПАКЕТ':'2. АНИМИРОВАТЬ ЭТОГО ПЕРСОНАЖА';});
-let current=null,frameIndex=0,action='idle',count=8,raf=null,previewImage=new Image(),lastFrame=0,history=[],packAtlas=null;
-const setStatus=(message,type)=>{const e=$('status');e.textContent=message;e.className='status'+(type?' '+type:'')};
-const api=()=>''; // No inference server: all user descriptions are processed on-device.
-
-document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(n=>n.classList.toggle('active',n===b));document.querySelectorAll('.view').forEach(v=>v.classList.toggle('hide',v.id!=='view-'+b.dataset.tab));}));
-document.querySelectorAll('.preset').forEach(b=>b.addEventListener('click',()=>{$('prompt').value=b.dataset.preset;if(b.dataset.view)$('view').value=b.dataset.view;if(b.dataset.facing)$('facing').value=b.dataset.facing;if(b.dataset.style)$('style').value=b.dataset.style;if(b.dataset.size)$('size').value=b.dataset.size;if(b.dataset.action){const choice=document.querySelector('#actions [data-action="'+b.dataset.action+'"]');if(choice)choice.click()}document.querySelectorAll('.preset').forEach(n=>n.style.borderColor=n===b?'var(--accent)':'');}));
-document.querySelectorAll('#actions button').forEach(b=>b.addEventListener('click',()=>{action=b.dataset.action;document.querySelectorAll('#actions button').forEach(n=>n.classList.toggle('selected',n===b))}));
-document.querySelectorAll('#frameButtons button').forEach(b=>b.addEventListener('click',()=>{count=Number(b.dataset.frames);document.querySelectorAll('#frameButtons button').forEach(n=>n.classList.toggle('selected',n===b))}));
-function download(data,name){if(!data)return;const a=document.createElement('a');a.href=data;a.download=name;document.body.append(a);a.click();a.remove()}
-function canvasData(canvas){return canvas.toDataURL('image/png')}
-function drawPreview(now){
-if(current&&previewImage.complete&&previewImage.naturalWidth){
-const cv=$('previewCanvas'),ctx=cv.getContext('2d');const sz=current.cell_size,n=current.frames;
-if($('animate').checked && now-lastFrame>=1000/Math.max(1,Number($('fps').value)||8)){const selected=current.actions?.[Number($('previewAction').value)||0]||'idle';const once=['attack','jump','death','hurt','cast'].includes(selected);frameIndex=once?Math.min(n-1,frameIndex+1):(frameIndex+1)%n;lastFrame=now}
-cv.width=sz;cv.height=sz;ctx.clearRect(0,0,sz,sz);ctx.imageSmoothingEnabled=false;
-let cols=current.columns||n;const actionRow=Number($('previewAction').value)||0,dirRow=Number($('previewDirection').value)||0;const row=(current.actions?.length?dirRow*current.actions.length+actionRow:0);ctx.drawImage(previewImage,(frameIndex%cols)*sz,row*sz,sz,sz,0,0,sz,sz);
-if($('grid').checked){ctx.strokeStyle='#ffffff33';ctx.lineWidth=1;for(let x=0;x<=sz;x+=Math.max(1,Math.floor(sz/8))){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,sz);ctx.moveTo(0,x);ctx.lineTo(sz,x);ctx.stroke()}}
-}raf=requestAnimationFrame(drawPreview)}
-raf=requestAnimationFrame(drawPreview);
-setStatus('Готово к созданию нового персонажа на бесплатном сервере AI Horde. Очередь волонтёров может занимать несколько минут.','success');
-function accept(data,prompt){
-current=data;current._sourceStyle=current._sourceStyle||$('style').value;
-$('feedbackPanel').classList.toggle('hide',data.engine!=='local-procedural');
-if(data.engine==='local-procedural'){$('learningStatus').textContent='Оцени эту модель: выбор новых вариантов будет учитывать твои оценки только на этом устройстве.';}
-$('previewCanvas').style.imageRendering=['16bit','retro','cozy','dark','cute'].includes($('style').value)?'pixelated':'auto';
-previewImage=new Image();previewImage.src=data.sheet;frameIndex=0;
-$('previewCanvas').classList.remove('hide');$('placeholder').classList.add('hide');
-$('runBadge').textContent=data.engine==='local-procedural'?'ЛОКАЛЬНО · БЕЗ СЕРВЕРА':data.engine==='horde'?'ИИ · AI HORDE':'ГОТОВО';
-const labels={idle:'Ожидание',walk:'Ходьба',run:'Бег',jump:'Прыжок',attack:'Атака',hurt:'Урон',death:'Смерть',cast:'Магия',fly:'Полёт',expressions:'Эмоции'};
-const actions=data.actions?.length?data.actions:['idle'],dirs=data.directionNames?.length?data.directionNames:['right'];
-function options(select,values){select.replaceChildren();for(const [label,value] of values){const o=document.createElement('option');o.textContent=label;o.value=String(value);select.add(o)}}
-options($('previewAction'),actions.map((a,i)=>[labels[a]||a,i]));
-options($('previewDirection'),dirs.map((d,i)=>[({right:'Вправо',left:'Влево',up:'Сзади',down:'Спереди',ne:'Северо-восток',nw:'Северо-запад',se:'Юго-восток',sw:'Юго-запад'}[d]||d),i]));
-$('previewControls').classList.toggle('hide',actions.length<2&&dirs.length<2);
-$('previewAction').onchange=()=>{frameIndex=0;lastFrame=0};$('previewDirection').onchange=()=>{frameIndex=0;lastFrame=0};
-$('dlSheet').disabled=false;$('dlGif').disabled=!data.gif;$('dlZip').disabled=!data.zip;$('dlAtlas').disabled=!data.atlas;$('dlSource').disabled=!data.source;
-history.unshift({data,prompt});history=history.slice(0,6);renderLibrary();
-setStatus('Готово: '+(data.totalFrames||data.frames)+' кадр(ов), '+(data.actionCount||1)+' анимаций, '+data.cell_size+' px. '+(data.frames===1?'Персонаж готов: выбери движение.':'Скачай спрайт-лист PNG или ZIP.')+(data.generationAttempt===2?' Получено после безопасного автоповтора.':'')+' Вариант '+(data.seed??'по описанию')+'.', 'success')
-}
-async function fileData(file){if(!file)return null;return await new Promise((res,rej)=>{const reader=new FileReader();reader.onload=()=>res(reader.result);reader.onerror=rej;reader.readAsDataURL(file)})}
-
-async function requestSprite(payload){
-if(payload.engine==='local'){
-  if(payload.seed===undefined)payload.seed=window.SpriteForgeLearning?.choose(payload.prompt,payload.style,payload.view);
-  return await window.SpriteForgeLocal.generate(payload, p=>setStatus('Рисуем персонажа локально: '+(p.pct||0)+'%'));
-}
-if(payload.engine==='horde'){
-  const module=await import('./neural-engine.js?v=10.1');
-  return await module.generate(payload, p=>setStatus(p.message||'Генерация на бесплатной видеокарте сообщества…'));
-}
-throw Error('Неизвестный режим генерации');
-}
-// Two-stage workflow: "create character" locks an immutable design blueprint.
- // Every later animation uses the same exact prompt, style and deterministic seed.
-let lockedCharacter=null;
-function readCharacterBlueprint(){
- const prompt=$('prompt').value.trim();
- if(!prompt)throw Error('Сначала опиши внешность персонажа.');
- return {prompt,style:$('style').value,view:$('view').value,facing:$('facing').value,
-  size:Number($('size').value),frames:8,action:'idle',
-  seed:$('seed').value.trim()===''?undefined:Number($('seed').value),
-  engine:$('engine').value,pack:false,reference:null,characterOnly:true};
-}
-function lockCharacter(blueprint,data){
- const fixed=Object.freeze({...blueprint,seed:data.seed??blueprint.seed});
- lockedCharacter=fixed;
- $('animateCharacter').disabled=false;
- $('characterLocked').textContent='Нейросеть создала и закрепила героя №'+String(fixed.seed??'по описанию')+'. Теперь выбери движение и нажми «Анимировать»: все кадры будут из этого изображения.';
-}
-$('generate').addEventListener('click',async()=>{
- const button=$('generate');button.disabled=true;button.textContent='СОЗДАЁМ ПЕРСОНАЖА…';$('cancelGenerate').disabled=false;
- try{
-  const blueprint=readCharacterBlueprint();
-  setStatus('Переводим запрос, затем отправляем его на бесплатные видеокарты AI Horde…');
-  const data=await requestSprite(blueprint);
-  accept(data,blueprint.prompt);
-  lockCharacter(blueprint,data);
- }catch(e){setStatus('Не удалось создать персонажа: '+e.message,'error')}
- finally{$('cancelGenerate').disabled=true;button.disabled=false;button.textContent='1. СОЗДАТЬ ПЕРСОНАЖА'}
-});
-$('animateCharacter').addEventListener('click',async()=>{
- if(!lockedCharacter){setStatus('Сначала создай персонажа.','error');return}
- const button=$('animateCharacter');
- button.disabled=true;button.textContent='СОЗДАЁМ АНИМАЦИЮ…';
- try{
-  if(lockedCharacter.engine!=='horde'&&lockedCharacter.engine!=='local')throw Error('Неподдерживаемый режим анимации.');
-  const payload={...lockedCharacter,frames:count,action:$('customAction').value.trim()||action,
-    pack:$('pack').checked,characterOnly:false,animateOnly:lockedCharacter.engine==='horde'};
-  setStatus('Создаём '+(payload.pack?'пакет анимаций':'анимацию «'+payload.action+'»')+
-    ' для закреплённого героя…');
-  const data=await requestSprite(payload);
-  accept(data,lockedCharacter.prompt);
-  $('characterLocked').textContent='Анимация готова для закреплённого персонажа №'+
-    String(lockedCharacter.seed??'по описанию')+
-    '. Чтобы поменять внешность, нажми «Создать персонажа» ещё раз.';
- }catch(e){setStatus('Не удалось анимировать персонажа: '+e.message,'error')}
- finally{button.disabled=false;button.textContent=$('pack').checked?'2. АНИМИРОВАТЬ · ПОЛНЫЙ ПАКЕТ':'2. АНИМИРОВАТЬ ЭТОГО ПЕРСОНАЖА'}
-});
-$('cancelGenerate').addEventListener('click',async()=>{const button=$('cancelGenerate');button.disabled=true;setStatus('Отменяем запрос…');try{const module=await import('./neural-engine.js?v=10.1');const cancelled=await module.cancelCurrent();if(!cancelled)setStatus('Запрос уже завершился или ещё переводится.')}catch(e){setStatus('Отмена: '+e.message,'error')}});
-function saveFeedback(vote){
- if(!current||current.engine!=='local-procedural'||!window.SpriteForgeLearning)return;
- const result=window.SpriteForgeLearning.rate({kind:current.description,style:current._sourceStyle||$('style').value,seed:current.seed},vote);
- if(result){
-  $('learningStatus').textContent=(vote===1?'Модель отмечена как удачная. ':'Этот вариант отмечен как неудачный. ')+
-    'Всего оценок: '+result.samples+'. Подбор новых вариантов учитывает твой выбор. Для получения нового результата нажми «Создать».';
- }
-}
-$('feedbackGood').addEventListener('click',()=>saveFeedback(1));
-$('feedbackBad').addEventListener('click',()=>saveFeedback(-1));
-[['dlSheet','sheet','sprite_sheet.png'],['dlGif','gif','animation.gif'],['dlZip','zip','frames.zip'],['dlAtlas','atlas','atlas.json'],['dlSource','source','character_512.png']].forEach(a=>$(a[0]).addEventListener('click',()=>download(current&&current[a[1]],a[2])));
-function renderLibrary(){const el=$('library');el.replaceChildren();history.forEach((entry,i)=>{const b=document.createElement('button');const im=document.createElement('img');im.src=entry.data.sheet;const text=document.createElement('div');text.textContent=entry.prompt.slice(0,55);b.append(im,text);b.addEventListener('click',()=>{accept(entry.data,entry.prompt);document.querySelector('[data-tab=ai]').click()});el.appendChild(b)})}
-// Pixel editor
-let pixSize=32,pixTool='brush',painting=false;const cv=$('pixelCanvas'),ctx=cv.getContext('2d',{willReadFrequently:true});ctx.imageSmoothingEnabled=false;
-function resizePixel(){pixSize=Number($('pixelSize').value);const old=document.createElement('canvas');old.width=cv.width;old.height=cv.height;old.getContext('2d').drawImage(cv,0,0);cv.width=pixSize;cv.height=pixSize;ctx.imageSmoothingEnabled=false;ctx.drawImage(old,0,0,pixSize,pixSize)}
-$('pixelSize').addEventListener('change',resizePixel);$('brush').addEventListener('click',()=>selectTool('brush'));$('eraser').addEventListener('click',()=>selectTool('eraser'));
-function selectTool(tool){pixTool=tool;$('brush').classList.toggle('selected',tool==='brush');$('eraser').classList.toggle('selected',tool==='eraser')}
-function paint(ev){if(!painting)return;const r=cv.getBoundingClientRect();const x=Math.floor((ev.clientX-r.left)*pixSize/r.width),y=Math.floor((ev.clientY-r.top)*pixSize/r.height);if(x<0||y<0||x>=pixSize||y>=pixSize)return;ctx.fillStyle=$('pixelColor').value;const fn=pixTool==='eraser'?'clearRect':'fillRect';ctx[fn](x,y,1,1);if($('mirror').checked)ctx[fn](pixSize-1-x,y,1,1)}
-cv.addEventListener('pointerdown',ev=>{painting=true;cv.setPointerCapture(ev.pointerId);paint(ev)});cv.addEventListener('pointermove',paint);cv.addEventListener('pointerup',()=>painting=false);cv.addEventListener('pointercancel',()=>painting=false);
-$('pixelClear').addEventListener('click',()=>ctx.clearRect(0,0,pixSize,pixSize));$('pixelSave').addEventListener('click',()=>download(canvasData(cv),'pixel_art.png'));
-// GIF to sprite sheet with native decoder
-let gifResult=null;
-$('gifConvert').addEventListener('click',async()=>{const f=$('gifInput').files[0];if(!f){$('gifStatus').textContent='Сначала выбери GIF.';return}
-$('gifStatus').textContent='Декодирование кадров…';$('gifSave').disabled=true;try{
-if(typeof ImageDecoder==='undefined')throw Error('В этом браузере нет ImageDecoder. Открой в свежей версии Chrome.');
-const decoder=new ImageDecoder({data:await f.arrayBuffer(),type:'image/gif'});
-await decoder.tracks.ready;const track=decoder.tracks.selectedTrack;const cnt=Math.min(track.frameCount,120);if(!cnt)throw Error('Нет кадров');
-const first=await decoder.decode({frameIndex:0});const w=first.image.displayWidth,h=first.image.displayHeight;first.image.close();
-if(w*h*cnt>40000000)throw Error('Слишком большой GIF, ограничение 40 млн пикселей');
-const cols=Math.min(8,cnt),out=$('gifCanvas');out.width=cols*w;out.height=Math.ceil(cnt/cols)*h;const g=out.getContext('2d');g.clearRect(0,0,out.width,out.height);
-for(let i=0;i<cnt;i++){const r=await decoder.decode({frameIndex:i});g.drawImage(r.image,(i%cols)*w,Math.floor(i/cols)*h,w,h);r.image.close()}
-decoder.close();gifResult=canvasData(out);$('gifSave').disabled=false;$('gifStatus').textContent='Готово: '+cnt+' кадров, размер '+w+'×'+h+'.';
-}catch(e){$('gifStatus').textContent='Ошибка: '+e.message}});
-$('gifSave').addEventListener('click',()=>download(gifResult,'gif_sprite_sheet.png'));
-// Sheet packer
-let packPng=null,packJson=null;
-async function loadImage(file){return await new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=URL.createObjectURL(file)})}
-$('packBuild').addEventListener('click',async()=>{const files=[...$('packInput').files].sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));if(!files.length){$('packStatus').textContent='Выбери изображения.';return}try{const images=await Promise.all(files.map(loadImage));const w=Math.max(...images.map(i=>i.width)),h=Math.max(...images.map(i=>i.height));const cols=Math.min(Math.max(1,Number($('packCols').value)||6),images.length);const out=$('packCanvas');out.width=w*cols;out.height=h*Math.ceil(images.length/cols);if(out.width*out.height>40000000)throw Error('Атлас слишком большой');const c=out.getContext('2d');c.clearRect(0,0,out.width,out.height);images.forEach((im,i)=>{c.drawImage(im,(i%cols)*w,Math.floor(i/cols)*h);URL.revokeObjectURL(im.src)});packPng=canvasData(out);packJson=JSON.stringify({meta:{image:'sprite_sheet.png',size:{w:out.width,h:out.height}},frames:files.map((f,i)=>({filename:f.name,frame:{x:(i%cols)*w,y:Math.floor(i/cols)*h,w,h},duration:125}))},null,2);$('packSave').disabled=false;$('packJson').disabled=false;$('packStatus').textContent='Собрано '+images.length+' кадров по '+w+'×'+h+' пикселей.'}catch(e){$('packStatus').textContent='Ошибка: '+e.message}});
-$('packSave').addEventListener('click',()=>download(packPng,'sprite_sheet.png'));$('packJson').addEventListener('click',()=>download('data:application/json;charset=utf-8,'+encodeURIComponent(packJson),'atlas.json'));
-})();
-if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});}
-</script>
+<script type="module" src="./studio-v11.js?v=11"></script>
 </body>
 </html>
