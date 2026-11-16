@@ -285,7 +285,7 @@ joint(g,-22,-13,(-22+backHand.x)*.55,5,backHand.x,backHand.y,12,arm,ink);
 oval(g,backHand.x,backHand.y,9,9,grad(g,backHand.x-8,backHand.y-8,backHand.x+9,backHand.y+9,tint(arm,.23),tint(arm,-.16)),ink,2.3);
 if(p.scarf)scarf(g,p,a);
 g.save();g.translate(0,-51+1.5*Math.sin(a));g.rotate(rig.headNod);
-head(g,p,side,back);g.restore();
+if(root.SpriteForgeFaceV4)root.SpriteForgeFaceV4.draw(g,p,side,back,{action,index:i,total,phase:a});else head(g,p,side,back);g.restore();
 // Front forearm, wrist and weapon stay attached to a shared joint.
 const elbowX=24+(frontHand.x-24)*.45;
 const elbowY=2+(frontHand.y-2)*.33;
