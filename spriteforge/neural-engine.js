@@ -111,8 +111,8 @@ async function startHorde(text,p,cb,opts={}){
    const candidateSeed=(requestedSeed+Math.imul(attempt,0x9e3779b1))>>>0;
    const extra=attempt===0?"":", fully clothed in the complete requested outfit, everyday fashion, family friendly game character concept art";
    const payload={
-    prompt:opts.spritePrompt?(opts.spritePrompt+extra):promptFor(text+extra,p),
-    params:{n:1,seed:String(candidateSeed),width:512,height:512,steps:opts.source_image?26:24,cfg_scale:7,sampler_name:"k_euler_a",karras:true,...(opts.source_image?{denoising_strength:.68}:{})},
+    prompt:opts.spritePrompt?(attempt?opts.spritePrompt.replace(" ### ",extra+" ### "):opts.spritePrompt):promptFor(text+extra,p),
+    params:{n:1,seed:String(candidateSeed),width:opts.source_image?768:512,height:opts.source_image?768:512,steps:opts.source_image?26:24,cfg_scale:7,sampler_name:"k_euler_a",karras:true,...(opts.source_image?{denoising_strength:.68}:{})},
     ...(opts.source_image?{source_image:opts.source_image,source_processing:"img2img"}:{}),
     nsfw:false,censor_nsfw:true,
     r2:false,shared:false,slow_workers:true,allow_downgrade:true
