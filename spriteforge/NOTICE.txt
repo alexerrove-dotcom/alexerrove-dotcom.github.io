@@ -26,3 +26,12 @@ Usage: free anonymous ZeroGPU with usage quotas (2 GPU minutes per unauthenticat
 Source images and text prompts are sent to Hugging Face Space. Gradio's client code is loaded from jsDelivr. The optional Russian-English translator uses MyMemory's public endpoint.
 No payment, registration, or API key is requested by SpriteForge. Hugging Face may reject anonymous requests after quota exhaustion; availability is not guaranteed.
 The previous AI Horde endpoint remains archived in repo source but is not used by the current website.
+
+V16 local-first quota-free inference (current):
+- SD-Turbo ONNX model: https://huggingface.co/schmuell/sd-turbo-ort-web
+- ONNX/WebGPU model license: Stability AI Non-Commercial Research Community License. Noncommercial only. See model card and LICENSE.
+- Browser worker engine runs on the visitor's GPU via WebGPU, not a hosted model API. Browser downloads approximately 2.6GB of open model weights on first use.
+- No request-count billing or provider-based GPU quota for local image generation. Device memory, GPU driver compatibility, storage, downloaded files, and network access for first load are practical limits. Reliability and frame quality are not guaranteed.
+- Browser-generated animation is a local cutout rig (not AI-generated independent keyframes). The optional Hugging Face fallback has usage quotas.
+- A free public translator (MyMemory) may process Russian text before local image generation. When unavailable, basic local dictionary substitution is used. Image generation itself happens on device.
+- OpenAI / ChatGPT computing is not shared with this website; no OpenAI API is used.
