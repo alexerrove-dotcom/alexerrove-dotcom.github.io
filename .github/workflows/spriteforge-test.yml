@@ -43,3 +43,4 @@ jobs:
           python -m http.server 8765 --directory . >/tmp/spriteforge-http.log 2>&1 &
           node spriteforge/test_frontend.mjs
           node spriteforge/test_webgpu.mjs
+          node spriteforge/test_art_preview.mjs
