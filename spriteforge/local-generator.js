@@ -287,8 +287,9 @@ if(onProgress){onProgress({pct:Math.round(100*(di+1)/dirs.length)});await new Pr
 }
 const data=sheet.toDataURL("image/png"),atlasText=JSON.stringify(atlas,null,2),atlasUrl="data:application/json;charset=utf-8,"+encodeURIComponent(atlasText);
 let zip=null;
-const names=[["sprite_sheet.png",await (await fetch(data)).arrayBuffer().then(x=>new Uint8Array(x))],["atlas.json",atlasText]];
-for(const [dir,i,cell] of allFrames){const bytes=new Uint8Array(await (await fetch(cell.toDataURL("image/png"))).arrayBuffer());names.push(["frames/"+dir+"_"+String(i).padStart(2,"0")+".png",bytes])}
+const pngBytes=async cv=>new Uint8Array(await (await new Promise((resolve,reject)=>cv.toBlob(blob=>blob?resolve(blob):reject(new Error('PNG export failed')),'image/png'))).arrayBuffer());
+const names=[["sprite_sheet.png",await pngBytes(sheet)],["atlas.json",atlasText]];
+for(const [dir,i,cell] of allFrames){const bytes=await pngBytes(cell);names.push(["frames/"+dir+"_"+String(i).padStart(2,"0")+".png",bytes])}
 zip=URL.createObjectURL(makeZip(names));
 return {sheet:data,atlas:atlasUrl,zip,gif:null,frames,columns:frames,cell_size:sz,directions:dirs.length,engine:"local-procedural",description:p.kind,offline:true};
 }
