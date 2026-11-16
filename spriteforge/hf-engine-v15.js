@@ -195,3 +195,6 @@ export async function cancelCurrent(){
  return true;
 }
 export function getStatus(){return {engine:"huggingface",space:SPACE,active:!!activeJob,locked:!!locked}};
+
+// Export only the current in-tab source image for zero-extra-GPU 2D animation.
+export function getCurrentCharacter(){return locked}
