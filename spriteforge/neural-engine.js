@@ -83,7 +83,7 @@ async function generationBlob(gen,signal){
 }
 async function startHorde(text,p,cb){
  const ctl=new AbortController();
- const job={id:null,ctl};
+ const job={id:null,ctl,completed:false};
  active=job;
  try{
   const seed=seedOf(p),payload={
@@ -120,6 +120,7 @@ async function startHorde(text,p,cb){
   if(gen.censored)throw Error("Полученное изображение было заблокировано фильтрами сервиса.");
   const blob=await generationBlob(gen,ctl.signal);
   if(!blob||!blob.size)throw Error("Файл нейросети оказался пустым.");
+  job.completed=true;
   return {blob,seed,model:gen.model||"AI Horde worker"};
  }catch(e){
   if(ctl.signal.aborted)throw Error("Генерация отменена.");
@@ -129,7 +130,7 @@ async function startHorde(text,p,cb){
  }finally{
   if(active===job)active=null;
   // Never leave a hung generation in the volunteer queue after cancellation or expiry.
-  if(job.id&&ctl.signal.aborted)fetch(BASE+"/generate/status/"+encodeURIComponent(job.id),{method:"DELETE",headers}).catch(()=>{});
+  if(job.id&&!job.completed)fetch(BASE+"/generate/status/"+encodeURIComponent(job.id),{method:"DELETE",headers}).catch(()=>{});
  }
 }
 export async function generate(p,cb){
