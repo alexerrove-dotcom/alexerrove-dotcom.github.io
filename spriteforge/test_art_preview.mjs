@@ -43,6 +43,7 @@ console.log("SPRITE_MOTION_PREVIEW_BASE64="+animImage);
 const humanContactSheet=await page.evaluate(()=>{
  const prompt="Молодой парень, каштановые волосы, синяя джинсовая куртка, белая футболка, тёмно-синие джинсы, белые кроссовки";
  const p=window.SpriteForgeDesigner.parse(prompt,5104);
+ if(p.kind!=="human"||p.wings)throw Error("Cartoon reference prompt is not classified as a human: "+p.kind);
  const sz=192, cv=document.createElement("canvas");cv.width=sz*6;cv.height=sz*3;
  const c=cv.getContext("2d");c.fillStyle="#edf0f2";c.fillRect(0,0,cv.width,cv.height);
  const positions=[["front","down","front"],["profile","right","side"],["profile","left","side"],["back","up","back"],["quarter","se","iso"],["front","down","front"]];
