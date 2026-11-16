@@ -1,4 +1,4 @@
-/* SpriteForge RU V13 — quality checked character and animation generation, anonymous and free.
+/* SpriteForge RU V14 — reference-guided studio with consistent artistic models, anonymous and free.
  * API: AI Horde (https://aihorde.net), publicly documented anonymous API key.
  * This file contains no private user credentials. User prompt goes to AI Horde.
  * Movement is made from the same AI-generated character image, via neural-rig-v9.
@@ -7,6 +7,8 @@ import {translatePrompt} from "./prompt-translator-v9.js";
 import {prepareCharacter,composeSprites} from "./neural-rig-v11.js";
 import {buildGuide,sheetPrompt,packAIFrames} from "./neural-sheet-v12.js";
 import {validateCharacterBlob,validateAnimationBlob} from "./quality-v13.js";
+import {characterPrompt} from "./art-direction-v14.js";
+import {chooseModel,recordQuality} from "./model-picker-v14.js";
 
 const BASE="https://aihorde.net/api/v2";
 const AGENT="SpriteForgeRU:10.0:https://alexerrove-dotcom.github.io/spriteforge/";
@@ -48,14 +50,8 @@ async function fetchJSON(url,opts={}){
  if(!body)throw Error("AI Horde вернул неверный ответ вместо JSON.");
  return body;
 }
-function promptFor(text,p){
- const style=STYLE[p.style]||STYLE.realistic;
- const angle=ANGLE[p.view]||ANGLE.front;
- const head="single full body "+text;
- const positive=[head,angle,"neutral standing A-pose",isClearlyOrdinaryCharacterPrompt(text)?"fully clothed and wearing all specified garments":"professional game character design","both feet and both hands fully visible","centered character on clean uniform white studio background",style,"high detail, one person, full length character art"].join(", ");
- const negative="cropped feet, cropped head, cut off, multiple people, extra arms, extra legs, fused hands, distorted anatomy, text, watermark, blurry, low resolution, busy background";
- return positive+" ### "+negative;
-}
+function promptFor(text,p){return characterPrompt(text,p.style,p.view)}
+
 function delay(ms,signal){return new Promise((resolve,reject)=>{if(signal?.aborted)return reject(abortError());const t=setTimeout(done,ms);function done(){signal?.removeEventListener("abort",cancel);resolve()}function cancel(){clearTimeout(t);signal?.removeEventListener("abort",cancel);reject(abortError())}signal?.addEventListener("abort",cancel,{once:true})})}
 function isImageURL(s){return /^https:\/\//i.test(s)}
 async function generationBlob(gen,signal){
@@ -102,6 +98,7 @@ async function startHorde(text,p,cb,opts={}){
  const requestedSeed=seedOf(p);
  const retryAllowed=isClearlyOrdinaryCharacterPrompt(p.prompt+" "+text);
  const attempts=retryAllowed?2:1;
+ const model=opts.model||await chooseModel(p.style,p.model||null);
  const deadline=Date.now()+12*60*1000;
  let blocked=0;
  try{
@@ -111,9 +108,13 @@ async function startHorde(text,p,cb,opts={}){
    job.id=null;job.completed=false;
    const candidateSeed=(requestedSeed+Math.imul(attempt,0x9e3779b1))>>>0;
    const extra=attempt===0?"":", fully clothed in the complete requested outfit, everyday fashion, family friendly game character concept art";
+   const isXL=/\bxl\b|sdxl|juggernaut xl|nova flat/i.test(model||"");
+   const width=opts.source_image?(isXL?1024:768):(isXL?768:512);
+   const height=opts.source_image?(isXL?1024:768):(isXL?1024:768);
    const payload={
+    ...(model?{models:[model]}:{}),
     prompt:opts.spritePrompt?(attempt?opts.spritePrompt.replace(" ### ",extra+" ### "):opts.spritePrompt):promptFor(text+extra,p),
-    params:{n:1,seed:String(candidateSeed),width:opts.source_image?768:512,height:opts.source_image?768:512,steps:opts.source_image?26:24,cfg_scale:7,sampler_name:"k_euler_a",karras:true,...(opts.source_image?{denoising_strength:opts.denoising??.44}:{})},
+    params:{n:1,seed:String(candidateSeed),width,height,steps:opts.source_image?26:24,cfg_scale:7,sampler_name:"k_euler_a",karras:true,...(opts.source_image?{denoising_strength:opts.denoising??.44}:{})},
     ...(opts.source_image?{source_image:opts.source_image,source_processing:"img2img"}:{}),
     nsfw:false,censor_nsfw:true,
     r2:false,shared:false,slow_workers:true,allow_downgrade:true
@@ -168,7 +169,7 @@ async function startHorde(text,p,cb,opts={}){
    const blob=await generationBlob(clean,ctl.signal);
    if(!blob||!blob.size)throw Error("ИИ вернул пустое изображение.");
    return {blob,seed:requestedSeed,imageSeed:candidateSeed,
-     model:clean.model||"AI Horde worker",attempt:attempt+1};
+     model:clean.model||model||"AI Horde worker",attempt:attempt+1};
   }
   throw Error("Не получено изображение от AI Horde.");
  }catch(e){
@@ -193,6 +194,8 @@ export async function generate(p,cb){
   const images={};
   const revision=++animationRevision;
   const english=locked._english||p.prompt;
+  const preservedModel=locked._model||null;
+  if(preservedModel)progress(cb,"Рисуем кадры той же художественной моделью: "+preservedModel);
   for(let i=0;i<actions.length;i++){
    const action=actions[i];
    progress(cb,"ИИ рисует кадры "+(i+1)+"/"+actions.length+": "+action+". Проверяем согласованность героя.");
@@ -205,8 +208,9 @@ export async function generate(p,cb){
    for(let attempt=0;attempt<limit;attempt++){
     const result=await startHorde(english,
       {...fixed,action,seed:(seed+17*(i+1)+revision*977+attempt*1073)>>>0},cb,
-      {source_image,spritePrompt:prompt,denoising:attempt===0?.43:.36});
+      {source_image,spritePrompt:prompt,denoising:attempt===0?.37:.32,model:preservedModel});
     const quality=await validateAnimationBlob(result.blob);
+    recordQuality(p.style,result.model,quality.ok);
     if(quality.ok){accepted=result.blob;break;}
     reason=quality.reasons.join("; ");
     if(attempt+1<limit)progress(cb,"Лист не прошёл проверку ("+reason+"). Генерируем повторно с меньшим изменением исходного героя…");
@@ -221,24 +225,30 @@ export async function generate(p,cb){
  if(active)throw Error("Уже выполняется генерация. Отмените прежнюю, прежде чем запускать новую.");
  const translated=await translatePrompt(p.prompt,msg=>progress(cb,msg));
  if(translated.warning)progress(cb,translated.warning);
- let data=null,characterIssue="";
+ let data=null,characterIssue="",failedModel=null;
  for(let attempt=0;attempt<2;attempt++){
-  data=await startHorde(translated.text,{...fixed,seed:(seed+attempt*1399)>>>0},cb);
+  const chosen=await chooseModel(p.style,null,failedModel?[failedModel]:[]);
+  if(chosen)progress(cb,"Художественная модель: "+chosen+(attempt?" (другая после ошибки)":""));
+  data=await startHorde(translated.text,{...fixed,seed:(seed+attempt*1399)>>>0},cb,{model:chosen});
   const verdict=await validateCharacterBlob(data.blob);
+  recordQuality(p.style,data.model,verdict.ok);
   if(verdict.ok)break;
+  failedModel=data.model;
   characterIssue=verdict.reasons.join("; ");
   data=null;
-  if(attempt===0)progress(cb,"Изображение не прошло проверку: "+characterIssue+". Генерируем второй вариант с одним героем.");
+  if(attempt===0)progress(cb,"Изображение не прошло проверку: "+characterIssue+". Пробуем другую модель.");
  }
  if(!data)throw Error("Сервис дважды нарисовал неподходящего героя: "+characterIssue+". Результат не принят. Измени описание и попробуй снова.");
  progress(cb,"Проверка одного персонажа пройдена. Убираем фон и готовим экспорт…");
  const ready=await prepareCharacter(data.blob);
  locked=ready;
  locked._english=translated.text;
+ locked._model=data.model;
  lockedKey=id;
  const out=await composeSprites(ready,{...fixed,characterOnly:true},cb);
  out.engine="horde";
  out.model=data.model;
+ out.qualityProfile="Reference-guided V14: clean silhouettes, color and outfit consistency";
  out.imageSeed=data.imageSeed;
  out.generationAttempt=data.attempt;
  out.description=p.prompt;
