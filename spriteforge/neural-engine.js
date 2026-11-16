@@ -1,4 +1,4 @@
-/* SpriteForge RU V10 — real community GPU image generation, anonymous and free.
+/* SpriteForge RU V10.1 — safe retry for falsely censored everyday characters, anonymous and free.
  * API: AI Horde (https://aihorde.net), publicly documented anonymous API key.
  * This file contains no private user credentials. User prompt goes to AI Horde.
  * Movement is made from the same AI-generated character image, via neural-rig-v9.
@@ -81,56 +81,103 @@ async function generationBlob(gen,signal){
  if(mime==="application/octet-stream")throw Error("Неподдерживаемый формат изображения от AI Horde.");
  return new Blob([bytes],{type:mime});
 }
+function isClearlyOrdinaryCharacterPrompt(description){
+ const s=String(description||"").toLowerCase();
+ // Retry only everyday dressed character descriptions. Never try to get
+ // around a deliberate safety decision about a sexual or explicit request.
+ if(/(?:nude|naked|porn|erotic|explicit|sexual|sex scene|topless|bottomless|fetish|lingerie|underwear|обнаж[её]н|эротич|голый|голая|порн)/i.test(s))return false;
+ return /(?:jacket|jeans|sneakers|shirt|t-shirt|trousers|pants|boots|coat|dress|armor|uniform|hoodie|suit|sweater|fully clothed|wearing|куртк|джинс|кроссов|рубашк|футболк|брюк|костюм|ботинк|шорт|одежд)/i.test(s);
+}
+function isBlockedGeneration(gen){
+ const meta=Array.isArray(gen?.gen_metadata)?gen.gen_metadata:[];
+ return gen?.censored===true||gen?.state==="censored"||
+   meta.some(item=>item.type==="censorship");
+}
 async function startHorde(text,p,cb){
  const ctl=new AbortController();
  const job={id:null,ctl,completed:false};
  active=job;
+ const requestedSeed=seedOf(p);
+ const retryAllowed=isClearlyOrdinaryCharacterPrompt(p.prompt+" "+text);
+ const attempts=retryAllowed?2:1;
+ const deadline=Date.now()+12*60*1000;
+ let blocked=0;
  try{
-  const seed=seedOf(p),payload={
-   prompt:promptFor(text,p),
-   params:{n:1,seed:String(seed),width:512,height:512,steps:18,cfg_scale:7,sampler_name:"k_euler_a",karras:true},
-   nsfw:false,censor_nsfw:true,
-   r2:false, // return base64 so the browser can export/animate without image-CDN CORS failures
-   shared:false,slow_workers:true,allow_downgrade:true
-  };
-  progress(cb,"Отправляем запрос на бесплатные видеокарты AI Horde…");
-  const response=await fetchJSON(BASE+"/generate/async",{method:"POST",signal:ctl.signal,headers:{...headers,"Content-Type":"application/json"},body:JSON.stringify(payload)});
-  if(!response?.id)throw Error("AI Horde не выдал номер задания. "+String(response?.message||""));
-  job.id=response.id;
-  progress(cb,"Заявка принята. Ожидаем очередь добровольных GPU. Это может занять несколько минут.");
-  const begin=Date.now(),limit=9*60*1000;
-  let done=false,tries=0;
-  while(Date.now()-begin<limit){
-   await delay(7000,ctl.signal);
-   const snap=await fetchJSON(BASE+"/generate/check/"+encodeURIComponent(job.id),{signal:ctl.signal,headers});
-   tries++;
-   done=Boolean(snap.done)||Number(snap.finished)>=1;
-   if(snap.faulted)throw Error("Запрос отклонён или выполнен с ошибкой на сервере. Попробуйте изменить стиль/описание.");
-   if(done)break;
-   const queued=Number.isFinite(Number(snap.queue_position))?Math.max(0,Number(snap.queue_position)):null;
-   const elapsed=Math.round((Date.now()-begin)/1000);
-   progress(cb,"Идёт генерация: "+(queued===null?"ожидаем видеокарту":"место в очереди "+queued)+
-    ". Прошло "+Math.floor(elapsed/60)+" мин "+(elapsed%60)+" сек. Можно отменить.");
+  for(let attempt=0;attempt<attempts;attempt++){
+   if(ctl.signal.aborted)throw abortError();
+   if(Date.now()>=deadline)throw Error("Бесплатные видеокарты слишком долго заняты. Очередь завершена без результата.");
+   job.id=null;job.completed=false;
+   const candidateSeed=(requestedSeed+Math.imul(attempt,0x9e3779b1))>>>0;
+   const extra=attempt===0?"":", fully clothed in the complete requested outfit, everyday fashion, family friendly game character concept art";
+   const payload={
+    prompt:promptFor(text+extra,p),
+    params:{n:1,seed:String(candidateSeed),width:512,height:512,steps:18,cfg_scale:7,sampler_name:"k_euler_a",karras:true},
+    nsfw:false,censor_nsfw:true,
+    r2:false,shared:false,slow_workers:true,allow_downgrade:true
+   };
+   progress(cb,attempt===0
+    ?"Отправляем персонажа на бесплатные видеокарты AI Horde…"
+    :"Фильтр ошибочно мог пометить обычного одетого героя. Пробуем второй безопасный вариант (2/2)…");
+   const response=await fetchJSON(BASE+"/generate/async",{
+    method:"POST",signal:ctl.signal,headers:{...headers,"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+   });
+   if(!response?.id)throw Error("AI Horde не выдал номер задания. "+String(response?.message||""));
+   job.id=response.id;
+   progress(cb,"Запрос "+(attempt+1)+"/"+attempts+" принят. Ожидаем свободную видеокарту сообщества…");
+   let done=false;
+   while(Date.now()<deadline){
+    await delay(6500,ctl.signal);
+    const check=await fetchJSON(BASE+"/generate/check/"+encodeURIComponent(job.id),
+      {signal:ctl.signal,headers});
+    if(check.faulted)throw Error("Видеокарта сообщества сообщила об ошибке. Повторите генерацию позднее.");
+    if(check.is_possible===false&&Number(check.eligible_workers)===0){
+     throw Error("Сейчас нет бесплатных видеокарт для выбранных параметров. Попробуйте позже.");
+    }
+    done=Boolean(check.done)||Number(check.finished)>=1;
+    if(done)break;
+    const q=Number(check.queue_position);
+    const queue=Number.isFinite(q)?("место в очереди "+Math.max(0,q)):"ищем свободный GPU";
+    const elapsed=Math.round((Date.now()-(deadline-12*60*1000))/1000);
+    progress(cb,"Генерация "+(attempt+1)+"/"+attempts+": "+queue+
+      ". Ожидание "+Math.floor(elapsed/60)+" мин "+elapsed%60+" сек. Запрос можно отменить.");
+   }
+   if(!done)throw Error("Очередь не обработала запрос за отведённое время. Попробуйте позже.");
+   progress(cb,"Нейросеть завершила рисование. Проверяем изображение…");
+   const status=await fetchJSON(BASE+"/generate/status/"+encodeURIComponent(job.id),
+      {signal:ctl.signal,headers});
+   job.completed=true;
+   const generations=Array.isArray(status.generations)?status.generations:[];
+   const clean=generations.find(g=>g.img&&!isBlockedGeneration(g));
+   const blockedResults=generations.filter(isBlockedGeneration);
+   if(!clean&&blockedResults.length){
+    blocked++;
+    if(blockedResults.some(g=>(g.gen_metadata||[]).some(m=>m.value==="csam"))){
+     throw Error("Сервис заблокировал генерацию по правилам безопасности. Повторной попытки не будет.");
+    }
+    if(attempt+1<attempts){
+     progress(cb,"Первое изображение ошибочно могло попасть под фильтр AI Horde. Повторяем запрос в безопасной формулировке…");
+     continue;
+    }
+    throw Error("AI Horde заблокировал "+blocked+" результат(а) своими фильтрами. Фильтры могут ошибаться даже на обычных персонажах. Попробуйте другое описание или стиль.");
+   }
+   if(!clean)throw Error("Видеокарта отметила задачу как завершённую, но изображение отсутствует.");
+   const blob=await generationBlob(clean,ctl.signal);
+   if(!blob||!blob.size)throw Error("ИИ вернул пустое изображение.");
+   return {blob,seed:requestedSeed,imageSeed:candidateSeed,
+     model:clean.model||"AI Horde worker",attempt:attempt+1};
   }
-  if(!done)throw Error("Очередь не обработала запрос за 9 минут. GPU волонтёров перегружены — попробуйте позднее.");
-  progress(cb,"ИИ закончил рисовать. Получаем готового персонажа…");
-  const status=await fetchJSON(BASE+"/generate/status/"+encodeURIComponent(job.id),{signal:ctl.signal,headers});
-  const gen=(status.generations||[]).find(g=>g.img)||status.generations?.[0];
-  if(!gen)throw Error("Сервер сообщил о завершении, но не вернул изображение.");
-  if(gen.censored)throw Error("Полученное изображение было заблокировано фильтрами сервиса.");
-  const blob=await generationBlob(gen,ctl.signal);
-  if(!blob||!blob.size)throw Error("Файл нейросети оказался пустым.");
-  job.completed=true;
-  return {blob,seed,model:gen.model||"AI Horde worker"};
+  throw Error("Не получено изображение от AI Horde.");
  }catch(e){
-  if(ctl.signal.aborted)throw Error("Генерация отменена.");
+  if(ctl.signal.aborted)throw Error("Генерация отменена пользователем.");
   if(e instanceof TypeError&&/fetch|network|load|failed/i.test(String(e)))
-   throw Error("Не удалось связаться с AI Horde (сеть или ограничения браузера CORS). Проверьте интернет и попробуйте снова.");
+   throw Error("Не удалось связаться с AI Horde (интернет или CORS). Проверьте сеть и повторите.");
   throw e;
  }finally{
   if(active===job)active=null;
-  // Never leave a hung generation in the volunteer queue after cancellation or expiry.
-  if(job.id&&!job.completed)fetch(BASE+"/generate/status/"+encodeURIComponent(job.id),{method:"DELETE",headers}).catch(()=>{});
+  if(job.id&&!job.completed)
+   fetch(BASE+"/generate/status/"+encodeURIComponent(job.id),
+     {method:"DELETE",headers}).catch(()=>{});
  }
 }
 export async function generate(p,cb){
@@ -152,6 +199,8 @@ export async function generate(p,cb){
  const out=await composeSprites(ready,{...fixed,characterOnly:true},cb);
  out.engine="horde";
  out.model=data.model;
+ out.imageSeed=data.imageSeed;
+ out.generationAttempt=data.attempt;
  out.description=p.prompt;
  out.translation=translated.text;
  out.seed=seed;
