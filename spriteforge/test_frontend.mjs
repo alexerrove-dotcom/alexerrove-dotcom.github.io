@@ -15,7 +15,7 @@ try{
  await page.fill('#prompt','Рыжий лис в зелёном шарфе с рогаткой');
  await page.context().setOffline(true);
  await page.click('#generate');
- await page.waitForFunction(()=>document.querySelector('#status').classList.contains('success'),null,{timeout:22000});
+ try{await page.waitForFunction(()=>document.querySelector('#status').classList.contains('success'),null,{timeout:15000})}catch(e){throw Error('Generator failed: '+(await page.locator('#status').innerText())+' JS errors: '+errs.join('; '))}
  if(!(await page.locator('#dlSheet').isEnabled()))throw Error('PNG export disabled');
  if(!(await page.locator('#dlZip').isEnabled()))throw Error('ZIP export disabled');
  if(!(await page.locator('#dlAtlas').isEnabled()))throw Error('JSON export disabled');
