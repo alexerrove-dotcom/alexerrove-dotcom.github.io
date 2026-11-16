@@ -1,10 +1,11 @@
-/* SpriteForge RU V11 — simplified studio and responsive cutout animation, anonymous and free.
+/* SpriteForge RU V12 — neural sprite sheet animation guided by character image, anonymous and free.
  * API: AI Horde (https://aihorde.net), publicly documented anonymous API key.
  * This file contains no private user credentials. User prompt goes to AI Horde.
  * Movement is made from the same AI-generated character image, via neural-rig-v9.
  */
 import {translatePrompt} from "./prompt-translator-v9.js";
 import {prepareCharacter,composeSprites} from "./neural-rig-v11.js";
+import {buildGuide,sheetPrompt,packAIFrames} from "./neural-sheet-v12.js";
 
 const BASE="https://aihorde.net/api/v2";
 const AGENT="SpriteForgeRU:10.0:https://alexerrove-dotcom.github.io/spriteforge/";
@@ -93,7 +94,7 @@ function isBlockedGeneration(gen){
  return gen?.censored===true||gen?.state==="censored"||gen?.state==="csam"||
    meta.some(item=>item.type==="censorship");
 }
-async function startHorde(text,p,cb){
+async function startHorde(text,p,cb,opts={}){
  const ctl=new AbortController();
  const job={id:null,ctl,completed:false};
  active=job;
@@ -110,8 +111,9 @@ async function startHorde(text,p,cb){
    const candidateSeed=(requestedSeed+Math.imul(attempt,0x9e3779b1))>>>0;
    const extra=attempt===0?"":", fully clothed in the complete requested outfit, everyday fashion, family friendly game character concept art";
    const payload={
-    prompt:promptFor(text+extra,p),
-    params:{n:1,seed:String(candidateSeed),width:512,height:512,steps:18,cfg_scale:7,sampler_name:"k_euler_a",karras:true},
+    prompt:opts.spritePrompt?(opts.spritePrompt+extra):promptFor(text+extra,p),
+    params:{n:1,seed:String(candidateSeed),width:512,height:512,steps:opts.source_image?26:24,cfg_scale:7,sampler_name:"k_euler_a",karras:true,...(opts.source_image?{denoising_strength:.68}:{})},
+    ...(opts.source_image?{source_image:opts.source_image,source_processing:"img2img"}:{}),
     nsfw:false,censor_nsfw:true,
     r2:false,shared:false,slow_workers:true,allow_downgrade:true
    };
@@ -185,8 +187,24 @@ export async function generate(p,cb){
  const seed=seedOf(p),id=identity(p,seed),fixed={...p,seed};
  if(p.animateOnly){
   if(!locked||lockedKey!==id)throw Error("Персонаж не закреплён. Сначала нажмите «Создать персонажа».");
-  progress(cb,"Анимируем исходное изображение, сохраняя лицо и одежду.");
-  return await composeSprites(locked,{...fixed,characterOnly:false},cb);
+  if(active)throw Error("Сначала дождитесь завершения предыдущей генерации.");
+  const actions=p.pack?["idle","walk","run","jump","attack","death"]:[p.action||"walk"];
+  const images={};
+  const english=locked._english||p.prompt;
+  for(let i=0;i<actions.length;i++){
+   const action=actions[i];
+   progress(cb,"ИИ рисует кадры "+(i+1)+"/"+actions.length+": "+action+". Изображение героя остаётся образцом внешности.");
+   const guide=buildGuide(locked,action);
+   const source_image=guide.toDataURL("image/webp",.86).split(",")[1];
+   if(!source_image)throw Error("Не удалось подготовить образец поз для нейросети.");
+   const prompt=sheetPrompt(english,p.style,action);
+   const result=await startHorde(english,{...fixed,action,seed:(seed+17*(i+1))>>>0},cb,
+     {source_image,spritePrompt:prompt});
+   images[action]=result.blob;
+  }
+  const out=await packAIFrames(locked,images,fixed,cb);
+  out.seed=seed;
+  return out;
  }
  if(active)throw Error("Уже выполняется генерация. Отмените прежнюю, прежде чем запускать новую.");
  const translated=await translatePrompt(p.prompt,msg=>progress(cb,msg));
@@ -195,6 +213,7 @@ export async function generate(p,cb){
  progress(cb,"Убираем однотонный фон и готовим экспорт…");
  const ready=await prepareCharacter(data.blob);
  locked=ready;
+ locked._english=translated.text;
  lockedKey=id;
  const out=await composeSprites(ready,{...fixed,characterOnly:true},cb);
  out.engine="horde";
