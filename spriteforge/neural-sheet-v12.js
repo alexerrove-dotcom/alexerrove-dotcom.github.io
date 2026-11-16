@@ -13,7 +13,7 @@ function alphaBounds(cv){
  return count?{x:l,y:t,w:Math.max(1,r-l+1),h:Math.max(1,b-t+1)}:{x:0,y:0,w,h};
 }
 export function buildGuide(character,action){
- const W=512,COL=4,ROW=2,cw=W/COL,ch=W/ROW;
+ const W=768,COL=4,ROW=2,cw=W/COL,ch=W/ROW;
  const guide=canvas(W,W),g=guide.getContext("2d");
  g.fillStyle="#ffffff";g.fillRect(0,0,W,W);
  const frames=createPoseGuide(character,action,8,256);
@@ -93,13 +93,15 @@ function removeEdgeBackground(cv){
 }
 async function imageFrames(blob,size=256){
  const bitmap=await createImageBitmap(blob);
- const normalized=canvas(512,512);
- normalized.getContext("2d").drawImage(bitmap,0,0,512,512);
+ const outputSize=Math.min(bitmap.width,bitmap.height);
+ const normalized=canvas(outputSize,outputSize);
+ normalized.getContext("2d").drawImage(bitmap,0,0,outputSize,outputSize);
  bitmap.close?.();
+ const cw=outputSize/4,ch=outputSize/2;
  const cropped=[];
  for(let i=0;i<8;i++){
-  const cut=canvas(128,256),g=cut.getContext("2d");
-  g.drawImage(normalized,(i%4)*128,Math.floor(i/4)*256,128,256,0,0,128,256);
+  const cut=canvas(cw,ch),g=cut.getContext("2d");
+  g.drawImage(normalized,(i%4)*cw,Math.floor(i/4)*ch,cw,ch,0,0,cw,ch);
   removeEdgeBackground(cut);
   cropped.push(cut);
  }
