@@ -14,3 +14,5 @@ Underlying Helsinki-NLP OPUS-MT model; check its model card for license terms.
 The site does not host GPUs, make paid inference calls or require user login.
 First use downloads open model weights from model hosts.
 Image motion is local 2D raster deformation, not neural video generation.
+
+V10: Online community-based image generation through AI Horde. Anonymous shared public key (ten zeros): https://aihorde.net/ . Russian prompt translation through MyMemory public API https://mymemory.translated.net/doc/spec.php . User descriptions are transmitted to these third-party services. There is no WebGPU model download or account requirement. Anonymous generation is queued, rate limited, and best effort; availability is not guaranteed.
