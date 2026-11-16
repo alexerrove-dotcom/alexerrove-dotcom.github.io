@@ -13,7 +13,11 @@ try{
  await page.selectOption('#facing','all4');
  await page.selectOption('#engine','local');
  await page.fill('#prompt','Рыжий лис в зелёном шарфе с рогаткой');
+ await page.evaluate(()=>navigator.serviceWorker.ready);
+ await page.waitForFunction(()=>!!navigator.serviceWorker.controller,null,{timeout:15000});
  await page.context().setOffline(true);
+ await page.reload({waitUntil:"domcontentloaded",timeout:15000});
+ if((await page.inputValue("#engine"))!=="local")throw Error("Offline page reload failed");
  await page.click('#generate');
  try{await page.waitForFunction(()=>document.querySelector('#status').classList.contains('success'),null,{timeout:15000})}catch(e){throw Error('Generator failed: '+(await page.locator('#status').innerText())+' JS errors: '+errs.join('; '))}
  if(!(await page.locator('#dlSheet').isEnabled()))throw Error('PNG export disabled');
@@ -39,5 +43,5 @@ try{
  await page.click('[data-tab=pixel]');
  if(!(await page.locator('#pixelCanvas').isVisible()))throw Error('Pixel editor not visible');
  if(errs.length)throw Error('JS errors: '+errs.join('; '));
- console.log('PASS: OFFLINE local generation, Russian parsing, distinct character sprites, ZIP export and editor');
+ console.log('PASS: offline page reload, offline character generation, Russian parsing, distinct sprites, ZIP export and editor');
 }finally{await browser.close()}
