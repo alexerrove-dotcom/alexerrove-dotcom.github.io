@@ -1,10 +1,7 @@
-/* SpriteForge offline-first availability with network-first updates.
- * Everything needed for procedural inference is cached on this device.
- * Neither user prompts nor AI inference are sent to a server.
- */
-const CACHE="spriteforge-offline-v18";
+/* SpriteForge V11: network-first site assets; AI image generation uses external AI Horde. */
+const CACHE="spriteforge-offline-v19";
 const BASE=new URL("./",self.location.href).pathname;
-const PRELOAD=["./","./index.html","./local-generator.js","./designer-v3.js","./pose-v4.js","./rig-v4.js","./face-v4.js","./illustrator-v2.js","./illustrator-v3.js","./turnaround-v5.js","./turnaround-v6.js","./cartoon-v7.js","./storybook-v8.js","./prompt-translator-v9.js","./neural-rig-v9.js","./neural-engine.js","./learning-v6.js","./manifest.json","./icon.svg","./sw.js"];
+const PRELOAD=["./","./index.html","./local-generator.js","./studio-v11.js","./neural-engine.js","./neural-rig-v11.js","./neural-rig-v9.js","./prompt-translator-v9.js","./manifest.json","./icon.svg","./sw.js"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(PRELOAD)).then(()=>self.skipWaiting()));
 });
