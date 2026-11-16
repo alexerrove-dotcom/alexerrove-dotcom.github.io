@@ -1,7 +1,7 @@
 /* SpriteForge V11: network-first site assets; AI image generation uses external AI Horde. */
-const CACHE="spriteforge-offline-v19";
+const CACHE="spriteforge-offline-v20";
 const BASE=new URL("./",self.location.href).pathname;
-const PRELOAD=["./","./index.html","./local-generator.js","./studio-v11.js","./neural-engine.js","./neural-rig-v11.js","./neural-rig-v9.js","./prompt-translator-v9.js","./manifest.json","./icon.svg","./sw.js"];
+const PRELOAD=["./","./index.html","./local-generator.js","./neural-engine.js","./neural-rig-v11.js","./neural-rig-v9.js","./prompt-translator-v9.js","./manifest.json","./icon.svg","./sw.js"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(PRELOAD)).then(()=>self.skipWaiting()));
 });
