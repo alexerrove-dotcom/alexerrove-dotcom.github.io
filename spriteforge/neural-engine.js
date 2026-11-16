@@ -1,10 +1,10 @@
-/* SpriteForge RU V10.1 — safe retry for falsely censored everyday characters, anonymous and free.
+/* SpriteForge RU V11 — simplified studio and responsive cutout animation, anonymous and free.
  * API: AI Horde (https://aihorde.net), publicly documented anonymous API key.
  * This file contains no private user credentials. User prompt goes to AI Horde.
  * Movement is made from the same AI-generated character image, via neural-rig-v9.
  */
 import {translatePrompt} from "./prompt-translator-v9.js";
-import {prepareCharacter,composeSprites} from "./neural-rig-v9.js";
+import {prepareCharacter,composeSprites} from "./neural-rig-v11.js";
 
 const BASE="https://aihorde.net/api/v2";
 const AGENT="SpriteForgeRU:10.0:https://alexerrove-dotcom.github.io/spriteforge/";
