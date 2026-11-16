@@ -1,8 +1,8 @@
 /* Service worker: cache only local SpriteForge code.
    Never cache external model weights, network API calls or user prompts. */
-const CACHE="spriteforge-offline-v2";
+const CACHE="spriteforge-offline-v3";
 const BASE=new URL("./",self.location.href).pathname;
-const PRELOAD=["./","./index.html","./local-generator.js","./manifest.json","./icon.svg","./sw.js"];
+const PRELOAD=["./","./index.html","./local-generator.js","./illustrator-v2.js","./manifest.json","./icon.svg","./sw.js"];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(PRELOAD)).then(()=>self.skipWaiting()));
 });
