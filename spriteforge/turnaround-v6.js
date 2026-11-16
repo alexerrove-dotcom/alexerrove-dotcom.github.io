@@ -92,7 +92,7 @@ function jeanLeg(g,p,v,pose,sg,w,ink){
  if(back){stroke(g,[[hipX-4,25],[kneeX-5,ky-7]],col(mat,.11),.85)}
  // Foot profile: forward-pointing shoe, visible sole, heel and toe cap.
  const sole=w.shoes||"#eae6da";
- const toew=profile?16:11;
+ const toew=(profile?16:11)*(w.morph?.shoes||1);
  form(g,q=>{q.moveTo(ankleX-9,ay-9);q.lineTo(ankleX+7,ay-9);
    q.quadraticCurveTo(ankleX+toew+4,ay-7,ankleX+toew+3,ay+2);
    q.lineTo(ankleX-10,ay+3);q.closePath()},
@@ -185,12 +185,15 @@ function drawWeapon(g,p,x,y,pose,ink){
 function render(p,action,index,total,d,style,size,view="side",mode="right"){
  if(!humans.has(p.kind)||view==="top")return previous.render(p,action,index,total,d,style,size,view,mode);
  const v=root.SpriteForgeTurnaroundV5.direction(view,d,mode),faceLeft=["left","nw","sw"].includes(d);
+ const features=root.SpriteForgeLearning?.vector(p.seed)||Array(8).fill(0);
+ const morph={head:1+features[0]*.08,shoulders:1+features[1]*.065,legs:1+features[2]*.055,shoes:1+features[7]*.10};
  const pose=root.SpriteForgePoseV4.sample(action,index,total),w={...root.SpriteForgeWardrobeV6?.(p)};
  if(!w.jacket)w.jacket=p.design?.wardrobe?.clothing||p.coat;
  if(!w.pants)w.pants=p.design?.wardrobe?.pants||"#617b90";
  if(!w.shoes)w.shoes=p.design?.wardrobe?.shoes||"#eae6d8";
  if(!w.shirt)w.shirt=p.design?.wardrobe?.shirt||"#efece7";
  if(!w.hair)w.hair=p.design?.wardrobe?.hair||"#483529";
+ w.morph=morph;
  const ink=col(p.ink,-.25),skin=p.main;
  const art=document.createElement("canvas");art.width=300;art.height=300;
  const g=art.getContext("2d");g.imageSmoothingEnabled=true;g.imageSmoothingQuality="high";
@@ -200,8 +203,10 @@ function render(p,action,index,total,d,style,size,view="side",mode="right"){
  g.translate(0,pose.bob||0);
  if(pose.type==="death"){g.translate(0,(pose.crouch||0));g.rotate((pose.lean||0)*.72)}
  // Layered legs: rear leg behind near leg, with one contact baseline per frame.
+ g.save();g.scale(morph.legs,1);
  jeanLeg(g,p,v,pose,-1,w,ink);
  jeanLeg(g,p,v,pose,1,w,ink);
+ g.restore();
  if(v==="back"&&p.cape){
   form(g,q=>{q.moveTo(-30,-54);q.lineTo(-40,15);q.quadraticCurveTo(0,24,40,15);q.lineTo(30,-54)},col(w.jacket,-.26),ink,2);
  }
@@ -221,12 +226,12 @@ function render(p,action,index,total,d,style,size,view="side",mode="right"){
   frontWrist.x+=(pose.attackReach||0)*.34;
   frontWrist.y-=15+Math.sin(pose.t*Math.PI)*15;
  }
- const shoulderX=profile?10:quarter?23:30;
+ const shoulderX=(profile?10:quarter?23:30)*morph.shoulders;
  cuffsAndHands(g,skin,-shoulderX,-47,backWrist.x,backWrist.y,col(w.jacket,-.04),ink,profile);
- garment(g,p,v,w,ink);
+ g.save();g.scale(morph.shoulders,1);garment(g,p,v,w,ink);g.restore();
  jeanBackDetails(g,v,w,ink);
  // Foreground head contains the true front, profile or rear face.
- drawHead(g,p,v,w,pose,ink);
+ g.save();g.translate(0,-94);g.scale(morph.head,morph.head);g.translate(0,94);drawHead(g,p,v,w,pose,ink);g.restore();
  cuffsAndHands(g,skin,shoulderX,-47,frontWrist.x,frontWrist.y,w.jacket,ink,profile);
  if(p.scarf){
   stroke(g,[[profile?-12:-22,-65],[profile?12:22,-65]],col(p.scarf,-.1),4.7);
