@@ -35,6 +35,8 @@ jobs:
           node --check spriteforge/designer-v3.js
           node --check spriteforge/illustrator-v2.js
           node --check spriteforge/illustrator-v3.js
+          node --check spriteforge/turnaround-v5.js
+          node --check spriteforge/test_turnaround.mjs
           node --check spriteforge/local-generator.js
           node --check spriteforge/neural-engine.js
           node --check spriteforge/test_webgpu.mjs
@@ -47,3 +49,4 @@ jobs:
           node spriteforge/test_frontend.mjs
           node spriteforge/test_webgpu.mjs
           node spriteforge/test_art_preview.mjs
+          node spriteforge/test_turnaround.mjs
