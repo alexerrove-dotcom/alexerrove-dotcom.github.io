@@ -122,7 +122,7 @@ export async function validateAnimationBlob(blob){
   if(inspected.features.massFraction<.015)issues.push(i+1);
   profiles.push(hueHistogram(tile));
  }
- if(issues.length>=2)reasons.push("В нескольких кадрах по два человека или отсутствует персонаж");
+ if(issues.length>=1)reasons.push("Как минимум один кадр пустой или содержит несколько отдельных фигур");
  const scores=[];
  for(let i=1;i<profiles.length;i++)scores.push(similarity(profiles[0],profiles[i]));
  const different=scores.filter(v=>v<.50).length;
