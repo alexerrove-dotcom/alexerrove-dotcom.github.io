@@ -1,6 +1,8 @@
-/* Service worker: cache only local SpriteForge code.
-   Never cache external model weights, network API calls or user prompts. */
-const CACHE="spriteforge-offline-v3";
+/* SpriteForge offline-first availability with network-first updates.
+ * Everything needed for procedural inference is cached on this device.
+ * Neither user prompts nor AI inference are sent to a server.
+ */
+const CACHE="spriteforge-offline-v4";
 const BASE=new URL("./",self.location.href).pathname;
 const PRELOAD=["./","./index.html","./local-generator.js","./illustrator-v2.js","./manifest.json","./icon.svg","./sw.js"];
 self.addEventListener("install",event=>{
@@ -15,11 +17,15 @@ self.addEventListener("fetch",event=>{
  const url=new URL(req.url);
  if(url.origin!==self.location.origin||!url.pathname.startsWith(BASE))return;
  if(url.pathname.startsWith(BASE+"webgpu/"))return;
- event.respondWith(caches.match(req,{ignoreSearch:true}).then(cached=>{
+ event.respondWith(
+  fetch(req).then(resp=>{
+   if(resp.ok){const copy=resp.clone();caches.open(CACHE).then(cache=>cache.put(req,copy)).catch(()=>{});}
+   return resp;
+  }).catch(async()=>{
+   const cached=await caches.match(req,{ignoreSearch:true});
    if(cached)return cached;
-   return fetch(req).then(resp=>{
-     if(resp.ok){const copy=resp.clone();caches.open(CACHE).then(cache=>cache.put(req,copy)).catch(()=>{});}
-     return resp;
-   }).catch(()=>caches.match("./index.html"));
- }));
+   if(req.mode==="navigate")return await caches.match("./index.html")||Response.error();
+   return Response.error();
+  })
+ );
 });
