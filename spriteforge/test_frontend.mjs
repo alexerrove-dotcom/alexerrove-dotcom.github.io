@@ -32,7 +32,7 @@ try{
    if(!d)throw Error("V3 semantic designer not loaded");
    const fox=d.parse("Рыжий лис в зелёном шарфе с рогаткой",123);
    if(fox.kind!=="fox"||!fox.scarf||fox.scarf===fox.main)throw Error("Material colors leaked: "+JSON.stringify(fox));
-   if(!window.SpriteForgeIllustrator?.version?.startsWith("3."))throw Error("V3 renderer missing");
+   if(!window.SpriteForgeIllustrator?.version?.startsWith("5."))throw Error("Turnaround V5 renderer missing");
    if(!window.SpriteForgeFaceV4||!window.SpriteForgePoseV4)throw Error("Missing V4 anatomy rig");
    const pose=window.SpriteForgePoseV4;
    for(const name of ["walk","run"]){
