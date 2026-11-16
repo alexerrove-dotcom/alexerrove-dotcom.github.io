@@ -213,7 +213,7 @@ function weapon(g,p,c,x,y,theta){
 }
 function portrait(g,p,c,dir,index){
  const expr=["smile","laugh","surprise","neutral","sad","angry","blink","thinking"][index%8];
- g.save();g.translate(0,36);g.scale(2.0,2.0);
+ g.save();g.translate(0,60);g.scale(1.68,1.68);
  jacket(g,c,false,false,false);drawNeck(g,c);face(g,p,c,dir==="back"?"back":dir==="profile"?"profile":"front",expr,expr==="blink");
  g.restore();
 }
@@ -254,6 +254,10 @@ function render(p,action,index,total,direction,style,size,view){
   if(pose.type==="jump"){nearHand.y=-26;farHand.y=-21}
   if(pose.type==="cast"){nearHand.y=-22;farHand.y=-17}
   const shoulder=profile?11:nearX;
+  // Draw legs behind the jacket, never over the shirt, pockets, or hands.
+  const hipLeft={x:profile?-5:-front,y:hipY},hipRight={x:profile?5:front,y:hipY};
+  leg(g,hipLeft,fl,p,config,profile,back,-1);
+  leg(g,hipRight,fr,p,config,profile,back,1);
   if(config.pack){roundRect(g,profile?-15:-29,-40,16,31,4,"#a68463",config.ink,1.4)}
   sleeve(g,{x:-shoulder,y:-43},farHand,config.jacket,config.ink,false);
   jacket(g,config,profile,quarter,back);
@@ -263,10 +267,7 @@ function render(p,action,index,total,direction,style,size,view){
   sleeve(g,{x:shoulder,y:-43},nearHand,config.jacket,config.ink,true);
   weapon(g,p,config,nearHand.x+6,nearHand.y,pose.type==="attack"?pose.attackAngle*.55:0);
   g.restore();
-  // Legs use actual foot targets from the action's motion curve.
-  const hipLeft={x:profile?-5:-front,y:hipY},hipRight={x:profile?5:front,y:hipY};
-  leg(g,hipLeft,fl,p,config,profile,back,-1);
-  leg(g,hipRight,fr,p,config,profile,back,1);
+  // Feet and knees were drawn before the upper garment so layering is stable.
   if(!profile){
     line(g,[[-front+1,23],[front-1,23]],tint(config.pants,-.2),2);
     if(back)for(const s of [-1,1]){
