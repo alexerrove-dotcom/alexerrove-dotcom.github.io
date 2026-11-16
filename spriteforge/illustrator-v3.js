@@ -72,11 +72,11 @@ function ornament(g,p,cycle,side,back){
    for(let i=0;i<6;i++){let x=-17+rnd()*33,y=-1+rnd()*41;ellipse(g,x,y,2.5+rnd()*2.5,2+rnd()*2,shade(coat,-.22))}
  }
  // Feet accent / boots pattern
- const motion=/run|walk|бег|ходьба/i.test(cycle.action||"")?Math.sin(cycle.phase)*13:0;
  if(flags.boots||design.boots){
- for(const sg of [-1,1]){const x=sg*14+motion*sg;
- stroke(g,[[x-9,86],[x+11,86]],"#c39b65",2.5);
- stroke(g,[[x-6,80],[x+7,80]],outline,1.7);
+ const pose=root.SpriteForgePoseV4.sample(cycle.action||"idle",Math.round(cycle.phase*80/TWO),80);
+ for(const f of [pose.feet.left,pose.feet.right]){const x=f.x,y=f.y;
+ stroke(g,[[x-9,y+2],[x+11,y+2]],"#c39b65",2.5);
+ stroke(g,[[x-6,y-4],[x+7,y-4]],outline,1.7);
  }}
 }
 function fur(g,p,side,back,phase){
@@ -90,7 +90,7 @@ function fur(g,p,side,back,phase){
   bez(g,c=>{c.moveTo(-5,-35);c.lineTo(4,-43);c.lineTo(12,-34);c.quadraticCurveTo(0,-24,-5,-35)},shade(fur,.21),null);
   if(side){
    stroke(g,[[7,2],[17,-1],[22,0]],shade(fur,-.22),1.8);
-   ellipse(g,13,-14,2.1,3.5,"#ffffff");
+   // V4 draws pupils and highlights at anatomical landmarks; do not overdraw another eye.
    stroke(g,[[25,21],[36,23]],shade(light,-.28),1.4);
   } else if(!back){
    for(const x of [-26,25])shape(g,[[x-4,7],[x+2,10],[x,18]],light);
@@ -144,11 +144,8 @@ function equipment(g,p,phase,action){
  }
  if(p.design?.flags?.glowing){for(let n=0;n<3;n++){const x=-39+rnd()*72,y=-85+rnd()*122;sparkle(g,x,y,2,p.accent)}}
  // Attach thumb around the existing tool handle, never a detached floating hand.
- if(p.weapon){
- const move=/run|walk|бег|ходьб/i.test(action),attack=/attack|атак|shoot|стрел|удар/i.test(action),swing=move?Math.sin(phase)*13:attack?Math.sin(Math.PI*(phase/TWO))*23:0;
- const hy=attack?-29+23*Math.sin(phase):28,hx=35+swing;
- ellipse(g,hx+3,hy-1,5.1,6.9,grad(g,hx,hy-9,hx+7,hy+8,shade(f,.22),shade(f,-.12)),outline,1.3,.13);
- }
+ // Hand and equipment were already painted by the V4 pose rig at one wrist joint.
+ // Do not add a second free-floating glove here.
 }
 // Deterministic canvas surface treatment. Material is confined to opaque pixels;
 // no random noise in the transparent game sprite background.
@@ -229,14 +226,15 @@ function character(p,action,index,total,direction,style,size,view){
  if(view==="top"){return finish(topView(p,action,index,total,direction,style),size,style)}
  const src=root.SpriteForgeIllustratorV2.render(p,action,index,total,direction,"painted",320);
  const raw=canvas(320,320);const g=raw.getContext("2d");g.drawImage(src,0,0);
- const phase=index*TWO/total,t=index/Math.max(1,total-1);
- const movement=/run|walk|бег|ходьб/i.test(action),fast=/run|бег/i.test(action),attack=/attack|атак|стрел|shoot/i.test(action),jump=/jump|прыж/i.test(action),fly=/fly|лет|полёт|полет/i.test(action),death=/death|смерт|погиб/i.test(action),hurt=/hurt|урон/i.test(action);
- const bob=fast?-5*Math.abs(Math.sin(phase)):movement?-3*Math.abs(Math.sin(phase)):jump?-33*Math.sin(Math.PI*t):fly?-11*Math.sin(phase):1.3*Math.sin(phase);
+ const pose=root.SpriteForgePoseV4.sample(action,index,total),phase=pose.phase,t=pose.t;
  g.save();g.translate(144,159);g.scale(p.giant?1.05:p.small?.9:1,p.giant?1.05:p.small?.9:1);
  if(["left","nw","sw"].includes(direction))g.scale(-1,1);
- if(death){g.translate(0,t*33);g.rotate(t*1.25)}
- if(hurt){g.translate(Math.sin(phase*3)*5,0);g.rotate(Math.sin(phase*3)*.09)}
- g.translate(0,bob);
+ if(pose.type==="death"){g.translate(0,t*17);g.rotate(t*1.05)}
+ if(pose.type==="hurt"){g.translate(Math.sin(phase*2.5)*4,0);g.rotate(Math.sin(phase*2.5)*.065)}
+ g.translate(0,pose.bob);
+ g.translate(0,pose.crouch*.45);
+ g.rotate(pose.lean);
+ g.scale(1,pose.torso*(1+pose.squash));
  // Procedural costume and secondary-character detailing, anchored to local rig.
  ornament(g,p,{phase,action},direction,["up","nw","ne"].includes(direction));
  fur(g,p,["right","left","se","sw","ne","nw"].includes(direction),["up","nw","ne"].includes(direction),phase);
