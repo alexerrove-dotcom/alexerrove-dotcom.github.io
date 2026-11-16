@@ -96,9 +96,9 @@ footer a{color:#d5e2ff}
 <header><div class="wrap nav"><div class="mark">SF</div><div><div class="logo">SpriteForge <em>RU</em></div><div class="navsmall">Персонажи и анимации для игр</div></div><span class="navtag">Без регистрации</span></div></header>
 <main class="wrap">
  <section class="hero">
-  <div class="overline">Нейростудия · V13</div>
+  <div class="overline">Нейростудия · V14</div>
   <h1>Персонаж и покадровая анимация по описанию.</h1>
-  <p>Сначала ИИ рисует героя, затем генерирует отдельный спрайт-лист движения, ориентируясь на исходный рисунок и восемь поз. Внешность и сетка кадров пока не гарантируются идеально.</p>
+  <p>Описание учитывается вместе с художественными правилами по твоим примерам: цельный персонаж, чистые контуры, выразительное лицо. Затем генератор выбирает подходящую нейросеть и создаёт лист движений.</p>
  </section>
  <section class="panel" aria-labelledby="createTitle">
   <div class="step-label">Шаг 1</div>
@@ -162,14 +162,14 @@ footer a{color:#d5e2ff}
   </div>
  </section>
 </main>
-<footer><div class="wrap">SpriteForge RU · Генерация изображений на бесплатных GPU <a href="https://aihorde.net/" target="_blank" rel="noopener noreferrer">AI Horde</a>. Описание отправляется стороннему сервису. Очередь и фильтры внешнего ИИ могут ограничивать результат. ИИ рисует кадры через AI Horde; V13 отбраковывает явные ошибки числа фигур и несоответствия кадров. Проверка не гарантирует идентичность лица и корректную анатомию.</div></footer>
+<footer><div class="wrap">SpriteForge RU · Генерация изображений на бесплатных GPU <a href="https://aihorde.net/" target="_blank" rel="noopener noreferrer">AI Horde</a>. Описание отправляется стороннему сервису. Очередь и фильтры внешнего ИИ могут ограничивать результат. ИИ-рисунки создаются через AI Horde. V14 закрепляет художественную модель, применяет правила по образцам и учитывает результаты автоматической проверки. Это не обучение весов нейросети. Качество отдельных кадров не гарантируется.</div></footer>
 <script src="./local-generator.js"></script>
 <script type="module">
 /* SpriteForge V11 — one prompt, one Generate button, optional animation below.
  * All image generation goes through the existing anonymous AI Horde adapter.
  * Sprite sheets use the same locked input image and are generated locally.
  */
-import {generate,cancelCurrent} from "./neural-engine.js?v=12";
+import {generate,cancelCurrent} from "./neural-engine.js?v=14";
 const $=id=>document.getElementById(id);
 const form=$("characterForm"),input=$("description"),
   create=$("createButton"),createStatus=$("createStatus"),
