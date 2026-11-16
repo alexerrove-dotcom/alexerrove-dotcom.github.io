@@ -316,7 +316,7 @@ for(const [dir,action,i,cell] of allFrames){
 }
 const zip=URL.createObjectURL(makeZip(files));
 return {sheet:data,atlas:atlasUrl,zip,gif:null,frames,columns:frames,cell_size:sz,
-directions:dirs.length,actions,actionCount:actions.length,totalFrames:total,
+directions:dirs.length,directionNames:dirs,actions,actionCount:actions.length,totalFrames:total,
 engine:"local-procedural",description:p.kind,offline:true,seed:p.seed,version:"3.0.0"};
 }
 global.SpriteForgeLocal={generate,parse,makeZip,version:"2.0.0"};
