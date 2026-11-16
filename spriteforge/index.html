@@ -96,9 +96,9 @@ footer a{color:#d5e2ff}
 <header><div class="wrap nav"><div class="mark">SF</div><div><div class="logo">SpriteForge <em>RU</em></div><div class="navsmall">Персонажи и анимации для игр</div></div><span class="navtag">Без регистрации</span></div></header>
 <main class="wrap">
  <section class="hero">
-  <div class="overline">Нейростудия · V11</div>
-  <h1>Опиши персонажа. Получи рисунок и анимацию.</h1>
-  <p>Сначала создаётся один новый герой по твоему описанию, затем из него собираются кадры выбранного движения в спрайт-лист, как на твоём примере.</p>
+  <div class="overline">Нейростудия · V12</div>
+  <h1>Персонаж и покадровая анимация по описанию.</h1>
+  <p>Сначала ИИ рисует героя, затем генерирует отдельный спрайт-лист движения, ориентируясь на исходный рисунок и восемь поз. Внешность и сетка кадров пока не гарантируются идеально.</p>
  </section>
  <section class="panel" aria-labelledby="createTitle">
   <div class="step-label">Шаг 1</div>
@@ -127,7 +127,7 @@ footer a{color:#d5e2ff}
  <section class="panel section" id="animationPanel" aria-labelledby="animationTitle">
   <div class="step-label">Шаг 2</div>
   <h2 id="animationTitle">Выбери анимацию</h2>
-  <p>Получишь готовую последовательность кадров на одном листе. Можно выбрать одно действие или весь комплект.</p>
+  <p>ИИ перерисует восемь поз героя на одном листе. Это новая генерация кадров, а не растягивание одной картинки. Обработка происходит на бесплатных видеокартах и может занять несколько минут. Полный комплект требует шесть последовательных запросов.</p>
   <div id="motions" class="motions" role="group" aria-label="Движения персонажа">
    <button type="button" class="motion" data-action="idle" disabled>Ожидание</button>
    <button type="button" class="motion selected" data-action="walk" disabled>Ходьба</button>
@@ -137,7 +137,7 @@ footer a{color:#d5e2ff}
    <button type="button" class="motion" data-action="death" disabled>Смерть</button>
    <button type="button" class="motion" data-action="pack" disabled>Весь комплект</button>
   </div>
-  <button id="animateButton" type="button" class="btn primary animate-submit" disabled>Создать анимацию</button>
+  <button id="animateButton" type="button" class="btn primary animate-submit" disabled>Нарисовать кадры анимации</button><button id="cancelAnimation" type="button" class="btn cancel" hidden>Отменить генерацию кадров</button>
   <div id="animationStatus" class="status" role="status" aria-live="polite" data-kind="info">Сначала создай персонажа в поле выше.</div>
   <div id="animationProgress" class="progress" hidden></div>
   <div id="animationResult" hidden>
@@ -145,7 +145,7 @@ footer a{color:#d5e2ff}
     <div class="preview-card">
      <h2>Просмотр движения</h2>
      <canvas id="animationCanvas" width="256" height="256" aria-label="Анимированный просмотр персонажа"></canvas>
-     <p class="caption">Анимация автоматически повторяется</p>
+     <p class="caption">Предпросмотр нейросетевых кадров автоматически повторяется</p>
     </div>
     <div>
      <h2>Спрайт-лист</h2>
@@ -162,18 +162,18 @@ footer a{color:#d5e2ff}
   </div>
  </section>
 </main>
-<footer><div class="wrap">SpriteForge RU · Генерация изображений на бесплатных GPU <a href="https://aihorde.net/" target="_blank" rel="noopener noreferrer">AI Horde</a>. Описание отправляется стороннему сервису. Очередь и фильтры внешнего ИИ могут ограничивать результат. Анимация создаётся покадровым 2D-ригом из оригинального изображения, а не новой нейросетевой отрисовкой каждого кадра.</div></footer>
+<footer><div class="wrap">SpriteForge RU · Генерация изображений на бесплатных GPU <a href="https://aihorde.net/" target="_blank" rel="noopener noreferrer">AI Horde</a>. Описание отправляется стороннему сервису. Очередь и фильтры внешнего ИИ могут ограничивать результат. Покадровые рисунки создаёт AI Horde через img2img по образцу одного героя. Внешность может отличаться от кадра к кадру; бесплатный сервис не гарантирует точную сетку и качество.</div></footer>
 <script src="./local-generator.js"></script>
 <script type="module">
 /* SpriteForge V11 — one prompt, one Generate button, optional animation below.
  * All image generation goes through the existing anonymous AI Horde adapter.
  * Sprite sheets use the same locked input image and are generated locally.
  */
-import {generate,cancelCurrent} from "./neural-engine.js?v=11";
+import {generate,cancelCurrent} from "./neural-engine.js?v=12";
 const $=id=>document.getElementById(id);
 const form=$("characterForm"),input=$("description"),
   create=$("createButton"),createStatus=$("createStatus"),
-  createProgress=$("createProgress"),cancel=$("cancelButton"),
+  createProgress=$("createProgress"),cancel=$("cancelButton"),cancelMotion=$("cancelAnimation"),
   charResult=$("characterResult"),charImg=$("characterImage"),
   downloadCharacter=$("downloadCharacter"),motionButtons=[...document.querySelectorAll(".motion")],
   animate=$("animateButton"),animStatus=$("animationStatus"),animProgress=$("animationProgress"),
@@ -204,6 +204,7 @@ function setBusy(value,kind="generate"){
  busy=value;
  create.disabled=value;input.disabled=value;
  cancel.hidden=!(value&&kind==="generate");cancel.disabled=!value;
+ cancelMotion.hidden=!(value&&kind==="animate");cancelMotion.disabled=!value;
  const canAnimate=!value&&!!blueprint;
  animate.disabled=!canAnimate;
  for(const b of motionButtons)b.disabled=!canAnimate;
@@ -296,13 +297,18 @@ animate.addEventListener("click",async()=>{
    :result.frames+" последовательных кадров одного персонажа на одном листе.";
   animResult.hidden=false;
   playAnimation(result);
-  status(animStatus,"Готово. Анимация воспроизводится выше; ниже можно скачать PNG, ZIP или JSON.","success");
+  status(animStatus,"Нейросеть нарисовала кадры. "+(result.warnings?.length?"Проверь результат: "+result.warnings.join("; "):"Проверь согласованность лица, одежды и ног.")+" Доступны PNG, ZIP и JSON.","success");
   animResult.scrollIntoView({behavior:"smooth",block:"start"});
  }catch(err){status(animStatus,"Не удалось создать анимацию: "+(err?.message||String(err)),"error")}
  finally{
-  animate.textContent="Создать анимацию";
+  animate.textContent="Нарисовать кадры анимации";
   setBusy(false,"animate");
  }
+});
+cancelMotion.addEventListener("click",async()=>{
+ cancelMotion.disabled=true;
+ status(animStatus,"Отменяем текущую нейросетевую генерацию…","progress");
+ try{await cancelCurrent()}catch(e){status(animStatus,"Ошибка отмены: "+e.message,"error")}
 });
 cancel.addEventListener("click",async()=>{
  cancel.disabled=true;
